@@ -107,28 +107,25 @@ LLM, не меняет банковские оценки и не рассчит�
 ```json
 {
   "code": "ARBITRATION_DEFENDANT",
-  "domain": "LEGAL",
-  "type": "NEGATIVE",
-  "impact_level": "MEDIUM",
-  "origin": "SOURCE_SIGNAL",
+  "domain": "LEGAL_RISKS",
+  "type": "SOURCE_SIGNAL",
+  "value": "NEGATIVE",
   "description": "Описание из отчёта",
+  "source": "report.reputationalRisks.negative[0]",
   "evidence": [
     {
       "source_type": "SOURCE_SIGNAL",
       "source_path": "report.reputationalRisks.negative[0]",
-      "metric": "reputational_signal_code",
-      "value": "ARBITRATION_DEFENDANT"
+      "metric": "reputational_signal_polarity",
+      "value": "NEGATIVE"
     }
-  ],
-  "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-  "rule_version": "source-signal/v1"
+  ]
 }
 ```
 
-Для source signals `impact_level` — приоритет внимания в интерфейсе, а не
-вероятность дефолта: positive получает `LOW`, negative — `MEDIUM`. Исходная
-полярность не меняется. Derived signals хранятся отдельно и описаны в
-`docs/risk-signals.md`.
+`value` сохраняет исходную полярность `POSITIVE`/`NEGATIVE`. Она не
+преобразуется в severity, impact или собственное решение о риске. Рассчитанные
+метрики остаются в `derived_metrics`, а не превращаются в risk signals.
 
 ## Судебные источники
 
@@ -150,7 +147,7 @@ LLM, не меняет банковские оценки и не рассчит�
 - `PARTIAL_DERIVED_METRICS`;
 - `ARBITRATION_SCOPE_DIFFERENCE`.
 
-Отсутствие source signal не трактуется как отсутствие риска. Проверяются только
+Отсутствие source signal не трактуется как отсутствие факта. Проверяются только
 коды, для которых в текущем JSON есть однозначный raw-аналог.
 
 ## Известные ограничения качества данных
@@ -182,4 +179,5 @@ LLM, не меняет банковские оценки и не рассчит�
 ```
 
 Пример пяти профилей: `output/normalized/contractors_sample_5.json`.
-Изменения контракта v2 описаны в `docs/migrations/normalized-profile-v2.md`.
+Context Builder описан в `docs/context-builder.md`, миграция — в
+`docs/migrations/fact-signal-context-v3.md`.

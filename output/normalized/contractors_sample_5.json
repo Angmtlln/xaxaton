@@ -408,291 +408,259 @@
       "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[0]",
-              "metric": "reputational_signal_code",
-              "value": "FNS_BLOCKING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "RELATED_COMPANIES",
           "domain": "RELATED_COMPANIES",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
+          "source": "report.reputationalRisks.positive[1]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[1]",
-              "metric": "reputational_signal_code",
-              "value": "RELATED_COMPANIES"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
           "domain": "ENFORCEMENT",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[2]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[2]",
-              "metric": "reputational_signal_code",
-              "value": "EXECUTION_PROCEEDINGS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[3]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[3]",
-              "metric": "reputational_signal_code",
-              "value": "LIQUIDATION_STATUS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[4]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[4]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[5]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[5]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[6]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[6]",
-              "metric": "reputational_signal_code",
-              "value": "DISHONEST_PROVIDER"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[7]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[7]",
-              "metric": "reputational_signal_code",
-              "value": "DISQUALIFIED_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "LEGAL",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "LEGAL_RISKS",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[8]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[8]",
-              "metric": "reputational_signal_code",
-              "value": "ARBITRATION_DEFENDANT"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[9]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[9]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_ARREARS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[10]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[10]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_REPORTING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[11]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[11]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[12]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[12]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_AUTHPERSONS_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[13]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[13]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_REGISTRATION_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "PROCEEDS",
-          "domain": "FINANCE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "FINANCIAL_HEALTH",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании есть выручка за предыдущий год в размере 60746.0 тыс. руб., что свидетельствует о наличии стабильного дохода и успешной деятельности.",
+          "source": "report.reputationalRisks.positive[14]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[14]",
-              "metric": "reputational_signal_code",
-              "value": "PROCEEDS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_OKVED",
           "domain": "BUSINESS_PROFILE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[15]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[15]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_OKVED"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         }
       ],
       "inspections_source_available": false,
@@ -1198,255 +1166,227 @@
       "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[0]",
-              "metric": "reputational_signal_code",
-              "value": "FNS_BLOCKING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
           "domain": "ENFORCEMENT",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[1]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[1]",
-              "metric": "reputational_signal_code",
-              "value": "EXECUTION_PROCEEDINGS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[2]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[2]",
-              "metric": "reputational_signal_code",
-              "value": "LIQUIDATION_STATUS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[3]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[3]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[4]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[4]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[5]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[5]",
-              "metric": "reputational_signal_code",
-              "value": "DISHONEST_PROVIDER"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[6]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[6]",
-              "metric": "reputational_signal_code",
-              "value": "DISQUALIFIED_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "LEGAL",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "LEGAL_RISKS",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[7]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[7]",
-              "metric": "reputational_signal_code",
-              "value": "ARBITRATION_DEFENDANT"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[8]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[8]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_ARREARS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[9]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[9]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_REPORTING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[10]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[10]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[11]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[11]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_AUTHPERSONS_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[12]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[12]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_REGISTRATION_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_OKVED",
           "domain": "BUSINESS_PROFILE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[13]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[13]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_OKVED"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         }
       ],
       "inspections_source_available": false,
@@ -2627,327 +2567,291 @@
       "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[0]",
-              "metric": "reputational_signal_code",
-              "value": "FNS_BLOCKING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "RELATED_COMPANIES",
           "domain": "RELATED_COMPANIES",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
+          "source": "report.reputationalRisks.positive[1]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[1]",
-              "metric": "reputational_signal_code",
-              "value": "RELATED_COMPANIES"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
           "domain": "ENFORCEMENT",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[2]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[2]",
-              "metric": "reputational_signal_code",
-              "value": "EXECUTION_PROCEEDINGS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[3]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[3]",
-              "metric": "reputational_signal_code",
-              "value": "LIQUIDATION_STATUS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[4]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[4]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[5]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[5]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[6]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[6]",
-              "metric": "reputational_signal_code",
-              "value": "DISHONEST_PROVIDER"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[7]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[7]",
-              "metric": "reputational_signal_code",
-              "value": "DISQUALIFIED_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "LEGAL",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "LEGAL_RISKS",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[8]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[8]",
-              "metric": "reputational_signal_code",
-              "value": "ARBITRATION_DEFENDANT"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[9]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[9]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_ARREARS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[10]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[10]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_REPORTING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[11]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[11]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[12]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[12]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_AUTHPERSONS_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[13]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[13]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_REGISTRATION_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_OKVED",
           "domain": "BUSINESS_PROFILE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[14]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[14]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_OKVED"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "CURRENT_ASSETS",
-          "domain": "FINANCE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "FINANCIAL_HEALTH",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании имеются оборотные активы в размере 121259.0 тыс. руб., что обеспечивает достаточную ликвидность для покрытия краткосрочных обязательств и ведения текущей деятельности.",
+          "source": "report.reputationalRisks.positive[15]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[15]",
-              "metric": "reputational_signal_code",
-              "value": "CURRENT_ASSETS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "UNCURRENT_ASSETS",
-          "domain": "FINANCE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "FINANCIAL_HEALTH",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании есть внеоборотные активы на сумму 237739.0 тыс. руб., что, вероятно, может говорить о стабильном положении и долгосрочных перспективах развития.",
+          "source": "report.reputationalRisks.positive[16]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[16]",
-              "metric": "reputational_signal_code",
-              "value": "UNCURRENT_ASSETS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "PROFIT",
-          "domain": "FINANCE",
-          "type": "NEGATIVE",
-          "impact_level": "MEDIUM",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "FINANCIAL_HEALTH",
+          "type": "SOURCE_SIGNAL",
+          "value": "NEGATIVE",
           "description": "Компания понесла убыток в размере -6518.0 тыс. руб., что может указывать на нестабильность финансовых результатов.",
+          "source": "report.reputationalRisks.negative[0]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.negative[0]",
-              "metric": "reputational_signal_code",
-              "value": "PROFIT"
+              "metric": "reputational_signal_polarity",
+              "value": "NEGATIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         }
       ],
       "inspections_source_available": false,
@@ -3452,255 +3356,227 @@
       "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[0]",
-              "metric": "reputational_signal_code",
-              "value": "FNS_BLOCKING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
           "domain": "ENFORCEMENT",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[1]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[1]",
-              "metric": "reputational_signal_code",
-              "value": "EXECUTION_PROCEEDINGS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[2]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[2]",
-              "metric": "reputational_signal_code",
-              "value": "LIQUIDATION_STATUS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[3]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[3]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[4]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[4]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[5]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[5]",
-              "metric": "reputational_signal_code",
-              "value": "DISHONEST_PROVIDER"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[6]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[6]",
-              "metric": "reputational_signal_code",
-              "value": "DISQUALIFIED_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "LEGAL",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "LEGAL_RISKS",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[7]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[7]",
-              "metric": "reputational_signal_code",
-              "value": "ARBITRATION_DEFENDANT"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[8]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[8]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_ARREARS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[9]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[9]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_REPORTING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[10]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[10]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[11]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[11]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_AUTHPERSONS_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[12]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[12]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_REGISTRATION_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_OKVED",
           "domain": "BUSINESS_PROFILE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[13]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[13]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_OKVED"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         }
       ],
       "inspections_source_available": false,
@@ -4637,327 +4513,291 @@
       "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[0]",
-              "metric": "reputational_signal_code",
-              "value": "FNS_BLOCKING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "RELATED_COMPANIES",
           "domain": "RELATED_COMPANIES",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
+          "source": "report.reputationalRisks.positive[1]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[1]",
-              "metric": "reputational_signal_code",
-              "value": "RELATED_COMPANIES"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
           "domain": "ENFORCEMENT",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[2]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[2]",
-              "metric": "reputational_signal_code",
-              "value": "EXECUTION_PROCEEDINGS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[3]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[3]",
-              "metric": "reputational_signal_code",
-              "value": "LIQUIDATION_STATUS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[4]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[4]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[5]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[5]",
-              "metric": "reputational_signal_code",
-              "value": "DISHONEST_PROVIDER"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[6]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[6]",
-              "metric": "reputational_signal_code",
-              "value": "DISQUALIFIED_AUTHPERSONS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "LEGAL",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "LEGAL_RISKS",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[7]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[7]",
-              "metric": "reputational_signal_code",
-              "value": "ARBITRATION_DEFENDANT"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[8]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[8]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_ARREARS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[9]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[9]",
-              "metric": "reputational_signal_code",
-              "value": "TAX_REPORTING"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[10]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[10]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
           "domain": "OWNERSHIP",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[11]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[11]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_AUTHPERSONS_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "REGISTRY",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[12]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[12]",
-              "metric": "reputational_signal_code",
-              "value": "INVALID_REGISTRATION_DATA"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "PROCEEDS",
-          "domain": "FINANCE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "FINANCIAL_HEALTH",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании есть выручка за предыдущий год в размере 806284.0 тыс. руб., что свидетельствует о наличии стабильного дохода и успешной деятельности.",
+          "source": "report.reputationalRisks.positive[13]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[13]",
-              "metric": "reputational_signal_code",
-              "value": "PROCEEDS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "PROFIT",
-          "domain": "FINANCE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "FINANCIAL_HEALTH",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании есть прибыль за предыдущий год в размере 7894.0 тыс. руб., что указывает на эффективное управление затратами и положительные финансовые результаты.",
+          "source": "report.reputationalRisks.positive[14]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[14]",
-              "metric": "reputational_signal_code",
-              "value": "PROFIT"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "CURRENT_ASSETS",
-          "domain": "FINANCE",
-          "type": "POSITIVE",
-          "impact_level": "LOW",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "FINANCIAL_HEALTH",
+          "type": "SOURCE_SIGNAL",
+          "value": "POSITIVE",
           "description": "У компании имеются оборотные активы в размере 18696.0 тыс. руб., что обеспечивает достаточную ликвидность для покрытия краткосрочных обязательств и ведения текущей деятельности.",
+          "source": "report.reputationalRisks.positive[15]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.positive[15]",
-              "metric": "reputational_signal_code",
-              "value": "CURRENT_ASSETS"
+              "metric": "reputational_signal_polarity",
+              "value": "POSITIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_OKVED",
           "domain": "BUSINESS_PROFILE",
-          "type": "NEGATIVE",
-          "impact_level": "MEDIUM",
-          "origin": "SOURCE_SIGNAL",
+          "type": "SOURCE_SIGNAL",
+          "value": "NEGATIVE",
           "description": "Компания имеет большое количество кодов ОКВЭД, что  может быть связано с попыткой компании охватить как можно больше направлений бизнеса, это может отрицательно сказаться на ее эффективности и надежности.",
+          "source": "report.reputationalRisks.negative[0]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.negative[0]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_OKVED"
+              "metric": "reputational_signal_polarity",
+              "value": "NEGATIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "REGISTRY",
-          "type": "NEGATIVE",
-          "impact_level": "MEDIUM",
-          "origin": "SOURCE_SIGNAL",
+          "domain": "COMPLIANCE",
+          "type": "SOURCE_SIGNAL",
+          "value": "NEGATIVE",
           "description": "Находится в реестре организаций с массовым адресом, что может быть признаком фиктивной регистрации.",
+          "source": "report.reputationalRisks.negative[1]",
           "evidence": [
             {
               "source_type": "SOURCE_SIGNAL",
               "source_path": "report.reputationalRisks.negative[1]",
-              "metric": "reputational_signal_code",
-              "value": "MASS_ADDRESS"
+              "metric": "reputational_signal_polarity",
+              "value": "NEGATIVE"
             }
-          ],
-          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
-          "rule_version": "source-signal/v1"
+          ]
         }
       ],
       "inspections_source_available": false,

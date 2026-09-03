@@ -1,21 +1,14 @@
-"""Детерминированный слой данных для проверки контрагентов."""
+"""Нормализация данных и сборка фактического контекста контрагента."""
 
-from .models import NormalizedCompanyProfile, RiskSignal
+from .context_builder import build_context, select_relevant_domains
+from .models import FactSignal, NormalizedCompanyProfile
 from .normalization import normalize_record, normalize_records
-from .risk_signals import (
-    RiskRuleConfig,
-    generate_risk_signal_dicts,
-    generate_risk_signals,
-    load_rule_config,
-)
 
 __all__ = [
+    "FactSignal",
     "NormalizedCompanyProfile",
-    "RiskRuleConfig",
-    "RiskSignal",
-    "generate_risk_signal_dicts",
-    "generate_risk_signals",
-    "load_rule_config",
+    "build_context",
     "normalize_record",
     "normalize_records",
+    "select_relevant_domains",
 ]

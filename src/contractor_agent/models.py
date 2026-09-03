@@ -7,9 +7,7 @@ from typing import Any, Literal
 
 
 MetricStatus = Literal["CALCULATED", "PARTIAL", "NOT_AVAILABLE", "NOT_APPLICABLE"]
-RiskType = Literal["POSITIVE", "NEGATIVE", "CONFLICT"]
-RiskImpactLevel = Literal["LOW", "MEDIUM", "HIGH"]
-RiskOrigin = Literal["SOURCE_SIGNAL", "DERIVED_RULE"]
+FactSignalType = Literal["RAW_FACT", "DERIVED_METRIC", "SOURCE_SIGNAL"]
 
 
 @dataclass(slots=True)
@@ -31,7 +29,7 @@ class Conflict:
 
 
 @dataclass(slots=True)
-class SignalEvidence:
+class FactEvidence:
     source_type: str
     source_path: str
     metric: str
@@ -39,19 +37,17 @@ class SignalEvidence:
 
 
 @dataclass(slots=True)
-class RiskSignal:
+class FactSignal:
     code: str
     domain: str
-    type: RiskType
-    impact_level: RiskImpactLevel
-    origin: RiskOrigin
+    type: FactSignalType
+    value: Any
     description: str
-    evidence: list[SignalEvidence]
-    rule: str
-    rule_version: str
+    source: str
+    evidence: list[FactEvidence]
 
     def to_dict(self) -> dict[str, Any]:
-        """Возвращает JSON-совместимый risk signal."""
+        """Возвращает JSON-совместимый факт или рассчитанную метрику."""
         return asdict(self)
 
 
@@ -127,7 +123,7 @@ class Enforcement:
 
 @dataclass(slots=True)
 class Compliance:
-    source_signals: list[RiskSignal] = field(default_factory=list)
+    source_signals: list[FactSignal] = field(default_factory=list)
     inspections_source_available: bool = False
     inspections: list[dict[str, Any]] = field(default_factory=list)
     licenses_source_available: bool = False

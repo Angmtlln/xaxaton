@@ -5,6 +5,7 @@ import os
 import unittest
 from pathlib import Path
 
+from contractor_agent.context_builder import build_context
 from contractor_agent.normalization import load_records, normalize_records
 
 
@@ -24,6 +25,15 @@ class RealJsonSampleTest(unittest.TestCase):
             self.assertTrue(profile["derived_metrics"])
             self.assertTrue(
                 all(metric["source_fields"] for metric in profile["derived_metrics"].values())
+            )
+            context = build_context(profile, "Есть ли судебные дела?")
+            self.assertEqual(
+                context["selected_domains"],
+                ["COMPANY_IDENTITY", "BANK_RISK", "LEGAL_RISKS"],
+            )
+            self.assertTrue(context["facts"])
+            self.assertNotIn(
+                "impact_level", json.dumps(context, ensure_ascii=False)
             )
             json.dumps(profile, ensure_ascii=False)
 

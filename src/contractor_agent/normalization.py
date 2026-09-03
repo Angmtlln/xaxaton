@@ -22,14 +22,14 @@ from .models import (
     DataQuality,
     DerivedMetric,
     Enforcement,
+    FactEvidence,
+    FactSignal,
     FinancialHealth,
     LegalRisks,
     NormalizedCompanyProfile,
     Ownership,
     Procurement,
     RelatedCompanies,
-    RiskSignal,
-    SignalEvidence,
 )
 
 
@@ -37,14 +37,14 @@ TRANSACTION_AMOUNT_UNIT = "RUB"
 
 _MONGO_NUMBER_KEYS = ("$numberLong", "$numberInt", "$numberDouble", "$numberDecimal")
 _CHAPTER_DOMAINS = {
-    "arbitr": "LEGAL",
+    "arbitr": "LEGAL_RISKS",
     "execproc": "ENFORCEMENT",
     "filials": "BUSINESS_PROFILE",
-    "finance": "FINANCE",
+    "finance": "FINANCIAL_HEALTH",
     "license": "COMPLIANCE",
     "manager": "OWNERSHIP",
     "okved": "BUSINESS_PROFILE",
-    "reestrs": "REGISTRY",
+    "reestrs": "COMPLIANCE",
     "relatedcomp": "RELATED_COMPANIES",
     "site": "COMPANY_IDENTITY",
 }
@@ -57,7 +57,6 @@ _PRESENCE_SIGNAL_POLARITY = {
     "RELATED_COMPANIES": "POSITIVE",
     "WEB_SITE": "POSITIVE",
 }
-_SOURCE_SIGNAL_RULE_VERSION = "source-signal/v1"
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
@@ -232,28 +231,26 @@ def _record_id(record: dict[str, Any]) -> str | None:
 
 def _normalize_signal(
     item: dict[str, Any], polarity: str, index: int
-) -> RiskSignal:
+) -> FactSignal:
     chapter = (_text(item.get("chapter")) or "").casefold()
     signal_type = polarity.upper()
     source_path = f"report.reputationalRisks.{polarity}[{index}]"
     code = _canonical_signal_code(item.get("code"))
-    return RiskSignal(
+    return FactSignal(
         code=code,
         domain=_CHAPTER_DOMAINS.get(chapter, "COMPLIANCE"),
-        type=signal_type,  # type: ignore[arg-type]
-        impact_level="LOW" if signal_type == "POSITIVE" else "MEDIUM",
-        origin="SOURCE_SIGNAL",
+        type="SOURCE_SIGNAL",
+        value=signal_type,
         description=_text(item.get("name")) or code,
+        source=source_path,
         evidence=[
-            SignalEvidence(
+            FactEvidence(
                 source_type="SOURCE_SIGNAL",
                 source_path=source_path,
-                metric="reputational_signal_code",
-                value=code,
+                metric="reputational_signal_polarity",
+                value=signal_type,
             )
         ],
-        rule="Сигнал перенесён из reputationalRisks без изменения полярности.",
-        rule_version=_SOURCE_SIGNAL_RULE_VERSION,
     )
 
 
@@ -472,16 +469,16 @@ def _metric_presence(
 
 
 def _add_source_conflicts(
-    source_signals: list[RiskSignal],
+    source_signals: list[FactSignal],
     raw_presence: dict[str, tuple[bool | None, list[str]]],
 ) -> list[Conflict]:
     conflicts: list[Conflict] = []
-    positive_codes = {item.code for item in source_signals if item.type == "POSITIVE"}
-    negative_codes = {item.code for item in source_signals if item.type == "NEGATIVE"}
+    positive_codes = {item.code for item in source_signals if item.value == "POSITIVE"}
+    negative_codes = {item.code for item in source_signals if item.value == "NEGATIVE"}
 
     for code in sorted(positive_codes & negative_codes):
         sources = [
-            item.evidence[0].source_path
+            item.source
             for item in source_signals
             if item.code == code
         ]
@@ -504,7 +501,7 @@ def _add_source_conflicts(
             else ("POSITIVE" if expected_when_present == "NEGATIVE" else "NEGATIVE")
         )
         for signal in source_signals:
-            if signal.code != code or signal.type == expected_polarity:
+            if signal.code != code or signal.value == expected_polarity:
                 continue
             conflicts.append(
                 Conflict(
@@ -514,7 +511,7 @@ def _add_source_conflicts(
                         f"Raw-признак {', '.join(raw_sources)} противоречит полярности "
                         "reputational signal."
                     ),
-                    source_fields=[*raw_sources, signal.evidence[0].source_path],
+                    source_fields=[*raw_sources, signal.source],
                 )
             )
     return conflicts

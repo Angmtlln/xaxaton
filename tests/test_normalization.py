@@ -283,23 +283,26 @@ class NormalizationTest(unittest.TestCase):
         signal = profile["compliance"]["source_signals"][0]
 
         self.assertEqual(signal["code"], "ARBITRATION_DEFENDANT")
-        self.assertEqual(signal["domain"], "LEGAL")
-        self.assertEqual(signal["type"], "POSITIVE")
-        self.assertEqual(signal["origin"], "SOURCE_SIGNAL")
+        self.assertEqual(signal["domain"], "LEGAL_RISKS")
+        self.assertEqual(signal["type"], "SOURCE_SIGNAL")
+        self.assertEqual(signal["value"], "POSITIVE")
         self.assertEqual(
             set(signal),
             {
                 "code",
                 "domain",
                 "type",
-                "impact_level",
-                "origin",
+                "value",
                 "description",
+                "source",
                 "evidence",
-                "rule",
-                "rule_version",
             },
         )
+        self.assertEqual(
+            set(signal["evidence"][0]),
+            {"source_type", "source_path", "metric", "value"},
+        )
+        self.assertEqual(signal["source"], signal["evidence"][0]["source_path"])
         self.assertTrue(
             any(
                 conflict["type"] == "SOURCE_CONFLICT"
