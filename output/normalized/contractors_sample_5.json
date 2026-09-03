@@ -1,0 +1,3936 @@
+[
+  {
+    "company_identity": {
+      "source_record_id": "1241600001048",
+      "inn": "1684017097",
+      "ogrn": "1241600001048",
+      "name": "ООО \"ТЕХПРОФ\"",
+      "full_name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ТЕХПРОФ\"",
+      "address": "420005,  РЕСПУБЛИКА ТАТАРСТАН (ТАТАРСТАН), городской округ ГОРОД КАЗАНЬ, Г КАЗАНЬ, УЛ АЛЕБАСТРОВАЯ, Д. 1А, ОФИС 3",
+      "email": "tekhprof@mail.ru",
+      "website": null,
+      "company_size": "Микропредприятие",
+      "registration_date": "2024-01-14T21:00:00.000Z",
+      "reported_company_age_years": 2,
+      "status": "CURRENT",
+      "status_date": "2026-01-12T21:00:00.000Z",
+      "status_reason": null
+    },
+    "bank_risk": {
+      "base_risk_level": "LOW",
+      "zsk_risk_level": "GREEN",
+      "report_date": "2026-08-27T21:00:00.000Z"
+    },
+    "ownership": {
+      "source_available": true,
+      "founders": [
+        {
+          "inn": "130801590508",
+          "name": "ШИРИКОВ ЕВГЕНИЙ ЛЕОНИДОВИЧ",
+          "share_percent": 100,
+          "contribution_amount": 10000,
+          "active": true,
+          "date_from": "2024-01-14T21:00:00.000Z"
+        }
+      ],
+      "share_capital": 10000,
+      "director": {
+        "inn": "130801590508",
+        "name": "ШИРИКОВ ЕВГЕНИЙ ЛЕОНИДОВИЧ",
+        "position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+        "appointment_date": "2024-01-14T21:00:00.000Z"
+      }
+    },
+    "related_companies": {
+      "source_available": true,
+      "companies": [
+        {
+          "inn": "130801590508",
+          "ogrn": "318169000023932",
+          "name": "ИП ШИРИКОВ ЕВГЕНИЙ ЛЕОНИДОВИЧ",
+          "registration_date": null,
+          "director_name": null,
+          "director_position": null,
+          "parent_organizations": []
+        }
+      ],
+      "directors": []
+    },
+    "business_profile": {
+      "main_okved": {
+        "code": "43.99.7",
+        "description": "Работы по сборке и монтажу сборных конструкций"
+      },
+      "additional_okveds": [
+        {
+          "code": "43.32.3",
+          "description": "Производство работ по внутренней отделке зданий (включая потолки, раздвижные и съемные перегородки и т.д.)"
+        },
+        {
+          "code": "25.11",
+          "description": "Производство строительных металлических конструкций, изделий и их частей"
+        },
+        {
+          "code": "52.10",
+          "description": "Деятельность по складированию и хранению"
+        },
+        {
+          "code": "43.22",
+          "description": "Производство санитарно-технических работ, монтаж отопительных систем и систем кондиционирования воздуха"
+        },
+        {
+          "code": "16.23",
+          "description": "Производство прочих деревянных строительных конструкций и столярных изделий"
+        },
+        {
+          "code": "25.12",
+          "description": "Производство металлических дверей и окон"
+        },
+        {
+          "code": "43.29",
+          "description": "Производство прочих строительно-монтажных работ"
+        },
+        {
+          "code": "46.73",
+          "description": "Торговля оптовая лесоматериалами, строительными материалами и санитарно-техническим оборудованием"
+        },
+        {
+          "code": "43.21",
+          "description": "Производство электромонтажных работ"
+        },
+        {
+          "code": "22.23",
+          "description": "Производство пластмассовых изделий, используемых в строительстве"
+        },
+        {
+          "code": "47.78",
+          "description": "Торговля розничная прочая в специализированных магазинах"
+        },
+        {
+          "code": "49.42",
+          "description": "Предоставление услуг по перевозкам"
+        },
+        {
+          "code": "25.61",
+          "description": "Обработка металлов и нанесение покрытий на металлы"
+        },
+        {
+          "code": "46.90",
+          "description": "Торговля оптовая неспециализированная"
+        },
+        {
+          "code": "25.62",
+          "description": "Обработка металлических изделий механическая"
+        },
+        {
+          "code": "49.41",
+          "description": "Деятельность автомобильного грузового транспорта"
+        },
+        {
+          "code": "43.33",
+          "description": "Работы по устройству покрытий полов и облицовке стен"
+        },
+        {
+          "code": "43.34",
+          "description": "Производство малярных и стекольных работ"
+        },
+        {
+          "code": "43.39",
+          "description": "Производство прочих отделочных и завершающих работ"
+        }
+      ],
+      "branches_source_available": false,
+      "branches": [],
+      "tax_systems": [
+        {
+          "short_name": "ОСНО",
+          "full_name": "Общая система налогообложения"
+        }
+      ]
+    },
+    "financial_health": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "statements": [
+        {
+          "year": 2023,
+          "revenue": 0,
+          "profit": null,
+          "assets": {
+            "total": 0,
+            "current": null,
+            "non_current": null,
+            "receivables": 0,
+            "cash": 0,
+            "stocks": null
+          },
+          "liabilities": {
+            "balance_total": 0,
+            "capital": 0,
+            "short_term": null,
+            "long_term": null,
+            "accounts_payable": 0
+          }
+        },
+        {
+          "year": 2024,
+          "revenue": 7618000,
+          "profit": null,
+          "assets": {
+            "total": 6768000,
+            "current": null,
+            "non_current": null,
+            "receivables": 6531000,
+            "cash": 237000,
+            "stocks": null
+          },
+          "liabilities": {
+            "balance_total": 6768000,
+            "capital": 838000,
+            "short_term": null,
+            "long_term": null,
+            "accounts_payable": 3495000
+          }
+        },
+        {
+          "year": 2025,
+          "revenue": 60746000,
+          "profit": null,
+          "assets": {
+            "total": 39448000,
+            "current": null,
+            "non_current": null,
+            "receivables": 24998000,
+            "cash": 14451000,
+            "stocks": null
+          },
+          "liabilities": {
+            "balance_total": 39448000,
+            "capital": 22836000,
+            "short_term": null,
+            "long_term": null,
+            "accounts_payable": 10292000
+          }
+        }
+      ],
+      "coefficients": {
+        "year": null,
+        "sustainability": null,
+        "solvency": null,
+        "profitability": null
+      }
+    },
+    "legal_risks": {
+      "yearly_cases_source_available": false,
+      "yearly_cases": [],
+      "by_status_source_available": true,
+      "by_status": {
+        "common_count": null,
+        "common_amount_rub": null,
+        "defendant": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        },
+        "plaintiff": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        }
+      }
+    },
+    "enforcement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "proceedings": []
+    },
+    "compliance": {
+      "positive_signals": [
+        {
+          "code": "FNS_BLOCKING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]"
+        },
+        {
+          "code": "RELATED_COMPANIES",
+          "domain": "related_companies",
+          "polarity": "positive",
+          "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
+          "source": "report.reputationalRisks.positive[1]"
+        },
+        {
+          "code": "EXECUTION_PROCEEDINGS",
+          "domain": "enforcement",
+          "polarity": "positive",
+          "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[2]"
+        },
+        {
+          "code": "LIQUIDATION_STATUS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[3]"
+        },
+        {
+          "code": "MASS_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[4]"
+        },
+        {
+          "code": "MASS_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[5]"
+        },
+        {
+          "code": "DISHONEST_PROVIDER",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[6]"
+        },
+        {
+          "code": "DISQUALIFIED_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[7]"
+        },
+        {
+          "code": "ARBITRATION_DEFENDANT",
+          "domain": "legal_risks",
+          "polarity": "positive",
+          "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[8]"
+        },
+        {
+          "code": "TAX_ARREARS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[9]"
+        },
+        {
+          "code": "TAX_REPORTING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[10]"
+        },
+        {
+          "code": "INVALID_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[11]"
+        },
+        {
+          "code": "INVALID_AUTHPERSONS_DATA",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[12]"
+        },
+        {
+          "code": "INVALID_REGISTRATION_DATA",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[13]"
+        },
+        {
+          "code": "PROCEEDS",
+          "domain": "financial_health",
+          "polarity": "positive",
+          "description": "У компании есть выручка за предыдущий год в размере 60746.0 тыс. руб., что свидетельствует о наличии стабильного дохода и успешной деятельности.",
+          "source": "report.reputationalRisks.positive[14]"
+        },
+        {
+          "code": "MASS_OKVED",
+          "domain": "business_profile",
+          "polarity": "positive",
+          "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[15]"
+        }
+      ],
+      "negative_signals": [],
+      "inspections_source_available": false,
+      "inspections": [],
+      "licenses_source_available": false,
+      "licenses": []
+    },
+    "procurement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "yearly_activity": []
+    },
+    "derived_metrics": {
+      "company_age_years": {
+        "metric": "company_age_years",
+        "value": 2.62,
+        "source_fields": [
+          "report.baseInfo.registrationInfo.registrationDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - registration_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_active_company": {
+        "metric": "is_active_company",
+        "value": true,
+        "source_fields": [
+          "report.status.status"
+        ],
+        "formula": "status == 'CURRENT'",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "founder_count": {
+        "metric": "founder_count",
+        "value": 1,
+        "source_fields": [
+          "report.foundersInfo.cofounders"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "max_owner_share": {
+        "metric": "max_owner_share",
+        "value": 100,
+        "source_fields": [
+          "report.foundersInfo.cofounders[].share"
+        ],
+        "formula": "max(founder.share)",
+        "status": "CALCULATED",
+        "unit": "PERCENT"
+      },
+      "director_tenure_years": {
+        "metric": "director_tenure_years",
+        "value": 2.62,
+        "source_fields": [
+          "report.foundersInfo.authPerson.positionDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - director_appointment_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_director_also_founder": {
+        "metric": "is_director_also_founder",
+        "value": true,
+        "source_fields": [
+          "report.foundersInfo.authPerson",
+          "report.foundersInfo.cofounders[]"
+        ],
+        "formula": "Совпадение по ИНН, иначе по нормализованному ФИО",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "related_company_count": {
+        "metric": "related_company_count",
+        "value": 1,
+        "source_fields": [
+          "report.relatedCompanies"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "unique_related_director_count": {
+        "metric": "unique_related_director_count",
+        "value": 0,
+        "source_fields": [
+          "report.relatedCompanies[].authPersonName"
+        ],
+        "formula": "Количество уникальных непустых нормализованных ФИО",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "okved_count": {
+        "metric": "okved_count",
+        "value": 20,
+        "source_fields": [
+          "report.kindsOfActivityInfo.mainKindOfActivity",
+          "report.kindsOfActivityInfo.otherKindsOfActivity"
+        ],
+        "formula": "Основной ОКВЭД (если есть) + число дополнительных",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "branches_count": {
+        "metric": "branches_count",
+        "value": 0,
+        "source_fields": [
+          "report.branchesInfo.branchesCount",
+          "report.branchesInfo.branches"
+        ],
+        "formula": "branchesCount при наличии, иначе число элементов; отсутствующий блок = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "revenue_growth_yoy": {
+        "metric": "revenue_growth_yoy",
+        "value": 6.974009,
+        "source_fields": [
+          "report.finReports[0].common.proceeds",
+          "report.finReports[1].common.proceeds"
+        ],
+        "formula": "(latest_revenue - previous_revenue) / previous_revenue",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "profit_margin": {
+        "metric": "profit_margin",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.profit",
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "profit / revenue для последнего года, где доступны оба значения",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "revenue_trend": {
+        "metric": "revenue_trend",
+        "value": "GROWING",
+        "source_fields": [
+          "report.finReports[2].common.proceeds",
+          "report.finReports[1].common.proceeds",
+          "report.finReports[0].common.proceeds"
+        ],
+        "formula": "GROWING — все изменения положительные; DECLINING — отрицательные; STABLE — нулевые; иначе MIXED",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "profit_trend": {
+        "metric": "profit_trend",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.profit"
+        ],
+        "formula": "Классификация последовательных изменений минимум за два года",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "current_assets_to_short_term_liabilities": {
+        "metric": "current_assets_to_short_term_liabilities",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.total",
+          "report.finReports[].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "current_assets / short_term_liabilities",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "cash_to_short_term_liabilities": {
+        "metric": "cash_to_short_term_liabilities",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.bankroll",
+          "report.finReports[].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "cash / short_term_liabilities",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "receivables_share": {
+        "metric": "receivables_share",
+        "value": 0.633695,
+        "source_fields": [
+          "report.finReports[0].assets.currentAssets.receivables",
+          "report.finReports[0].assets.totalAssets"
+        ],
+        "formula": "receivables / total_assets",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "liabilities_to_assets": {
+        "metric": "liabilities_to_assets",
+        "value": 0.421111,
+        "source_fields": [
+          "report.finReports[0].assets.totalAssets",
+          "report.finReports[0].liabilities.capitals"
+        ],
+        "formula": "(total_assets - capital) / total_assets",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "total_arbitration_cases": {
+        "metric": "total_arbitration_cases",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration"
+        ],
+        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_cases_count": {
+        "metric": "defendant_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_cases_count": {
+        "metric": "defendant_pending_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount"
+        ],
+        "formula": "dpCount; отсутствующий счётчик внутри существующего status-блока = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_amount": {
+        "metric": "defendant_pending_amount",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount"
+        ],
+        "formula": "dpAmount; отсутствие суммы при dpCount = 0 трактуется как 0",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "defendant_cases_share": {
+        "metric": "defendant_cases_share",
+        "value": null,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration",
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "defendant_cases_count / total_arbitration_cases",
+        "status": "NOT_APPLICABLE",
+        "unit": "RATIO"
+      },
+      "arbitration_amount_to_revenue": {
+        "metric": "arbitration_amount_to_revenue",
+        "value": 0.0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.finReports[0].common.proceeds"
+        ],
+        "formula": "defendant_arbitration_amount_rub / latest_revenue_rub",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "total_execution_count": {
+        "metric": "total_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_count": {
+        "metric": "active_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active"
+        ],
+        "formula": "Количество элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_amount": {
+        "metric": "active_execution_amount",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active",
+          "report.executionProceedings[].amount"
+        ],
+        "formula": "Сумма amount для элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "latest_execution_date": {
+        "metric": "latest_execution_date",
+        "value": null,
+        "source_fields": [
+          "report.executionProceedings[].date"
+        ],
+        "formula": "max(date)",
+        "status": "NOT_APPLICABLE",
+        "unit": "ISO_DATE"
+      },
+      "tender_count": {
+        "metric": "tender_count",
+        "value": null,
+        "source_fields": [
+          "report.procurements"
+        ],
+        "formula": "В GetFullReportResponse нет отдельного поля количества участий в тендерах",
+        "status": "NOT_AVAILABLE",
+        "unit": "COUNT"
+      },
+      "winner_count": {
+        "metric": "winner_count",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].tenderWinnerCnt"
+        ],
+        "formula": "sum(tenderWinnerCnt)",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "signed_contract_amount": {
+        "metric": "signed_contract_amount",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].contractSignedAmt"
+        ],
+        "formula": "sum(contractSignedAmt)",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      }
+    },
+    "conflicts": []
+  },
+  {
+    "company_identity": {
+      "source_record_id": "317774600440105",
+      "inn": "772377037026",
+      "ogrn": "317774600440105",
+      "name": "ИП КАСАТКИН А.В.",
+      "full_name": "КАСАТКИН АЛЕКСАНДР ВИКТОРОВИЧ",
+      "address": null,
+      "email": null,
+      "website": null,
+      "company_size": null,
+      "registration_date": "2017-09-19T21:00:00.000Z",
+      "reported_company_age_years": 8,
+      "status": "CURRENT",
+      "status_date": "2026-06-30T21:00:00.000Z",
+      "status_reason": null
+    },
+    "bank_risk": {
+      "base_risk_level": "LOW",
+      "zsk_risk_level": "GREEN",
+      "report_date": "2026-07-30T21:00:00.000Z"
+    },
+    "ownership": {
+      "source_available": false,
+      "founders": [],
+      "share_capital": null,
+      "director": null
+    },
+    "related_companies": {
+      "source_available": false,
+      "companies": [],
+      "directors": []
+    },
+    "business_profile": {
+      "main_okved": {
+        "code": "47.91",
+        "description": "Торговля розничная по почте или по информационно-коммуникационной сети Интернет"
+      },
+      "additional_okveds": [
+        {
+          "code": "47.99",
+          "description": "Торговля розничная прочая вне магазинов, палаток, рынков"
+        },
+        {
+          "code": "46.90",
+          "description": "Торговля оптовая неспециализированная"
+        },
+        {
+          "code": "46.18.99",
+          "description": "Деятельность агентов, специализирующихся на оптовой торговле прочими товарами, не включенными в другие группировки"
+        },
+        {
+          "code": "46.69",
+          "description": "Торговля оптовая прочими машинами и оборудованием"
+        },
+        {
+          "code": "46.14.9",
+          "description": "Деятельность агентов по оптовой торговле прочими видами машин и промышленным оборудованием"
+        },
+        {
+          "code": "47.54",
+          "description": "Торговля розничная бытовыми электротоварами в специализированных магазинах"
+        },
+        {
+          "code": "46.49",
+          "description": "Торговля оптовая прочими бытовыми товарами"
+        },
+        {
+          "code": "47.19",
+          "description": "Торговля розничная прочая в неспециализированных магазинах"
+        },
+        {
+          "code": "82.99",
+          "description": "Деятельность по предоставлению прочих вспомогательных услуг для бизнеса, не включенная в другие группировки"
+        }
+      ],
+      "branches_source_available": false,
+      "branches": [],
+      "tax_systems": []
+    },
+    "financial_health": {
+      "source_available": false,
+      "amount_unit": "RUB",
+      "statements": [],
+      "coefficients": {
+        "year": null,
+        "sustainability": null,
+        "solvency": null,
+        "profitability": null
+      }
+    },
+    "legal_risks": {
+      "yearly_cases_source_available": false,
+      "yearly_cases": [],
+      "by_status_source_available": true,
+      "by_status": {
+        "common_count": null,
+        "common_amount_rub": null,
+        "defendant": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        },
+        "plaintiff": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        }
+      }
+    },
+    "enforcement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "proceedings": []
+    },
+    "compliance": {
+      "positive_signals": [
+        {
+          "code": "FNS_BLOCKING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]"
+        },
+        {
+          "code": "EXECUTION_PROCEEDINGS",
+          "domain": "enforcement",
+          "polarity": "positive",
+          "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[1]"
+        },
+        {
+          "code": "LIQUIDATION_STATUS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[2]"
+        },
+        {
+          "code": "MASS_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[3]"
+        },
+        {
+          "code": "MASS_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[4]"
+        },
+        {
+          "code": "DISHONEST_PROVIDER",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[5]"
+        },
+        {
+          "code": "DISQUALIFIED_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[6]"
+        },
+        {
+          "code": "ARBITRATION_DEFENDANT",
+          "domain": "legal_risks",
+          "polarity": "positive",
+          "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[7]"
+        },
+        {
+          "code": "TAX_ARREARS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[8]"
+        },
+        {
+          "code": "TAX_REPORTING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[9]"
+        },
+        {
+          "code": "INVALID_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[10]"
+        },
+        {
+          "code": "INVALID_AUTHPERSONS_DATA",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[11]"
+        },
+        {
+          "code": "INVALID_REGISTRATION_DATA",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[12]"
+        },
+        {
+          "code": "MASS_OKVED",
+          "domain": "business_profile",
+          "polarity": "positive",
+          "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[13]"
+        }
+      ],
+      "negative_signals": [],
+      "inspections_source_available": false,
+      "inspections": [],
+      "licenses_source_available": false,
+      "licenses": []
+    },
+    "procurement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "yearly_activity": []
+    },
+    "derived_metrics": {
+      "company_age_years": {
+        "metric": "company_age_years",
+        "value": 8.86,
+        "source_fields": [
+          "report.baseInfo.registrationInfo.registrationDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - registration_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_active_company": {
+        "metric": "is_active_company",
+        "value": true,
+        "source_fields": [
+          "report.status.status"
+        ],
+        "formula": "status == 'CURRENT'",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "founder_count": {
+        "metric": "founder_count",
+        "value": 0,
+        "source_fields": [
+          "report.foundersInfo.cofounders"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "max_owner_share": {
+        "metric": "max_owner_share",
+        "value": null,
+        "source_fields": [
+          "report.foundersInfo.cofounders[].share"
+        ],
+        "formula": "max(founder.share)",
+        "status": "NOT_AVAILABLE",
+        "unit": "PERCENT"
+      },
+      "director_tenure_years": {
+        "metric": "director_tenure_years",
+        "value": null,
+        "source_fields": [
+          "report.foundersInfo.authPerson.positionDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - director_appointment_date) / 365.2425",
+        "status": "NOT_AVAILABLE",
+        "unit": "YEARS"
+      },
+      "is_director_also_founder": {
+        "metric": "is_director_also_founder",
+        "value": null,
+        "source_fields": [
+          "report.foundersInfo.authPerson",
+          "report.foundersInfo.cofounders[]"
+        ],
+        "formula": "Совпадение по ИНН, иначе по нормализованному ФИО",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "related_company_count": {
+        "metric": "related_company_count",
+        "value": 0,
+        "source_fields": [
+          "report.relatedCompanies"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "unique_related_director_count": {
+        "metric": "unique_related_director_count",
+        "value": 0,
+        "source_fields": [
+          "report.relatedCompanies[].authPersonName"
+        ],
+        "formula": "Количество уникальных непустых нормализованных ФИО",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "okved_count": {
+        "metric": "okved_count",
+        "value": 10,
+        "source_fields": [
+          "report.kindsOfActivityInfo.mainKindOfActivity",
+          "report.kindsOfActivityInfo.otherKindsOfActivity"
+        ],
+        "formula": "Основной ОКВЭД (если есть) + число дополнительных",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "branches_count": {
+        "metric": "branches_count",
+        "value": 0,
+        "source_fields": [
+          "report.branchesInfo.branchesCount",
+          "report.branchesInfo.branches"
+        ],
+        "formula": "branchesCount при наличии, иначе число элементов; отсутствующий блок = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "revenue_growth_yoy": {
+        "metric": "revenue_growth_yoy",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "(latest_revenue - previous_revenue) / previous_revenue",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "profit_margin": {
+        "metric": "profit_margin",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.profit",
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "profit / revenue для последнего года, где доступны оба значения",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "revenue_trend": {
+        "metric": "revenue_trend",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "Классификация последовательных изменений минимум за два года",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "profit_trend": {
+        "metric": "profit_trend",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.profit"
+        ],
+        "formula": "Классификация последовательных изменений минимум за два года",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "current_assets_to_short_term_liabilities": {
+        "metric": "current_assets_to_short_term_liabilities",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.total",
+          "report.finReports[].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "current_assets / short_term_liabilities",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "cash_to_short_term_liabilities": {
+        "metric": "cash_to_short_term_liabilities",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.bankroll",
+          "report.finReports[].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "cash / short_term_liabilities",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "receivables_share": {
+        "metric": "receivables_share",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.receivables",
+          "report.finReports[].assets.totalAssets"
+        ],
+        "formula": "receivables / total_assets",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "liabilities_to_assets": {
+        "metric": "liabilities_to_assets",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.totalAssets",
+          "report.finReports[].liabilities.capitals"
+        ],
+        "formula": "(total_assets - capital) / total_assets",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "total_arbitration_cases": {
+        "metric": "total_arbitration_cases",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration"
+        ],
+        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_cases_count": {
+        "metric": "defendant_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_cases_count": {
+        "metric": "defendant_pending_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount"
+        ],
+        "formula": "dpCount; отсутствующий счётчик внутри существующего status-блока = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_amount": {
+        "metric": "defendant_pending_amount",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount"
+        ],
+        "formula": "dpAmount; отсутствие суммы при dpCount = 0 трактуется как 0",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "defendant_cases_share": {
+        "metric": "defendant_cases_share",
+        "value": null,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration",
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "defendant_cases_count / total_arbitration_cases",
+        "status": "NOT_APPLICABLE",
+        "unit": "RATIO"
+      },
+      "arbitration_amount_to_revenue": {
+        "metric": "arbitration_amount_to_revenue",
+        "value": null,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "defendant_arbitration_amount_rub / latest_revenue_rub",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "total_execution_count": {
+        "metric": "total_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_count": {
+        "metric": "active_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active"
+        ],
+        "formula": "Количество элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_amount": {
+        "metric": "active_execution_amount",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active",
+          "report.executionProceedings[].amount"
+        ],
+        "formula": "Сумма amount для элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "latest_execution_date": {
+        "metric": "latest_execution_date",
+        "value": null,
+        "source_fields": [
+          "report.executionProceedings[].date"
+        ],
+        "formula": "max(date)",
+        "status": "NOT_APPLICABLE",
+        "unit": "ISO_DATE"
+      },
+      "tender_count": {
+        "metric": "tender_count",
+        "value": null,
+        "source_fields": [
+          "report.procurements"
+        ],
+        "formula": "В GetFullReportResponse нет отдельного поля количества участий в тендерах",
+        "status": "NOT_AVAILABLE",
+        "unit": "COUNT"
+      },
+      "winner_count": {
+        "metric": "winner_count",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].tenderWinnerCnt"
+        ],
+        "formula": "sum(tenderWinnerCnt)",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "signed_contract_amount": {
+        "metric": "signed_contract_amount",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].contractSignedAmt"
+        ],
+        "formula": "sum(contractSignedAmt)",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      }
+    },
+    "conflicts": []
+  },
+  {
+    "company_identity": {
+      "source_record_id": "1217700059147",
+      "inn": "9705152496",
+      "ogrn": "1217700059147",
+      "name": "ООО \"СПОРТ\"",
+      "full_name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"СПОРТ\"",
+      "address": "125167,  Г.МОСКВА, внутригородская территория города федерального значения МУНИЦИПАЛЬНЫЙ ОКРУГ АЭРОПОРТ, УЛ ЮРИЯ НИКУЛИНА, Д. 3, ПОМЕЩ. 9",
+      "email": null,
+      "website": null,
+      "company_size": null,
+      "registration_date": "2021-02-11T21:00:00.000Z",
+      "reported_company_age_years": 5,
+      "status": "CURRENT",
+      "status_date": "2026-01-12T21:00:00.000Z",
+      "status_reason": null
+    },
+    "bank_risk": {
+      "base_risk_level": "LOW",
+      "zsk_risk_level": "YELLOW",
+      "report_date": "2026-07-29T21:00:00.000Z"
+    },
+    "ownership": {
+      "source_available": true,
+      "founders": [
+        {
+          "inn": "9705138170",
+          "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
+          "share_percent": 99,
+          "contribution_amount": 10552,
+          "active": true,
+          "date_from": "2021-02-11T21:00:00.000Z"
+        },
+        {
+          "inn": "7705560491",
+          "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ПРОФ\"",
+          "share_percent": 0,
+          "contribution_amount": 10,
+          "active": true,
+          "date_from": "2021-02-11T21:00:00.000Z"
+        },
+        {
+          "inn": "7705560491",
+          "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ПРОФ\"",
+          "share_percent": 0,
+          "contribution_amount": 10,
+          "active": true,
+          "date_from": "2021-02-11T21:00:00.000Z"
+        },
+        {
+          "inn": "9714072342",
+          "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ ВТБ СПОРТ",
+          "share_percent": 49,
+          "contribution_amount": 10075,
+          "active": true,
+          "date_from": "2025-06-02T21:00:00.000Z"
+        },
+        {
+          "inn": "9705138170",
+          "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
+          "share_percent": 51,
+          "contribution_amount": 10486,
+          "active": true,
+          "date_from": "2021-02-11T21:00:00.000Z"
+        }
+      ],
+      "share_capital": 20562,
+      "director": {
+        "inn": "532117462758",
+        "name": "КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ",
+        "position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+        "appointment_date": "2025-11-09T21:00:00.000Z"
+      }
+    },
+    "related_companies": {
+      "source_available": true,
+      "companies": [
+        {
+          "inn": "9714073681",
+          "ogrn": "1257700168153",
+          "name": "ООО ТЕННИС АРЕНА",
+          "registration_date": "2025-04-07T21:00:00.000Z",
+          "director_name": "КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7705930720",
+          "ogrn": "1107746845293",
+          "name": "ООО \"СЗ \"ГАЛС-ШОССЕЙНАЯ\"",
+          "registration_date": "2010-10-14T20:00:00.000Z",
+          "director_name": "ЛАЗАРЕВ ВАСИЛИЙ ВИКТОРОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714002730",
+          "ogrn": "1237700062467",
+          "name": "ООО \"СТРОЙИНВЕСТ\"",
+          "registration_date": "2023-01-25T21:00:00.000Z",
+          "director_name": "ЗУЕВ ИВАН НИКОЛАЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714091803",
+          "ogrn": "1267700163466",
+          "name": "ООО \"А-ПРОФ\"",
+          "registration_date": "2026-05-11T21:00:00.000Z",
+          "director_name": "МУХИН АНДРЕЙ АНАТОЛЬЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7714484198",
+          "ogrn": "1227700222166",
+          "name": "ООО \"СПЕЦИАЛИЗИРОВАННЫЙ ЗАСТРОЙЩИК \"ГАЛС-2\"",
+          "registration_date": "2022-04-14T21:00:00.000Z",
+          "director_name": "ЖУРКО АЛЕКСЕЙ ВЛАДИСЛАВОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714073699",
+          "ogrn": "1257700168164",
+          "name": "ООО БИЛЬЯРД АРЕНА",
+          "registration_date": "2025-04-07T21:00:00.000Z",
+          "director_name": "КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9705150273",
+          "ogrn": "1207700459086",
+          "name": "ООО \"СПЕЦИАЛИЗИРОВАННЫЙ ЗАСТРОЙЩИК \"ГАЛС-ФОРТЕ\"",
+          "registration_date": "2020-11-29T21:00:00.000Z",
+          "director_name": "ХАЛТУРИН ВАЛЕРИЙ ВЛАДИМИРОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714094280",
+          "ogrn": "1267700239839",
+          "name": "ООО \"ГАЛС-РЕЗЕРВ\"",
+          "registration_date": "2026-07-15T21:00:00.000Z",
+          "director_name": "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7705560491",
+          "ogrn": "1037739843811",
+          "name": "ООО \"ГАЛС-ПРОФ\"",
+          "registration_date": "2003-08-31T20:00:00.000Z",
+          "director_name": null,
+          "director_position": null,
+          "parent_organizations": [
+            {
+              "inn": "9705138170",
+              "ogrn": "1197746635580",
+              "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
+              "relation_date": "2022-05-17T21:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "inn": "9714006580",
+          "ogrn": "1237700206248",
+          "name": "ООО \"ГАЛС-ИНДУСТРИЯ 2\"",
+          "registration_date": "2023-03-15T21:00:00.000Z",
+          "director_name": "ЛАЗАРЕВ ВАСИЛИЙ ВИКТОРОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7743365477",
+          "ogrn": "1217700394867",
+          "name": "ООО \"СЗ \"ГАЛС-НОВОПЕТРОВСКИЙ\"",
+          "registration_date": "2021-08-23T21:00:00.000Z",
+          "director_name": "КУНДЕЛЬСКИЙ АНДРЕЙ ИВАНОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714016147",
+          "ogrn": "1237700515260",
+          "name": "ООО \"ГАЛС-НОВОДАНИЛОВСКАЯ\"",
+          "registration_date": "2023-08-01T21:00:00.000Z",
+          "director_name": "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7705678285",
+          "ogrn": "1057747677822",
+          "name": "АО \"ИРТ\"",
+          "registration_date": "2005-08-02T20:00:00.000Z",
+          "director_name": null,
+          "director_position": null,
+          "parent_organizations": [
+            {
+              "inn": "9705138170",
+              "ogrn": "1197746635580",
+              "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
+              "relation_date": "2021-09-19T21:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "inn": "9704026019",
+          "ogrn": "1207700275089",
+          "name": "ООО \"ДОХОДНЫЕ ИНВЕСТИЦИИ-2\"",
+          "registration_date": "2020-08-04T21:00:00.000Z",
+          "director_name": "ЗАХАРОВ АНДРЕЙ ВЯЧЕСЛАВОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714048029",
+          "ogrn": "1247700335871",
+          "name": "ООО \"ГК\"",
+          "registration_date": "2024-04-22T21:00:00.000Z",
+          "director_name": "КАРЕЛОВ АЛЕКСЕЙ БОРИСОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7743265384",
+          "ogrn": "1187746682210",
+          "name": "ООО \"ВОЙКОВСКАЯ\"",
+          "registration_date": "2018-07-15T21:00:00.000Z",
+          "director_name": "ШИТИКОВА ВИКТОРИЯ АЛЕКСАНДРОВНА",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7709656042",
+          "ogrn": "1067746158611",
+          "name": "АО \"УК \"ОТЕЛЬ МЕНЕДЖМЕНТ\"",
+          "registration_date": "2006-01-29T21:00:00.000Z",
+          "director_name": "КАРЕЛОВ АЛЕКСЕЙ БОРИСОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714059359",
+          "ogrn": "1247700627063",
+          "name": "ООО \"ПЕРСПЕКТИВА\"",
+          "registration_date": "2024-09-19T21:00:00.000Z",
+          "director_name": "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9705141021",
+          "ogrn": "1207700019636",
+          "name": "ООО \"СПЕЦИАЛИЗИРОВАННЫЙ ЗАСТРОЙЩИК \"ГАЛС-КОСМОДАМИАНСКАЯ\"",
+          "registration_date": "2020-01-22T21:00:00.000Z",
+          "director_name": "ЛЕОНОВ ВЯЧЕСЛАВ ВЛАДИМИРОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7714476782",
+          "ogrn": "1217700458139",
+          "name": "ООО \"СЗ \"ГАЛС-ФРИДРИХА ЭНГЕЛЬСА\"",
+          "registration_date": "2021-09-27T21:00:00.000Z",
+          "director_name": "МАЙОРОВ ЛЕОНИД ЛЕОНИДОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9705211180",
+          "ogrn": "1237700744005",
+          "name": "ООО \"СЗ \"ГАЛС-ШЛЮЗОВАЯ\"",
+          "registration_date": "2023-10-31T21:00:00.000Z",
+          "director_name": "ЖЕЛТЯКОВ ВЛАДИМИР АЛЕКСАНДРОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7714477666",
+          "ogrn": "1217700508640",
+          "name": "ООО \"ВИЛЛА В БЕРЕЗКАХ\"",
+          "registration_date": "2021-10-21T21:00:00.000Z",
+          "director_name": "МУХИН АНДРЕЙ АНАТОЛЬЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7714477151",
+          "ogrn": "1217700481613",
+          "name": "ООО \"ГАЛС-ПРОЕКТ\"",
+          "registration_date": "2021-10-10T21:00:00.000Z",
+          "director_name": "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714006082",
+          "ogrn": "1237700186503",
+          "name": "ООО \"ГАЛС-ИСЛАВСКОЕ\"",
+          "registration_date": "2023-03-08T21:00:00.000Z",
+          "director_name": null,
+          "director_position": null,
+          "parent_organizations": [
+            {
+              "inn": "9705138170",
+              "ogrn": "1197746635580",
+              "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
+              "relation_date": "2025-09-02T21:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "inn": "7728600260",
+          "ogrn": "1067759408716",
+          "name": "АО \"ПРОМРЕСУРС\"",
+          "registration_date": "2006-11-08T21:00:00.000Z",
+          "director_name": null,
+          "director_position": null,
+          "parent_organizations": [
+            {
+              "inn": "9705138170",
+              "ogrn": "1197746635580",
+              "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
+              "relation_date": "2021-09-19T21:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "inn": "7714484945",
+          "ogrn": "1227700251503",
+          "name": "ООО \"ГАЛС-ЦИФРА\"",
+          "registration_date": "2022-04-27T21:00:00.000Z",
+          "director_name": "ЧЕРНУХА АНДРЕЙ ВИКТОРОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9702041572",
+          "ogrn": "1227700153735",
+          "name": "ООО \"ЦДМ ТОРГОВЛЯ\"",
+          "registration_date": "2022-03-20T21:00:00.000Z",
+          "director_name": "ФАРНИЕВА СВЕТЛАНА ХЕТАГОВНА",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9714092571",
+          "ogrn": "1267700187105",
+          "name": "ООО \"ГАЛС-АКТИВ\"",
+          "registration_date": "2026-05-31T21:00:00.000Z",
+          "director_name": "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7714477673",
+          "ogrn": "1217700508695",
+          "name": "ООО \"БАССЕЙН В БЕРЕЗКАХ\"",
+          "registration_date": "2021-10-21T21:00:00.000Z",
+          "director_name": "ЛИСИНА ЕВГЕНИЯ ВАСИЛЬЕВНА",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7743464703",
+          "ogrn": "1257700039805",
+          "name": "ООО \"СЗ \"ГАЛС-СТАРОПЕТРОВСКИЙ\"",
+          "registration_date": "2025-01-30T21:00:00.000Z",
+          "director_name": "КИБИШЕВ МАКСИМ ВЯЧЕСЛАВОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7714487858",
+          "ogrn": "1227700386583",
+          "name": "ООО \"РЕМСТРОЙТРЕСТ-701\"",
+          "registration_date": "2022-06-30T21:00:00.000Z",
+          "director_name": "ЩЕРБАКОВ СЕРГЕЙ АЛЕКСЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9705143999",
+          "ogrn": "1207700168576",
+          "name": "ООО \"ГАЛС-УЛИЦА НИКУЛИНА\"",
+          "registration_date": "2020-05-18T21:00:00.000Z",
+          "director_name": "АРЖЕВИКИН АНДРЕЙ ВИКТОРОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7707829170",
+          "ogrn": "1147746300570",
+          "name": "ООО \"ГЛОБУС НЕДВИЖИМОСТЬ\"",
+          "registration_date": "2014-03-19T20:00:00.000Z",
+          "director_name": "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7714477842",
+          "ogrn": "1217700517891",
+          "name": "ООО \"СЗ \"ГАЛС-МАСЛОВО\"",
+          "registration_date": "2021-10-26T21:00:00.000Z",
+          "director_name": "ЗУЕВ ИВАН НИКОЛАЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        }
+      ],
+      "directors": [
+        "КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ",
+        "ЛАЗАРЕВ ВАСИЛИЙ ВИКТОРОВИЧ",
+        "ЗУЕВ ИВАН НИКОЛАЕВИЧ",
+        "МУХИН АНДРЕЙ АНАТОЛЬЕВИЧ",
+        "ЖУРКО АЛЕКСЕЙ ВЛАДИСЛАВОВИЧ",
+        "КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ",
+        "ХАЛТУРИН ВАЛЕРИЙ ВЛАДИМИРОВИЧ",
+        "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+        "ЛАЗАРЕВ ВАСИЛИЙ ВИКТОРОВИЧ",
+        "КУНДЕЛЬСКИЙ АНДРЕЙ ИВАНОВИЧ",
+        "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+        "ЗАХАРОВ АНДРЕЙ ВЯЧЕСЛАВОВИЧ",
+        "КАРЕЛОВ АЛЕКСЕЙ БОРИСОВИЧ",
+        "ШИТИКОВА ВИКТОРИЯ АЛЕКСАНДРОВНА",
+        "КАРЕЛОВ АЛЕКСЕЙ БОРИСОВИЧ",
+        "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+        "ЛЕОНОВ ВЯЧЕСЛАВ ВЛАДИМИРОВИЧ",
+        "МАЙОРОВ ЛЕОНИД ЛЕОНИДОВИЧ",
+        "ЖЕЛТЯКОВ ВЛАДИМИР АЛЕКСАНДРОВИЧ",
+        "МУХИН АНДРЕЙ АНАТОЛЬЕВИЧ",
+        "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+        "ЧЕРНУХА АНДРЕЙ ВИКТОРОВИЧ",
+        "ФАРНИЕВА СВЕТЛАНА ХЕТАГОВНА",
+        "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+        "ЛИСИНА ЕВГЕНИЯ ВАСИЛЬЕВНА",
+        "КИБИШЕВ МАКСИМ ВЯЧЕСЛАВОВИЧ",
+        "ЩЕРБАКОВ СЕРГЕЙ АЛЕКСЕЕВИЧ",
+        "АРЖЕВИКИН АНДРЕЙ ВИКТОРОВИЧ",
+        "ЦЫГАНКОВ ДЕНИС АЛЕКСЕЕВИЧ",
+        "ЗУЕВ ИВАН НИКОЛАЕВИЧ"
+      ]
+    },
+    "business_profile": {
+      "main_okved": {
+        "code": "71.12.1",
+        "description": "Деятельность, связанная с инженерно-техническим проектированием, управлением проектами строительства, выполнением строительного контроля и авторского надзора"
+      },
+      "additional_okveds": [
+        {
+          "code": "71.12.6",
+          "description": "Деятельность в области технического регулирования, стандартизации, метрологии, аккредитации, каталогизации продукции"
+        },
+        {
+          "code": "68.10",
+          "description": "Покупка и продажа собственного недвижимого имущества"
+        },
+        {
+          "code": "71.12.2",
+          "description": "Деятельность заказчика-застройщика, генерального подрядчика"
+        },
+        {
+          "code": "72.19",
+          "description": "Научные исследования и разработки в области естественных и технических наук прочие"
+        },
+        {
+          "code": "46.49",
+          "description": "Торговля оптовая прочими бытовыми товарами"
+        },
+        {
+          "code": "68.20",
+          "description": "Аренда и управление собственным или арендованным недвижимым имуществом"
+        },
+        {
+          "code": "43.11",
+          "description": "Разборка и снос зданий"
+        },
+        {
+          "code": "69.10",
+          "description": "Деятельность в области права"
+        },
+        {
+          "code": "68.31.3",
+          "description": "Предоставление консультационных услуг при купле-продаже недвижимого имущества за вознаграждение или на договорной основе"
+        },
+        {
+          "code": "70.22",
+          "description": "Консультирование по вопросам коммерческой деятельности и управления"
+        },
+        {
+          "code": "73.20.1",
+          "description": "Исследование конъюнктуры рынка"
+        },
+        {
+          "code": "43.99.7",
+          "description": "Работы по сборке и монтажу сборных конструкций"
+        },
+        {
+          "code": "71.12.5",
+          "description": "Деятельность в области гидрометеорологии и смежных с ней областях, мониторинга состояния окружающей среды, ее загрязнения"
+        },
+        {
+          "code": "68.31.4",
+          "description": "Предоставление консультационных услуг по аренде недвижимого имущества за вознаграждение или на договорной основе"
+        },
+        {
+          "code": "63.11.1",
+          "description": "Деятельность по созданию и использованию баз данных и информационных ресурсов"
+        },
+        {
+          "code": "43.21",
+          "description": "Производство электромонтажных работ"
+        },
+        {
+          "code": "46.90",
+          "description": "Торговля оптовая неспециализированная"
+        },
+        {
+          "code": "43.12.1",
+          "description": "Расчистка территории строительной площадки"
+        },
+        {
+          "code": "68.32.2",
+          "description": "Управление эксплуатацией нежилого фонда за вознаграждение или на договорной основе"
+        },
+        {
+          "code": "64.99",
+          "description": "Предоставление прочих финансовых услуг, кроме услуг по страхованию и пенсионному обеспечению, не включенных в другие группировки"
+        },
+        {
+          "code": "68.31.32",
+          "description": "Предоставление консультационных услуг при купле-продаже нежилого недвижимого имущества за вознаграждение или на договорной основе"
+        },
+        {
+          "code": "69.20",
+          "description": "Деятельность по оказанию услуг в области бухгалтерского учета, по проведению финансового аудита, по налоговому консультированию"
+        },
+        {
+          "code": "43.29",
+          "description": "Производство прочих строительно-монтажных работ"
+        },
+        {
+          "code": "43.39",
+          "description": "Производство прочих отделочных и завершающих работ"
+        },
+        {
+          "code": "41.20",
+          "description": "Строительство жилых и нежилых зданий"
+        },
+        {
+          "code": "68.31.42",
+          "description": "Предоставление консультационных услуг по аренде нежилого недвижимого имущества за вознаграждение или на договорной основе"
+        }
+      ],
+      "branches_source_available": false,
+      "branches": [],
+      "tax_systems": [
+        {
+          "short_name": "ОСНО",
+          "full_name": "Общая система налогообложения"
+        }
+      ]
+    },
+    "financial_health": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "statements": [
+        {
+          "year": 2023,
+          "revenue": null,
+          "profit": -23349000,
+          "assets": {
+            "total": 2809723000,
+            "current": 2806868000,
+            "non_current": 2855000,
+            "receivables": 2654827000,
+            "cash": 43000,
+            "stocks": 126288000
+          },
+          "liabilities": {
+            "balance_total": 2809723000,
+            "capital": 2540684000,
+            "short_term": 236538000,
+            "long_term": 32501000,
+            "accounts_payable": 50050000
+          }
+        },
+        {
+          "year": 2024,
+          "revenue": null,
+          "profit": -1645000,
+          "assets": {
+            "total": 109426000,
+            "current": 14430000,
+            "non_current": 94996000,
+            "receivables": 3629000,
+            "cash": 5026000,
+            "stocks": 0
+          },
+          "liabilities": {
+            "balance_total": 109426000,
+            "capital": -5865000,
+            "short_term": 52552000,
+            "long_term": 62739000,
+            "accounts_payable": 13028000
+          }
+        },
+        {
+          "year": 2025,
+          "revenue": null,
+          "profit": -6518000,
+          "assets": {
+            "total": 358998000,
+            "current": 121259000,
+            "non_current": 237739000,
+            "receivables": 35079000,
+            "cash": 48245000,
+            "stocks": 0
+          },
+          "liabilities": {
+            "balance_total": 358998000,
+            "capital": 289043000,
+            "short_term": 27046000,
+            "long_term": 42909000,
+            "accounts_payable": 26841000
+          }
+        }
+      ],
+      "coefficients": {
+        "year": null,
+        "sustainability": null,
+        "solvency": null,
+        "profitability": null
+      }
+    },
+    "legal_risks": {
+      "yearly_cases_source_available": false,
+      "yearly_cases": [],
+      "by_status_source_available": true,
+      "by_status": {
+        "common_count": null,
+        "common_amount_rub": null,
+        "defendant": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        },
+        "plaintiff": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        }
+      }
+    },
+    "enforcement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "proceedings": []
+    },
+    "compliance": {
+      "positive_signals": [
+        {
+          "code": "FNS_BLOCKING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]"
+        },
+        {
+          "code": "RELATED_COMPANIES",
+          "domain": "related_companies",
+          "polarity": "positive",
+          "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
+          "source": "report.reputationalRisks.positive[1]"
+        },
+        {
+          "code": "EXECUTION_PROCEEDINGS",
+          "domain": "enforcement",
+          "polarity": "positive",
+          "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[2]"
+        },
+        {
+          "code": "LIQUIDATION_STATUS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[3]"
+        },
+        {
+          "code": "MASS_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[4]"
+        },
+        {
+          "code": "MASS_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[5]"
+        },
+        {
+          "code": "DISHONEST_PROVIDER",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[6]"
+        },
+        {
+          "code": "DISQUALIFIED_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[7]"
+        },
+        {
+          "code": "ARBITRATION_DEFENDANT",
+          "domain": "legal_risks",
+          "polarity": "positive",
+          "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[8]"
+        },
+        {
+          "code": "TAX_ARREARS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[9]"
+        },
+        {
+          "code": "TAX_REPORTING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[10]"
+        },
+        {
+          "code": "INVALID_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[11]"
+        },
+        {
+          "code": "INVALID_AUTHPERSONS_DATA",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[12]"
+        },
+        {
+          "code": "INVALID_REGISTRATION_DATA",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[13]"
+        },
+        {
+          "code": "MASS_OKVED",
+          "domain": "business_profile",
+          "polarity": "positive",
+          "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[14]"
+        },
+        {
+          "code": "CURRENT_ASSETS",
+          "domain": "financial_health",
+          "polarity": "positive",
+          "description": "У компании имеются оборотные активы в размере 121259.0 тыс. руб., что обеспечивает достаточную ликвидность для покрытия краткосрочных обязательств и ведения текущей деятельности.",
+          "source": "report.reputationalRisks.positive[15]"
+        },
+        {
+          "code": "UNCURRENT_ASSETS",
+          "domain": "financial_health",
+          "polarity": "positive",
+          "description": "У компании есть внеоборотные активы на сумму 237739.0 тыс. руб., что, вероятно, может говорить о стабильном положении и долгосрочных перспективах развития.",
+          "source": "report.reputationalRisks.positive[16]"
+        }
+      ],
+      "negative_signals": [
+        {
+          "code": "PROFIT",
+          "domain": "financial_health",
+          "polarity": "negative",
+          "description": "Компания понесла убыток в размере -6518.0 тыс. руб., что может указывать на нестабильность финансовых результатов.",
+          "source": "report.reputationalRisks.negative[0]"
+        }
+      ],
+      "inspections_source_available": false,
+      "inspections": [],
+      "licenses_source_available": false,
+      "licenses": []
+    },
+    "procurement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "yearly_activity": []
+    },
+    "derived_metrics": {
+      "company_age_years": {
+        "metric": "company_age_years",
+        "value": 5.46,
+        "source_fields": [
+          "report.baseInfo.registrationInfo.registrationDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - registration_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_active_company": {
+        "metric": "is_active_company",
+        "value": true,
+        "source_fields": [
+          "report.status.status"
+        ],
+        "formula": "status == 'CURRENT'",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "founder_count": {
+        "metric": "founder_count",
+        "value": 5,
+        "source_fields": [
+          "report.foundersInfo.cofounders"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "max_owner_share": {
+        "metric": "max_owner_share",
+        "value": 99,
+        "source_fields": [
+          "report.foundersInfo.cofounders[].share"
+        ],
+        "formula": "max(founder.share)",
+        "status": "CALCULATED",
+        "unit": "PERCENT"
+      },
+      "director_tenure_years": {
+        "metric": "director_tenure_years",
+        "value": 0.72,
+        "source_fields": [
+          "report.foundersInfo.authPerson.positionDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - director_appointment_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_director_also_founder": {
+        "metric": "is_director_also_founder",
+        "value": false,
+        "source_fields": [
+          "report.foundersInfo.authPerson",
+          "report.foundersInfo.cofounders[]"
+        ],
+        "formula": "Совпадение по ИНН, иначе по нормализованному ФИО",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "related_company_count": {
+        "metric": "related_company_count",
+        "value": 34,
+        "source_fields": [
+          "report.relatedCompanies"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "unique_related_director_count": {
+        "metric": "unique_related_director_count",
+        "value": 20,
+        "source_fields": [
+          "report.relatedCompanies[].authPersonName"
+        ],
+        "formula": "Количество уникальных непустых нормализованных ФИО",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "okved_count": {
+        "metric": "okved_count",
+        "value": 27,
+        "source_fields": [
+          "report.kindsOfActivityInfo.mainKindOfActivity",
+          "report.kindsOfActivityInfo.otherKindsOfActivity"
+        ],
+        "formula": "Основной ОКВЭД (если есть) + число дополнительных",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "branches_count": {
+        "metric": "branches_count",
+        "value": 0,
+        "source_fields": [
+          "report.branchesInfo.branchesCount",
+          "report.branchesInfo.branches"
+        ],
+        "formula": "branchesCount при наличии, иначе число элементов; отсутствующий блок = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "revenue_growth_yoy": {
+        "metric": "revenue_growth_yoy",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "(latest_revenue - previous_revenue) / previous_revenue",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "profit_margin": {
+        "metric": "profit_margin",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.profit",
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "profit / revenue для последнего года, где доступны оба значения",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "revenue_trend": {
+        "metric": "revenue_trend",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "Классификация последовательных изменений минимум за два года",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "profit_trend": {
+        "metric": "profit_trend",
+        "value": "MIXED",
+        "source_fields": [
+          "report.finReports[2].common.profit",
+          "report.finReports[1].common.profit",
+          "report.finReports[0].common.profit"
+        ],
+        "formula": "GROWING — все изменения положительные; DECLINING — отрицательные; STABLE — нулевые; иначе MIXED",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "current_assets_to_short_term_liabilities": {
+        "metric": "current_assets_to_short_term_liabilities",
+        "value": 4.483436,
+        "source_fields": [
+          "report.finReports[0].assets.currentAssets.total",
+          "report.finReports[0].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "current_assets / short_term_liabilities",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "cash_to_short_term_liabilities": {
+        "metric": "cash_to_short_term_liabilities",
+        "value": 1.783813,
+        "source_fields": [
+          "report.finReports[0].assets.currentAssets.bankroll",
+          "report.finReports[0].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "cash / short_term_liabilities",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "receivables_share": {
+        "metric": "receivables_share",
+        "value": 0.097714,
+        "source_fields": [
+          "report.finReports[0].assets.currentAssets.receivables",
+          "report.finReports[0].assets.totalAssets"
+        ],
+        "formula": "receivables / total_assets",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "liabilities_to_assets": {
+        "metric": "liabilities_to_assets",
+        "value": 0.194862,
+        "source_fields": [
+          "report.finReports[0].assets.totalAssets",
+          "report.finReports[0].liabilities.capitals"
+        ],
+        "formula": "(total_assets - capital) / total_assets",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "total_arbitration_cases": {
+        "metric": "total_arbitration_cases",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration"
+        ],
+        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_cases_count": {
+        "metric": "defendant_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_cases_count": {
+        "metric": "defendant_pending_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount"
+        ],
+        "formula": "dpCount; отсутствующий счётчик внутри существующего status-блока = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_amount": {
+        "metric": "defendant_pending_amount",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount"
+        ],
+        "formula": "dpAmount; отсутствие суммы при dpCount = 0 трактуется как 0",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "defendant_cases_share": {
+        "metric": "defendant_cases_share",
+        "value": null,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration",
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "defendant_cases_count / total_arbitration_cases",
+        "status": "NOT_APPLICABLE",
+        "unit": "RATIO"
+      },
+      "arbitration_amount_to_revenue": {
+        "metric": "arbitration_amount_to_revenue",
+        "value": null,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "defendant_arbitration_amount_rub / latest_revenue_rub",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "total_execution_count": {
+        "metric": "total_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_count": {
+        "metric": "active_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active"
+        ],
+        "formula": "Количество элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_amount": {
+        "metric": "active_execution_amount",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active",
+          "report.executionProceedings[].amount"
+        ],
+        "formula": "Сумма amount для элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "latest_execution_date": {
+        "metric": "latest_execution_date",
+        "value": null,
+        "source_fields": [
+          "report.executionProceedings[].date"
+        ],
+        "formula": "max(date)",
+        "status": "NOT_APPLICABLE",
+        "unit": "ISO_DATE"
+      },
+      "tender_count": {
+        "metric": "tender_count",
+        "value": null,
+        "source_fields": [
+          "report.procurements"
+        ],
+        "formula": "В GetFullReportResponse нет отдельного поля количества участий в тендерах",
+        "status": "NOT_AVAILABLE",
+        "unit": "COUNT"
+      },
+      "winner_count": {
+        "metric": "winner_count",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].tenderWinnerCnt"
+        ],
+        "formula": "sum(tenderWinnerCnt)",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "signed_contract_amount": {
+        "metric": "signed_contract_amount",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].contractSignedAmt"
+        ],
+        "formula": "sum(contractSignedAmt)",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      }
+    },
+    "conflicts": []
+  },
+  {
+    "company_identity": {
+      "source_record_id": "325774600178399",
+      "inn": "120705254031",
+      "ogrn": "325774600178399",
+      "name": "ИП ПАВЛИЧУК Р.В.",
+      "full_name": "ПАВЛИЧУК РОМАН ВИКТОРОВИЧ",
+      "address": null,
+      "email": null,
+      "website": null,
+      "company_size": null,
+      "registration_date": "2025-03-17T21:00:00.000Z",
+      "reported_company_age_years": 1,
+      "status": "CURRENT",
+      "status_date": "2026-01-14T21:00:00.000Z",
+      "status_reason": null
+    },
+    "bank_risk": {
+      "base_risk_level": "LOW",
+      "zsk_risk_level": "GREEN",
+      "report_date": "2026-08-03T21:00:00.000Z"
+    },
+    "ownership": {
+      "source_available": false,
+      "founders": [],
+      "share_capital": null,
+      "director": null
+    },
+    "related_companies": {
+      "source_available": false,
+      "companies": [],
+      "directors": []
+    },
+    "business_profile": {
+      "main_okved": {
+        "code": "70.22",
+        "description": "Консультирование по вопросам коммерческой деятельности и управления"
+      },
+      "additional_okveds": [
+        {
+          "code": "73.11",
+          "description": "Деятельность рекламных агентств"
+        },
+        {
+          "code": "74.10",
+          "description": "Деятельность специализированная в области дизайна"
+        },
+        {
+          "code": "82.30",
+          "description": "Деятельность по организации конференций и выставок"
+        },
+        {
+          "code": "63.11",
+          "description": "Деятельность по обработке данных, предоставление услуг по размещению информации и связанная с этим деятельность"
+        },
+        {
+          "code": "85.41.99",
+          "description": "Образование дополнительное детей и взрослых прочее, не включенное в другие группировки, кроме деятельности по организации отдыха и оздоровления детей"
+        },
+        {
+          "code": "62.01",
+          "description": "Разработка компьютерного программного обеспечения"
+        },
+        {
+          "code": "62.09",
+          "description": "Деятельность, связанная с использованием вычислительной техники и информационных технологий, прочая"
+        },
+        {
+          "code": "73.20",
+          "description": "Исследование конъюнктуры рынка и изучение общественного мнения"
+        },
+        {
+          "code": "62.02",
+          "description": "Деятельность консультативная и работы в области компьютерных технологий"
+        }
+      ],
+      "branches_source_available": false,
+      "branches": [],
+      "tax_systems": []
+    },
+    "financial_health": {
+      "source_available": false,
+      "amount_unit": "RUB",
+      "statements": [],
+      "coefficients": {
+        "year": null,
+        "sustainability": null,
+        "solvency": null,
+        "profitability": null
+      }
+    },
+    "legal_risks": {
+      "yearly_cases_source_available": false,
+      "yearly_cases": [],
+      "by_status_source_available": true,
+      "by_status": {
+        "common_count": null,
+        "common_amount_rub": null,
+        "defendant": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        },
+        "plaintiff": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        }
+      }
+    },
+    "enforcement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "proceedings": []
+    },
+    "compliance": {
+      "positive_signals": [
+        {
+          "code": "FNS_BLOCKING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]"
+        },
+        {
+          "code": "EXECUTION_PROCEEDINGS",
+          "domain": "enforcement",
+          "polarity": "positive",
+          "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[1]"
+        },
+        {
+          "code": "LIQUIDATION_STATUS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[2]"
+        },
+        {
+          "code": "MASS_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[3]"
+        },
+        {
+          "code": "MASS_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
+          "source": "report.reputationalRisks.positive[4]"
+        },
+        {
+          "code": "DISHONEST_PROVIDER",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[5]"
+        },
+        {
+          "code": "DISQUALIFIED_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[6]"
+        },
+        {
+          "code": "ARBITRATION_DEFENDANT",
+          "domain": "legal_risks",
+          "polarity": "positive",
+          "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[7]"
+        },
+        {
+          "code": "TAX_ARREARS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[8]"
+        },
+        {
+          "code": "TAX_REPORTING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[9]"
+        },
+        {
+          "code": "INVALID_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[10]"
+        },
+        {
+          "code": "INVALID_AUTHPERSONS_DATA",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[11]"
+        },
+        {
+          "code": "INVALID_REGISTRATION_DATA",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[12]"
+        },
+        {
+          "code": "MASS_OKVED",
+          "domain": "business_profile",
+          "polarity": "positive",
+          "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
+          "source": "report.reputationalRisks.positive[13]"
+        }
+      ],
+      "negative_signals": [],
+      "inspections_source_available": false,
+      "inspections": [],
+      "licenses_source_available": false,
+      "licenses": []
+    },
+    "procurement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "yearly_activity": []
+    },
+    "derived_metrics": {
+      "company_age_years": {
+        "metric": "company_age_years",
+        "value": 1.38,
+        "source_fields": [
+          "report.baseInfo.registrationInfo.registrationDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - registration_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_active_company": {
+        "metric": "is_active_company",
+        "value": true,
+        "source_fields": [
+          "report.status.status"
+        ],
+        "formula": "status == 'CURRENT'",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "founder_count": {
+        "metric": "founder_count",
+        "value": 0,
+        "source_fields": [
+          "report.foundersInfo.cofounders"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "max_owner_share": {
+        "metric": "max_owner_share",
+        "value": null,
+        "source_fields": [
+          "report.foundersInfo.cofounders[].share"
+        ],
+        "formula": "max(founder.share)",
+        "status": "NOT_AVAILABLE",
+        "unit": "PERCENT"
+      },
+      "director_tenure_years": {
+        "metric": "director_tenure_years",
+        "value": null,
+        "source_fields": [
+          "report.foundersInfo.authPerson.positionDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - director_appointment_date) / 365.2425",
+        "status": "NOT_AVAILABLE",
+        "unit": "YEARS"
+      },
+      "is_director_also_founder": {
+        "metric": "is_director_also_founder",
+        "value": null,
+        "source_fields": [
+          "report.foundersInfo.authPerson",
+          "report.foundersInfo.cofounders[]"
+        ],
+        "formula": "Совпадение по ИНН, иначе по нормализованному ФИО",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "related_company_count": {
+        "metric": "related_company_count",
+        "value": 0,
+        "source_fields": [
+          "report.relatedCompanies"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "unique_related_director_count": {
+        "metric": "unique_related_director_count",
+        "value": 0,
+        "source_fields": [
+          "report.relatedCompanies[].authPersonName"
+        ],
+        "formula": "Количество уникальных непустых нормализованных ФИО",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "okved_count": {
+        "metric": "okved_count",
+        "value": 10,
+        "source_fields": [
+          "report.kindsOfActivityInfo.mainKindOfActivity",
+          "report.kindsOfActivityInfo.otherKindsOfActivity"
+        ],
+        "formula": "Основной ОКВЭД (если есть) + число дополнительных",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "branches_count": {
+        "metric": "branches_count",
+        "value": 0,
+        "source_fields": [
+          "report.branchesInfo.branchesCount",
+          "report.branchesInfo.branches"
+        ],
+        "formula": "branchesCount при наличии, иначе число элементов; отсутствующий блок = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "revenue_growth_yoy": {
+        "metric": "revenue_growth_yoy",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "(latest_revenue - previous_revenue) / previous_revenue",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "profit_margin": {
+        "metric": "profit_margin",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.profit",
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "profit / revenue для последнего года, где доступны оба значения",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "revenue_trend": {
+        "metric": "revenue_trend",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "Классификация последовательных изменений минимум за два года",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "profit_trend": {
+        "metric": "profit_trend",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].common.profit"
+        ],
+        "formula": "Классификация последовательных изменений минимум за два года",
+        "status": "NOT_AVAILABLE",
+        "unit": null
+      },
+      "current_assets_to_short_term_liabilities": {
+        "metric": "current_assets_to_short_term_liabilities",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.total",
+          "report.finReports[].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "current_assets / short_term_liabilities",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "cash_to_short_term_liabilities": {
+        "metric": "cash_to_short_term_liabilities",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.bankroll",
+          "report.finReports[].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "cash / short_term_liabilities",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "receivables_share": {
+        "metric": "receivables_share",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.currentAssets.receivables",
+          "report.finReports[].assets.totalAssets"
+        ],
+        "formula": "receivables / total_assets",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "liabilities_to_assets": {
+        "metric": "liabilities_to_assets",
+        "value": null,
+        "source_fields": [
+          "report.finReports[].assets.totalAssets",
+          "report.finReports[].liabilities.capitals"
+        ],
+        "formula": "(total_assets - capital) / total_assets",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "total_arbitration_cases": {
+        "metric": "total_arbitration_cases",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration"
+        ],
+        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_cases_count": {
+        "metric": "defendant_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_cases_count": {
+        "metric": "defendant_pending_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount"
+        ],
+        "formula": "dpCount; отсутствующий счётчик внутри существующего status-блока = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_amount": {
+        "metric": "defendant_pending_amount",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount"
+        ],
+        "formula": "dpAmount; отсутствие суммы при dpCount = 0 трактуется как 0",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "defendant_cases_share": {
+        "metric": "defendant_cases_share",
+        "value": null,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.arbitrationByStatus.plaintiffArbitration",
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "defendant_cases_count / total_arbitration_cases",
+        "status": "NOT_APPLICABLE",
+        "unit": "RATIO"
+      },
+      "arbitration_amount_to_revenue": {
+        "metric": "arbitration_amount_to_revenue",
+        "value": null,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.finReports[].common.proceeds"
+        ],
+        "formula": "defendant_arbitration_amount_rub / latest_revenue_rub",
+        "status": "NOT_AVAILABLE",
+        "unit": "RATIO"
+      },
+      "total_execution_count": {
+        "metric": "total_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_count": {
+        "metric": "active_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active"
+        ],
+        "formula": "Количество элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_amount": {
+        "metric": "active_execution_amount",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active",
+          "report.executionProceedings[].amount"
+        ],
+        "formula": "Сумма amount для элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "latest_execution_date": {
+        "metric": "latest_execution_date",
+        "value": null,
+        "source_fields": [
+          "report.executionProceedings[].date"
+        ],
+        "formula": "max(date)",
+        "status": "NOT_APPLICABLE",
+        "unit": "ISO_DATE"
+      },
+      "tender_count": {
+        "metric": "tender_count",
+        "value": null,
+        "source_fields": [
+          "report.procurements"
+        ],
+        "formula": "В GetFullReportResponse нет отдельного поля количества участий в тендерах",
+        "status": "NOT_AVAILABLE",
+        "unit": "COUNT"
+      },
+      "winner_count": {
+        "metric": "winner_count",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].tenderWinnerCnt"
+        ],
+        "formula": "sum(tenderWinnerCnt)",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "signed_contract_amount": {
+        "metric": "signed_contract_amount",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].contractSignedAmt"
+        ],
+        "formula": "sum(contractSignedAmt)",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      }
+    },
+    "conflicts": []
+  },
+  {
+    "company_identity": {
+      "source_record_id": "1227700142108",
+      "inn": "9721159668",
+      "ogrn": "1227700142108",
+      "name": "ООО \"ТРАНСЛОРИУМ\"",
+      "full_name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ТРАНСЛОРИУМ\"",
+      "address": "117303,  Г.МОСКВА, внутригородская территория города федерального значения МУНИЦИПАЛЬНЫЙ ОКРУГ ЗЮЗИНО, УЛ. КАХОВКА, Д. 11, К. 1 , ПОМЕЩ. 6/1",
+      "email": "shidlovskayam@mail.ru",
+      "website": null,
+      "company_size": "Средние предприятия",
+      "registration_date": "2022-03-15T21:00:00.000Z",
+      "reported_company_age_years": 4,
+      "status": "CURRENT",
+      "status_date": "2026-08-02T21:00:00.000Z",
+      "status_reason": null
+    },
+    "bank_risk": {
+      "base_risk_level": "LOW",
+      "zsk_risk_level": "GREEN",
+      "report_date": "2026-08-23T21:00:00.000Z"
+    },
+    "ownership": {
+      "source_available": true,
+      "founders": [
+        {
+          "inn": "772874439303",
+          "name": "МЕЖЕВЫХ ВИКТОРИЯ АНДРЕЕВНА",
+          "share_percent": 100,
+          "contribution_amount": 100000,
+          "active": true,
+          "date_from": "2025-12-07T21:00:00.000Z"
+        }
+      ],
+      "share_capital": 100000,
+      "director": {
+        "inn": "772270625603",
+        "name": "ДАУТОВА АНАСТАСИЯ АРТУРОВНА",
+        "position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+        "appointment_date": "2025-12-07T21:00:00.000Z"
+      }
+    },
+    "related_companies": {
+      "source_available": true,
+      "companies": [
+        {
+          "inn": "9723172632",
+          "ogrn": "1227700672231",
+          "name": "ООО \"ИС\"",
+          "registration_date": "2022-10-17T21:00:00.000Z",
+          "director_name": "АРТАМОНОВА АННА АНАТОЛЬЕВНА",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9721182240",
+          "ogrn": "1227700667776",
+          "name": "ООО \"ТД КАЛИПСО\"",
+          "registration_date": "2022-10-16T21:00:00.000Z",
+          "director_name": "ШИДЛОВСКАЯ МАРИНА ЕВГЕНЬЕВНА",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7732512970",
+          "ogrn": "1077746283010",
+          "name": "ООО \"ПРОДУКТ-СЕРВИС\"",
+          "registration_date": "2007-02-04T21:00:00.000Z",
+          "director_name": "ЕВТОВИЧ ПЕТРОНИЕ null",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "9704164080",
+          "ogrn": "1227700574518",
+          "name": "ООО \"НТС\"",
+          "registration_date": "2022-09-13T21:00:00.000Z",
+          "director_name": "САРКИСЯН РОМАН ГЕГАМОВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "5047174393",
+          "ogrn": "1155047010910",
+          "name": "ТСН \"ТСЖ \"ЗЕЛЕНЫЕ ХОЛМЫ\"",
+          "registration_date": "2015-09-08T21:00:00.000Z",
+          "director_name": "ШУМАКОВ АЛЕКСАНДР ИВАНОВИЧ",
+          "director_position": "ПРЕДСЕДАТЕЛЬ ПРАВЛЕНИЯ ТОВАРИЩЕСТВА",
+          "parent_organizations": []
+        },
+        {
+          "inn": "5013033242",
+          "ogrn": "1035002600313",
+          "name": "ООО \"ПОСБОН\"",
+          "registration_date": "2003-01-04T21:00:00.000Z",
+          "director_name": "ШАТСКАЯ НАТАЛИЯ СЕРГЕЕВНА",
+          "director_position": "ДИРЕКТОР",
+          "parent_organizations": []
+        },
+        {
+          "inn": "7716947204",
+          "ogrn": "1207700185880",
+          "name": "ООО \"ИМПУЛЬС\"",
+          "registration_date": "2020-06-07T21:00:00.000Z",
+          "director_name": "ЛЕТОХОВ СЕРГЕЙ ВАЛЕРЬЕВИЧ",
+          "director_position": "ГЕНЕРАЛЬНЫЙ ДИРЕКТОР",
+          "parent_organizations": []
+        }
+      ],
+      "directors": [
+        "АРТАМОНОВА АННА АНАТОЛЬЕВНА",
+        "ШИДЛОВСКАЯ МАРИНА ЕВГЕНЬЕВНА",
+        "ЕВТОВИЧ ПЕТРОНИЕ null",
+        "САРКИСЯН РОМАН ГЕГАМОВИЧ",
+        "ШУМАКОВ АЛЕКСАНДР ИВАНОВИЧ",
+        "ШАТСКАЯ НАТАЛИЯ СЕРГЕЕВНА",
+        "ЛЕТОХОВ СЕРГЕЙ ВАЛЕРЬЕВИЧ"
+      ]
+    },
+    "business_profile": {
+      "main_okved": {
+        "code": "49.42",
+        "description": "Предоставление услуг по перевозкам"
+      },
+      "additional_okveds": [
+        {
+          "code": "46.38.2",
+          "description": "Торговля оптовая прочими пищевыми продуктами"
+        },
+        {
+          "code": "46.36",
+          "description": "Торговля оптовая сахаром, шоколадом и сахаристыми кондитерскими изделиями"
+        },
+        {
+          "code": "47.81",
+          "description": "Торговля розничная в нестационарных торговых объектах и на рынках пищевыми продуктами, напитками и табачной продукцией"
+        },
+        {
+          "code": "47.22",
+          "description": "Торговля розничная мясом и мясными продуктами в специализированных магазинах"
+        },
+        {
+          "code": "46.31",
+          "description": "Торговля оптовая фруктами и овощами"
+        },
+        {
+          "code": "46.37",
+          "description": "Торговля оптовая кофе, чаем, какао и пряностями"
+        },
+        {
+          "code": "46.39",
+          "description": "Торговля оптовая неспециализированная пищевыми продуктами, напитками и табачными изделиями"
+        },
+        {
+          "code": "47.26",
+          "description": "Торговля розничная табачными изделиями в специализированных магазинах"
+        },
+        {
+          "code": "47.91",
+          "description": "Торговля розничная по почте или по информационно-коммуникационной сети Интернет"
+        },
+        {
+          "code": "46.32",
+          "description": "Торговля оптовая мясом и мясными продуктами"
+        },
+        {
+          "code": "47.21",
+          "description": "Торговля розничная фруктами и овощами в специализированных магазинах"
+        },
+        {
+          "code": "47.29",
+          "description": "Торговля розничная прочими пищевыми продуктами в специализированных магазинах"
+        },
+        {
+          "code": "46.35",
+          "description": "Торговля оптовая табачными изделиями"
+        },
+        {
+          "code": "47.25",
+          "description": "Торговля розничная напитками в специализированных магазинах"
+        },
+        {
+          "code": "46.34",
+          "description": "Торговля оптовая напитками"
+        },
+        {
+          "code": "47.23",
+          "description": "Торговля розничная рыбой, ракообразными и моллюсками в специализированных магазинах"
+        },
+        {
+          "code": "46.33",
+          "description": "Торговля оптовая молочными продуктами, яйцами и пищевыми маслами и жирами"
+        },
+        {
+          "code": "47.24",
+          "description": "Торговля розничная хлебом и хлебобулочными изделиями и кондитерскими изделиями в специализированных магазинах"
+        },
+        {
+          "code": "47.99",
+          "description": "Торговля розничная прочая вне магазинов, палаток, рынков"
+        },
+        {
+          "code": "46.17",
+          "description": "Деятельность агентов по оптовой торговле пищевыми продуктами, напитками и табачными изделиями"
+        },
+        {
+          "code": "41.20",
+          "description": "Строительство жилых и нежилых зданий"
+        },
+        {
+          "code": "45.40",
+          "description": "Торговля мотоциклами, их деталями, узлами и принадлежностями; техническое обслуживание и ремонт мотоциклов"
+        },
+        {
+          "code": "53.20",
+          "description": "Деятельность почтовой связи прочая и курьерская деятельность"
+        },
+        {
+          "code": "50.30",
+          "description": "Деятельность внутреннего водного пассажирского транспорта"
+        },
+        {
+          "code": "49.32",
+          "description": "Деятельность легкового такси и арендованных легковых автомобилей с водителем"
+        },
+        {
+          "code": "46.13",
+          "description": "Деятельность агентов по оптовой торговле лесоматериалами и строительными материалами"
+        },
+        {
+          "code": "45.31",
+          "description": "Торговля оптовая автомобильными деталями, узлами и принадлежностями"
+        },
+        {
+          "code": "52.10",
+          "description": "Деятельность по складированию и хранению"
+        },
+        {
+          "code": "49.20.1",
+          "description": "Перевозка опасных грузов"
+        },
+        {
+          "code": "50.40",
+          "description": "Деятельность внутреннего водного грузового транспорта"
+        },
+        {
+          "code": "52.22",
+          "description": "Деятельность вспомогательная, связанная с водным транспортом"
+        },
+        {
+          "code": "41.10",
+          "description": "Разработка строительных проектов"
+        },
+        {
+          "code": "46.90",
+          "description": "Торговля оптовая неспециализированная"
+        },
+        {
+          "code": "53.10",
+          "description": "Деятельность почтовой связи общего пользования"
+        },
+        {
+          "code": "45.11",
+          "description": "Торговля легковыми автомобилями и грузовыми автомобилями малой грузоподъемности"
+        },
+        {
+          "code": "46.12",
+          "description": "Деятельность агентов по оптовой торговле топливом, рудами, металлами и химическими веществами"
+        },
+        {
+          "code": "52.21",
+          "description": "Деятельность вспомогательная, связанная с сухопутным транспортом"
+        },
+        {
+          "code": "52.24",
+          "description": "Транспортная обработка грузов"
+        },
+        {
+          "code": "52.23",
+          "description": "Деятельность вспомогательная, связанная с воздушным и космическим транспортом"
+        },
+        {
+          "code": "46.75",
+          "description": "Торговля оптовая химическими продуктами"
+        },
+        {
+          "code": "49.20.9",
+          "description": "Перевозка прочих грузов"
+        },
+        {
+          "code": "45.19",
+          "description": "Торговля прочими автотранспортными средствами"
+        },
+        {
+          "code": "45.32",
+          "description": "Торговля розничная автомобильными деталями, узлами и принадлежностями"
+        },
+        {
+          "code": "51.21",
+          "description": "Деятельность грузового воздушного транспорта"
+        },
+        {
+          "code": "50.20",
+          "description": "Деятельность морского грузового транспорта"
+        },
+        {
+          "code": "49.41",
+          "description": "Деятельность автомобильного грузового транспорта"
+        }
+      ],
+      "branches_source_available": false,
+      "branches": [],
+      "tax_systems": [
+        {
+          "short_name": "ОСНО",
+          "full_name": "Общая система налогообложения"
+        }
+      ]
+    },
+    "financial_health": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "statements": [
+        {
+          "year": 2023,
+          "revenue": 569240000,
+          "profit": 5830000,
+          "assets": {
+            "total": 13204000,
+            "current": 13204000,
+            "non_current": null,
+            "receivables": 9963000,
+            "cash": 15000,
+            "stocks": 3241000
+          },
+          "liabilities": {
+            "balance_total": 13204000,
+            "capital": 4781000,
+            "short_term": 8423000,
+            "long_term": null,
+            "accounts_payable": 8423000
+          }
+        },
+        {
+          "year": 2024,
+          "revenue": 761280000,
+          "profit": 6390000,
+          "assets": {
+            "total": 16350000,
+            "current": 16350000,
+            "non_current": null,
+            "receivables": 11843000,
+            "cash": 1000,
+            "stocks": 4507000
+          },
+          "liabilities": {
+            "balance_total": 16350000,
+            "capital": 5136000,
+            "short_term": 11214000,
+            "long_term": null,
+            "accounts_payable": 11214000
+          }
+        },
+        {
+          "year": 2025,
+          "revenue": 806284000,
+          "profit": 7894000,
+          "assets": {
+            "total": 18696000,
+            "current": 18696000,
+            "non_current": null,
+            "receivables": 10302000,
+            "cash": null,
+            "stocks": 8394000
+          },
+          "liabilities": {
+            "balance_total": 18696000,
+            "capital": 10834000,
+            "short_term": 7862000,
+            "long_term": null,
+            "accounts_payable": 7862000
+          }
+        }
+      ],
+      "coefficients": {
+        "year": null,
+        "sustainability": null,
+        "solvency": null,
+        "profitability": null
+      }
+    },
+    "legal_risks": {
+      "yearly_cases_source_available": true,
+      "yearly_cases": [
+        {
+          "year": 2023,
+          "plaintiff_count": 1,
+          "plaintiff_amount_rub": 957189,
+          "defendant_count": 0,
+          "defendant_amount_rub": 0
+        }
+      ],
+      "by_status_source_available": true,
+      "by_status": {
+        "common_count": 1,
+        "common_amount_rub": 957189,
+        "defendant": {
+          "finished": {
+            "count": null,
+            "amount_rub": null
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        },
+        "plaintiff": {
+          "finished": {
+            "count": 1,
+            "amount_rub": 957189
+          },
+          "appealed": {
+            "count": null,
+            "amount_rub": null
+          },
+          "pending": {
+            "count": null,
+            "amount_rub": null
+          }
+        }
+      }
+    },
+    "enforcement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "proceedings": []
+    },
+    "compliance": {
+      "positive_signals": [
+        {
+          "code": "FNS_BLOCKING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
+          "source": "report.reputationalRisks.positive[0]"
+        },
+        {
+          "code": "RELATED_COMPANIES",
+          "domain": "related_companies",
+          "polarity": "positive",
+          "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
+          "source": "report.reputationalRisks.positive[1]"
+        },
+        {
+          "code": "EXECUTION_PROCEEDINGS",
+          "domain": "enforcement",
+          "polarity": "positive",
+          "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
+          "source": "report.reputationalRisks.positive[2]"
+        },
+        {
+          "code": "LIQUIDATION_STATUS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
+          "source": "report.reputationalRisks.positive[3]"
+        },
+        {
+          "code": "MASS_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
+          "source": "report.reputationalRisks.positive[4]"
+        },
+        {
+          "code": "DISHONEST_PROVIDER",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
+          "source": "report.reputationalRisks.positive[5]"
+        },
+        {
+          "code": "DISQUALIFIED_AUTHPERSONS",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
+          "source": "report.reputationalRisks.positive[6]"
+        },
+        {
+          "code": "ARBITRATION_DEFENDANT",
+          "domain": "legal_risks",
+          "polarity": "positive",
+          "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
+          "source": "report.reputationalRisks.positive[7]"
+        },
+        {
+          "code": "TAX_ARREARS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
+          "source": "report.reputationalRisks.positive[8]"
+        },
+        {
+          "code": "TAX_REPORTING",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
+          "source": "report.reputationalRisks.positive[9]"
+        },
+        {
+          "code": "INVALID_ADDRESS",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
+          "source": "report.reputationalRisks.positive[10]"
+        },
+        {
+          "code": "INVALID_AUTHPERSONS_DATA",
+          "domain": "ownership",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
+          "source": "report.reputationalRisks.positive[11]"
+        },
+        {
+          "code": "INVALID_REGISTRATION_DATA",
+          "domain": "compliance",
+          "polarity": "positive",
+          "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
+          "source": "report.reputationalRisks.positive[12]"
+        },
+        {
+          "code": "PROCEEDS",
+          "domain": "financial_health",
+          "polarity": "positive",
+          "description": "У компании есть выручка за предыдущий год в размере 806284.0 тыс. руб., что свидетельствует о наличии стабильного дохода и успешной деятельности.",
+          "source": "report.reputationalRisks.positive[13]"
+        },
+        {
+          "code": "PROFIT",
+          "domain": "financial_health",
+          "polarity": "positive",
+          "description": "У компании есть прибыль за предыдущий год в размере 7894.0 тыс. руб., что указывает на эффективное управление затратами и положительные финансовые результаты.",
+          "source": "report.reputationalRisks.positive[14]"
+        },
+        {
+          "code": "CURRENT_ASSETS",
+          "domain": "financial_health",
+          "polarity": "positive",
+          "description": "У компании имеются оборотные активы в размере 18696.0 тыс. руб., что обеспечивает достаточную ликвидность для покрытия краткосрочных обязательств и ведения текущей деятельности.",
+          "source": "report.reputationalRisks.positive[15]"
+        }
+      ],
+      "negative_signals": [
+        {
+          "code": "MASS_OKVED",
+          "domain": "business_profile",
+          "polarity": "negative",
+          "description": "Компания имеет большое количество кодов ОКВЭД, что  может быть связано с попыткой компании охватить как можно больше направлений бизнеса, это может отрицательно сказаться на ее эффективности и надежности.",
+          "source": "report.reputationalRisks.negative[0]"
+        },
+        {
+          "code": "MASS_ADDRESS",
+          "domain": "compliance",
+          "polarity": "negative",
+          "description": "Находится в реестре организаций с массовым адресом, что может быть признаком фиктивной регистрации.",
+          "source": "report.reputationalRisks.negative[1]"
+        }
+      ],
+      "inspections_source_available": false,
+      "inspections": [],
+      "licenses_source_available": false,
+      "licenses": []
+    },
+    "procurement": {
+      "source_available": true,
+      "amount_unit": "RUB",
+      "yearly_activity": []
+    },
+    "derived_metrics": {
+      "company_age_years": {
+        "metric": "company_age_years",
+        "value": 4.44,
+        "source_fields": [
+          "report.baseInfo.registrationInfo.registrationDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - registration_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_active_company": {
+        "metric": "is_active_company",
+        "value": true,
+        "source_fields": [
+          "report.status.status"
+        ],
+        "formula": "status == 'CURRENT'",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "founder_count": {
+        "metric": "founder_count",
+        "value": 1,
+        "source_fields": [
+          "report.foundersInfo.cofounders"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "max_owner_share": {
+        "metric": "max_owner_share",
+        "value": 100,
+        "source_fields": [
+          "report.foundersInfo.cofounders[].share"
+        ],
+        "formula": "max(founder.share)",
+        "status": "CALCULATED",
+        "unit": "PERCENT"
+      },
+      "director_tenure_years": {
+        "metric": "director_tenure_years",
+        "value": 0.71,
+        "source_fields": [
+          "report.foundersInfo.authPerson.positionDate",
+          "report.reportDate"
+        ],
+        "formula": "(report_date - director_appointment_date) / 365.2425",
+        "status": "CALCULATED",
+        "unit": "YEARS"
+      },
+      "is_director_also_founder": {
+        "metric": "is_director_also_founder",
+        "value": false,
+        "source_fields": [
+          "report.foundersInfo.authPerson",
+          "report.foundersInfo.cofounders[]"
+        ],
+        "formula": "Совпадение по ИНН, иначе по нормализованному ФИО",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "related_company_count": {
+        "metric": "related_company_count",
+        "value": 7,
+        "source_fields": [
+          "report.relatedCompanies"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "unique_related_director_count": {
+        "metric": "unique_related_director_count",
+        "value": 7,
+        "source_fields": [
+          "report.relatedCompanies[].authPersonName"
+        ],
+        "formula": "Количество уникальных непустых нормализованных ФИО",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "okved_count": {
+        "metric": "okved_count",
+        "value": 47,
+        "source_fields": [
+          "report.kindsOfActivityInfo.mainKindOfActivity",
+          "report.kindsOfActivityInfo.otherKindsOfActivity"
+        ],
+        "formula": "Основной ОКВЭД (если есть) + число дополнительных",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "branches_count": {
+        "metric": "branches_count",
+        "value": 0,
+        "source_fields": [
+          "report.branchesInfo.branchesCount",
+          "report.branchesInfo.branches"
+        ],
+        "formula": "branchesCount при наличии, иначе число элементов; отсутствующий блок = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "revenue_growth_yoy": {
+        "metric": "revenue_growth_yoy",
+        "value": 0.059116,
+        "source_fields": [
+          "report.finReports[0].common.proceeds",
+          "report.finReports[1].common.proceeds"
+        ],
+        "formula": "(latest_revenue - previous_revenue) / previous_revenue",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "profit_margin": {
+        "metric": "profit_margin",
+        "value": 0.009791,
+        "source_fields": [
+          "report.finReports[0].common.profit",
+          "report.finReports[0].common.proceeds"
+        ],
+        "formula": "profit / revenue для последнего года, где доступны оба значения",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "revenue_trend": {
+        "metric": "revenue_trend",
+        "value": "GROWING",
+        "source_fields": [
+          "report.finReports[2].common.proceeds",
+          "report.finReports[1].common.proceeds",
+          "report.finReports[0].common.proceeds"
+        ],
+        "formula": "GROWING — все изменения положительные; DECLINING — отрицательные; STABLE — нулевые; иначе MIXED",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "profit_trend": {
+        "metric": "profit_trend",
+        "value": "GROWING",
+        "source_fields": [
+          "report.finReports[2].common.profit",
+          "report.finReports[1].common.profit",
+          "report.finReports[0].common.profit"
+        ],
+        "formula": "GROWING — все изменения положительные; DECLINING — отрицательные; STABLE — нулевые; иначе MIXED",
+        "status": "CALCULATED",
+        "unit": null
+      },
+      "current_assets_to_short_term_liabilities": {
+        "metric": "current_assets_to_short_term_liabilities",
+        "value": 2.378021,
+        "source_fields": [
+          "report.finReports[0].assets.currentAssets.total",
+          "report.finReports[0].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "current_assets / short_term_liabilities",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "cash_to_short_term_liabilities": {
+        "metric": "cash_to_short_term_liabilities",
+        "value": 8.9e-05,
+        "source_fields": [
+          "report.finReports[1].assets.currentAssets.bankroll",
+          "report.finReports[1].liabilities.shortTermLiabilities.total"
+        ],
+        "formula": "cash / short_term_liabilities",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "receivables_share": {
+        "metric": "receivables_share",
+        "value": 0.551027,
+        "source_fields": [
+          "report.finReports[0].assets.currentAssets.receivables",
+          "report.finReports[0].assets.totalAssets"
+        ],
+        "formula": "receivables / total_assets",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "liabilities_to_assets": {
+        "metric": "liabilities_to_assets",
+        "value": 0.420518,
+        "source_fields": [
+          "report.finReports[0].assets.totalAssets",
+          "report.finReports[0].liabilities.capitals"
+        ],
+        "formula": "(total_assets - capital) / total_assets",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "total_arbitration_cases": {
+        "metric": "total_arbitration_cases",
+        "value": 1,
+        "source_fields": [
+          "report.arbitrationByStatus.commonCount"
+        ],
+        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_cases_count": {
+        "metric": "defendant_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_cases_count": {
+        "metric": "defendant_pending_cases_count",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount"
+        ],
+        "formula": "dpCount; отсутствующий счётчик внутри существующего status-блока = 0",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "defendant_pending_amount": {
+        "metric": "defendant_pending_amount",
+        "value": 0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount"
+        ],
+        "formula": "dpAmount; отсутствие суммы при dpCount = 0 трактуется как 0",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "defendant_cases_share": {
+        "metric": "defendant_cases_share",
+        "value": 0.0,
+        "source_fields": [
+          "report.arbitrationByStatus.commonCount",
+          "report.arbitrationByStatus.defandantArbitration"
+        ],
+        "formula": "defendant_cases_count / total_arbitration_cases",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "arbitration_amount_to_revenue": {
+        "metric": "arbitration_amount_to_revenue",
+        "value": 0.0,
+        "source_fields": [
+          "report.arbitrationByStatus.defandantArbitration",
+          "report.finReports[0].common.proceeds"
+        ],
+        "formula": "defendant_arbitration_amount_rub / latest_revenue_rub",
+        "status": "CALCULATED",
+        "unit": "RATIO"
+      },
+      "total_execution_count": {
+        "metric": "total_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings"
+        ],
+        "formula": "Количество элементов; отсутствующая коллекция нормализуется в []",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_count": {
+        "metric": "active_execution_count",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active"
+        ],
+        "formula": "Количество элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "active_execution_amount": {
+        "metric": "active_execution_amount",
+        "value": 0,
+        "source_fields": [
+          "report.executionProceedings[].active",
+          "report.executionProceedings[].amount"
+        ],
+        "formula": "Сумма amount для элементов с active == true",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      },
+      "latest_execution_date": {
+        "metric": "latest_execution_date",
+        "value": null,
+        "source_fields": [
+          "report.executionProceedings[].date"
+        ],
+        "formula": "max(date)",
+        "status": "NOT_APPLICABLE",
+        "unit": "ISO_DATE"
+      },
+      "tender_count": {
+        "metric": "tender_count",
+        "value": null,
+        "source_fields": [
+          "report.procurements"
+        ],
+        "formula": "В GetFullReportResponse нет отдельного поля количества участий в тендерах",
+        "status": "NOT_AVAILABLE",
+        "unit": "COUNT"
+      },
+      "winner_count": {
+        "metric": "winner_count",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].tenderWinnerCnt"
+        ],
+        "formula": "sum(tenderWinnerCnt)",
+        "status": "CALCULATED",
+        "unit": "COUNT"
+      },
+      "signed_contract_amount": {
+        "metric": "signed_contract_amount",
+        "value": 0,
+        "source_fields": [
+          "report.procurements[].contractSignedAmt"
+        ],
+        "formula": "sum(contractSignedAmt)",
+        "status": "CALCULATED",
+        "unit": "RUB"
+      }
+    },
+    "conflicts": []
+  }
+]
