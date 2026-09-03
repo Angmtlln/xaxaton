@@ -2,122 +2,171 @@
 
 ## Назначение
 
-Слой принимает только нормализованный бизнес-профиль и возвращает список
-сработавших risk signals:
+Слой принимает normalized business profile и возвращает только сигналы,
+сработавшие по собственным детерминированным правилам:
 
 ```text
-normalized business profile
-↓
-deterministic rules
-↓
-risk signals with metric evidence
+normalized profile → configured rules → derived signals
 ```
 
-Он не использует LLM, не меняет банковские `riskLevel`/`zskRiskLevel` и не
-создаёт общий risk score.
+LLM не используется. Банковские `riskLevel`/`zskRiskLevel` не изменяются.
+Общий числовой risk score не рассчитывается.
 
-## Модель сигнала
+## RiskSignal
+
+Source и derived signals имеют общий контракт:
 
 ```json
 {
   "code": "REVENUE_DECLINE",
   "domain": "FINANCE",
-  "severity": "MEDIUM",
+  "type": "NEGATIVE",
+  "impact_level": "MEDIUM",
+  "origin": "DERIVED_RULE",
   "description": "Выручка снизилась год к году на 20.0%.",
   "evidence": [
     {
+      "source_type": "DERIVED_METRIC",
+      "source_path": "derived_metrics.revenue_growth_yoy",
       "metric": "revenue_growth_yoy",
-      "value": -0.2,
-      "source_fields": [
-        "report.finReports[0].common.proceeds",
-        "report.finReports[1].common.proceeds"
-      ]
+      "value": -0.2
     }
   ],
-  "rule": "revenue_growth_yoy < 0"
+  "rule": "revenue_growth_yoy <= -0.1",
+  "rule_version": "1.0.0"
 }
 ```
 
-Допустимые `severity`: `LOW`, `MEDIUM`, `HIGH`. Сейчас все правила независимы:
-severity не складываются и не преобразуются в числовой score.
+Допустимые значения:
+
+- `type`: `POSITIVE`, `NEGATIVE`, `CONFLICT`;
+- `origin`: `SOURCE_SIGNAL`, `DERIVED_RULE`;
+- `impact_level`: `LOW`, `MEDIUM`, `HIGH`.
+
+`impact_level` — уровень внимания по конкретному фактору. Он не является
+вероятностью дефолта, банковским рейтингом или интегральной оценкой компании.
+
+## Source signals и derived signals
+
+Они не объединяются в один список:
+
+- `compliance.source_signals` — нормализованные записи из
+  `reputationalRisks`, `origin = SOURCE_SIGNAL`;
+- `derived_signals` — результат `generate_risk_signal_dicts`,
+  `origin = DERIVED_RULE`.
+
+Некоторые derived rules, например `MASS_AUTH_PERSON`, используют source signal
+как вход. Evidence при этом явно имеет `source_type = SOURCE_SIGNAL`; исходный
+source signal продолжает существовать отдельно.
+
+## Evidence
+
+Каждый элемент evidence имеет ровно четыре поля:
+
+```json
+{
+  "source_type": "DERIVED_METRIC",
+  "source_path": "derived_metrics.active_execution_count",
+  "metric": "active_execution_count",
+  "value": 2
+}
+```
+
+Используемые `source_type`:
+
+- `NORMALIZED_FIELD` — нормализованный raw-факт;
+- `DERIVED_METRIC` — прозрачная рассчитанная метрика;
+- `SOURCE_SIGNAL` — сигнал из `reputationalRisks`;
+- `DATA_QUALITY` — запись из `data_quality.conflicts`.
 
 ## Правила
 
-| Code | Domain | Severity | Детерминированное условие | Source metric |
-| --- | --- | --- | --- | --- |
-| `NEGATIVE_PROFIT` | `FINANCE` | `MEDIUM` | Последняя доступная прибыль `< 0` | `latest_profit` из `financial_health.statements` |
-| `REVENUE_DECLINE` | `FINANCE` | `MEDIUM` | `revenue_growth_yoy < 0` | `revenue_growth_yoy` |
-| `NEGATIVE_EQUITY` | `FINANCE` | `HIGH` | Последний доступный капитал `< 0` | `latest_equity` из `financial_health.statements` |
-| `LOW_LIQUIDITY` | `FINANCE` | `HIGH` | `current_assets_to_short_term_liabilities < 1` | `current_assets_to_short_term_liabilities` |
-| `OPEN_DEFENDANT_CASES` | `LEGAL` | `MEDIUM` | `defendant_pending_cases_count > 0` | `defendant_pending_cases_count` |
-| `HIGH_DEFENDANT_AMOUNT` | `LEGAL` | `HIGH` | Pending-сумма `>= 1 000 000 ₽` или вся defendant-сумма `>= 10%` выручки | `defendant_pending_amount`, `arbitration_amount_to_revenue` |
-| `REPEATED_ARBITRATION` | `LEGAL` | `MEDIUM` | `defendant_cases_count >= 3` | `defendant_cases_count` |
-| `ACTIVE_EXECUTION_PROCEEDINGS` | `ENFORCEMENT` | `HIGH` | `active_execution_count > 0` | `active_execution_count`, `active_execution_amount` |
-| `MASS_AUTH_PERSON` | `OWNERSHIP` | `HIGH` | Есть negative signal `MASS_AUTHPERSONS` | Нормализованный reputational signal |
-| `OWNERSHIP_DATA_CONFLICT` | `OWNERSHIP` | `MEDIUM` | Есть ownership `SOURCE_CONFLICT` или один ownership signal имеет две полярности | `conflicts`, нормализованные signals |
-| `COMPANY_CLOSED` | `REGISTRY` | `HIGH` | `is_active_company == false` | `is_active_company` |
-| `TAX_REPUTATION_RISK` | `REGISTRY` | `HIGH` | Есть negative signal `FNS_BLOCKING`, `TAX_ARREARS` или `TAX_REPORTING` | Нормализованный reputational signal |
+| Code | Domain | Условие активации |
+| --- | --- | --- |
+| `NEGATIVE_PROFIT` | `FINANCE` | Последняя прибыль ниже configured threshold |
+| `REVENUE_DECLINE` | `FINANCE` | `revenue_growth_yoy <= warning` |
+| `NEGATIVE_EQUITY` | `FINANCE` | Последний капитал ниже configured threshold |
+| `LOW_LIQUIDITY` | `FINANCE` | Коэффициент ликвидности ниже warning |
+| `OPEN_DEFENDANT_CASES` | `LEGAL` | Pending-дела ответчика не меньше warning count |
+| `HIGH_DEFENDANT_AMOUNT` | `LEGAL` | Pending-сумма или отношение всей defendant-суммы к выручке достигли warning |
+| `REPEATED_ARBITRATION` | `LEGAL` | Число дел ответчика достигло warning count |
+| `ACTIVE_EXECUTION_PROCEEDINGS` | `ENFORCEMENT` | Есть active proceedings |
+| `MASS_AUTH_PERSON` | `OWNERSHIP` | Есть configured negative source signal |
+| `OWNERSHIP_DATA_CONFLICT` | `OWNERSHIP` | Есть соответствующий `data_quality.conflicts` |
+| `COMPANY_CLOSED` | `REGISTRY` | `is_active_company == false` |
+| `TAX_REPUTATION_RISK` | `REGISTRY` | Есть configured negative source signal ФНС |
 
-## Конфигурация порогов
+Для правил с `warning`/`critical` impact определяется прозрачно: warning даёт
+`MEDIUM`, critical — `HIGH`. Остальные impact values также находятся в конфиге.
 
-Пороговые значения находятся в `RiskRuleConfig`, а не разбросаны по функциям:
+## Конфигурация и версионирование
 
-```python
-from contractor_agent import RiskRuleConfig, generate_risk_signal_dicts
+Все числовые пороги и списки source codes находятся в
+`config/risk_rules.json`. Код не содержит дублирующих пороговых констант.
+Каждый derived signal сохраняет `rule_version` из конфига.
 
-config = RiskRuleConfig(
-    low_liquidity_ratio=1.0,
-    high_defendant_amount_rub=1_000_000,
-    high_defendant_amount_to_revenue=0.10,
-    repeated_arbitration_cases=3,
-)
+Фрагмент:
 
-signals = generate_risk_signal_dicts(normalized_profile, config)
+```json
+{
+  "rule_version": "1.0.0",
+  "calibration_status": "UNKNOWN_DECISION",
+  "finance": {
+    "revenue_decline": {
+      "warning": -0.1,
+      "critical": -0.3
+    }
+  }
+}
 ```
 
-Это MVP-гипотезы, а не статистически или экспертно откалиброванная модель.
-Перед production-использованием пороги и severity нужно согласовать с
-юристами, риск-аналитиками и кейсодателем.
+Конфиг валидируется при загрузке: обязательные пороги должны быть числами,
+critical не может быть слабее warning, impact — только `LOW/MEDIUM/HIGH`.
+`calibration_status = UNKNOWN_DECISION` явно фиксирует отсутствие экспертной
+калибровки. Пороги являются MVP-гипотезами и требуют согласования с банковскими
+риск-аналитиками перед production-эксплуатацией.
 
-## Правила работы с отсутствующими данными
+## Отсутствующие и неполные данные
 
-- Сигнал не создаётся, если source metric имеет `NOT_AVAILABLE`,
-  `NOT_APPLICABLE` или `value = null`.
-- Метрика со статусом `PARTIAL` может создать сигнал, если известного значения
-  уже достаточно для выполнения правила. Ее неполнота сохраняется в исходном
-  normalized profile.
-- Отсутствие готового reputational signal не интерпретируется как отсутствие
-  риска.
-- `MASS_AUTH_PERSON` и `TAX_REPUTATION_RISK` используют готовые сигналы, потому
-  что в предоставленном JSON нет независимых raw-полей соответствующих
-  реестров. Они не выдаются за самостоятельно подтверждённые raw-факты.
+- `NOT_AVAILABLE`, `NOT_APPLICABLE` и `value = null` не создают derived signal;
+- `PARTIAL` может создать сигнал, если известная часть уже удовлетворяет правилу;
+- неполнота остаётся доступна в `data_quality.warnings`;
+- отсутствие source signal не доказывает отсутствие риска.
 
-## Запуск
-
-Сначала создать нормализованные профили:
-
-```bash
-.venv/bin/python scripts/normalize_contractors.py \
-  /path/to/contractors_audit.snapshot.json \
-  --limit 5 \
-  --output output/normalized/contractors_sample_5.json
-```
-
-Затем применить правила:
+## CLI
 
 ```bash
 .venv/bin/python scripts/generate_risk_signals.py \
-  output/normalized/contractors_sample_5.json \
-  --output output/risk-signals/contractors_sample_5.json
+  /tmp/contractors_normalized.json \
+  --output /tmp/contractors_signals.json
 ```
 
-CLI сохраняет идентификацию компании, исходные банковские оценки и список
-детерминированных сигналов.
+Каждая запись вывода содержит отдельные `source_signals` и `derived_signals`.
+Свой конфиг можно передать через `--config`.
 
-## Покрытие реальным JSON
+Coverage по 100 компаниям:
 
-Интеграционный тест использует пять карточек с индексами `21`, `16`, `68`,
-`55`, `63`. Вместе они покрывают все десять типов сигналов, фактически
-встречающихся в предоставленных 100 карточках. `COMPANY_CLOSED` и
-`OWNERSHIP_DATA_CONFLICT` в этом датасете не встречаются и проверяются отдельным
-unit-тестом.
+```bash
+.venv/bin/python scripts/signal_coverage_report.py \
+  /tmp/contractors_normalized.json \
+  --output output/risk-signals/signal_coverage_100.json
+```
+
+Отчёт содержит пары `signal_code`/`count` отдельно для source и derived layers;
+`count` — число компаний, у которых встречается код, а не число дублей внутри
+одной карточки.
+
+## Ограничения
+
+- Нет экспертной калибровки impact levels и порогов.
+- Нет ground-truth выборки дефолтов или мошенничества.
+- Source signals могут противоречить raw data; конфликт не скрывается и не
+  разрешается автоматически.
+- `MASS_AUTH_PERSON` и `TAX_REPUTATION_RISK` не имеют независимого raw-аналога
+  в текущем файле и наследуют ограничение source signal.
+- Финансовые метрики используют последний доступный год, который не обязательно
+  совпадает с датой отчёта.
+- Судебные метрики используют current status source с историческим fallback;
+  два источника не суммируются.
+
+Результаты проверки текущего snapshot: `docs/data-quality-audit.md`.

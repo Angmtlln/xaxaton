@@ -192,7 +192,7 @@ class NormalizationTest(unittest.TestCase):
                 "compliance",
                 "procurement",
                 "derived_metrics",
-                "conflicts",
+                "data_quality",
             ],
         )
         self.assertEqual(profile["bank_risk"]["base_risk_level"], "MEDIUM")
@@ -239,8 +239,28 @@ class NormalizationTest(unittest.TestCase):
         profile = normalize_record(self.record).to_dict()
         metrics = profile["derived_metrics"]
 
-        self.assertEqual(profile["ownership"]["share_capital"], 10000)
-        self.assertEqual(profile["enforcement"]["proceedings"][0]["amount_rub"], 1500.5)
+        self.assertEqual(
+            profile["ownership"]["share_capital"],
+            {"value": 10000, "unit": "RUB"},
+        )
+        self.assertEqual(
+            profile["enforcement"]["proceedings"][0]["amount_rub"],
+            {"value": 1500.5, "unit": "RUB"},
+        )
+        self.assertEqual(
+            profile["financial_health"]["statements"][0]["revenue"],
+            {"value": 100, "unit": "RUB"},
+        )
+        self.assertEqual(
+            profile["legal_risks"]["by_status"]["common_amount_rub"],
+            {"value": 100000, "unit": "RUB"},
+        )
+        self.assertEqual(
+            profile["procurement"]["yearly_activity"][0][
+                "signed_contract_amount_rub"
+            ],
+            {"value": 1000, "unit": "RUB"},
+        )
         self.assertEqual(profile["financial_health"]["coefficients"]["sustainability"], 0.75)
         self.assertEqual(metrics["revenue_growth_yoy"]["value"], 1.0)
         self.assertEqual(metrics["profit_margin"]["value"], 0.1)
@@ -260,15 +280,31 @@ class NormalizationTest(unittest.TestCase):
 
     def test_detects_reputational_source_conflict(self) -> None:
         profile = normalize_record(self.record).to_dict()
-        signal = profile["compliance"]["positive_signals"][0]
+        signal = profile["compliance"]["source_signals"][0]
 
         self.assertEqual(signal["code"], "ARBITRATION_DEFENDANT")
-        self.assertEqual(signal["domain"], "legal_risks")
+        self.assertEqual(signal["domain"], "LEGAL")
+        self.assertEqual(signal["type"], "POSITIVE")
+        self.assertEqual(signal["origin"], "SOURCE_SIGNAL")
+        self.assertEqual(
+            set(signal),
+            {
+                "code",
+                "domain",
+                "type",
+                "impact_level",
+                "origin",
+                "description",
+                "evidence",
+                "rule",
+                "rule_version",
+            },
+        )
         self.assertTrue(
             any(
                 conflict["type"] == "SOURCE_CONFLICT"
                 and conflict["code"] == "ARBITRATION_DEFENDANT"
-                for conflict in profile["conflicts"]
+                for conflict in profile["data_quality"]["conflicts"]
             )
         )
 
@@ -289,6 +325,22 @@ class NormalizationTest(unittest.TestCase):
         self.assertEqual(profile["derived_metrics"]["revenue_growth_yoy"]["status"], "NOT_AVAILABLE")
         self.assertEqual(profile["derived_metrics"]["is_active_company"]["status"], "NOT_AVAILABLE")
         json.dumps(profile, ensure_ascii=False)
+
+    def test_arbitration_sources_are_not_summed(self) -> None:
+        record = copy.deepcopy(self.record)
+        record["report"]["arbitrationCases"][0]["defendantCount"] = 50
+
+        profile = normalize_record(record).to_dict()
+        metrics = profile["derived_metrics"]
+
+        self.assertEqual(metrics["total_arbitration_cases"]["value"], 1)
+        self.assertEqual(metrics["defendant_cases_count"]["value"], 1)
+        self.assertTrue(
+            any(
+                warning["type"] == "ARBITRATION_SCOPE_DIFFERENCE"
+                for warning in profile["data_quality"]["warnings"]
+            )
+        )
 
     def test_parses_nested_mongo_date_number(self) -> None:
         record = copy.deepcopy(self.record)

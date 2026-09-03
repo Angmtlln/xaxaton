@@ -13,7 +13,10 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from contractor_agent.risk_signals import generate_risk_signal_dicts  # noqa: E402
+from contractor_agent.risk_signals import (  # noqa: E402
+    generate_risk_signal_dicts,
+    load_rule_config,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -23,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("input", type=Path, help="JSON-массив нормализованных профилей")
     parser.add_argument("--limit", type=int, default=None, help="Обработать первые N профилей")
     parser.add_argument("--output", type=Path, help="Записать результат в JSON-файл")
+    parser.add_argument("--config", type=Path, help="JSON-конфигурация risk rules")
     return parser.parse_args()
 
 
@@ -42,11 +46,15 @@ def main() -> None:
     profiles = load_profiles(args.input)
     if args.limit is not None:
         profiles = profiles[: args.limit]
+    config = load_rule_config(args.config) if args.config else load_rule_config()
     payload = [
         {
             "company_identity": profile.get("company_identity", {}),
             "bank_risk": profile.get("bank_risk", {}),
-            "risk_signals": generate_risk_signal_dicts(profile),
+            "source_signals": profile.get("compliance", {}).get(
+                "source_signals", []
+            ),
+            "derived_signals": generate_risk_signal_dicts(profile, config),
         }
         for profile in profiles
     ]

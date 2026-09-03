@@ -19,6 +19,7 @@ from .models import (
     CompanyIdentity,
     Compliance,
     Conflict,
+    DataQuality,
     DerivedMetric,
     Enforcement,
     FinancialHealth,
@@ -27,34 +28,36 @@ from .models import (
     Ownership,
     Procurement,
     RelatedCompanies,
+    RiskSignal,
+    SignalEvidence,
 )
 
 
-FINANCIAL_AMOUNT_UNIT = "RUB"
 TRANSACTION_AMOUNT_UNIT = "RUB"
 
 _MONGO_NUMBER_KEYS = ("$numberLong", "$numberInt", "$numberDouble", "$numberDecimal")
 _CHAPTER_DOMAINS = {
-    "arbitr": "legal_risks",
-    "execproc": "enforcement",
-    "filials": "business_profile",
-    "finance": "financial_health",
-    "license": "compliance",
-    "manager": "ownership",
-    "okved": "business_profile",
-    "reestrs": "compliance",
-    "relatedcomp": "related_companies",
-    "site": "company_identity",
+    "arbitr": "LEGAL",
+    "execproc": "ENFORCEMENT",
+    "filials": "BUSINESS_PROFILE",
+    "finance": "FINANCE",
+    "license": "COMPLIANCE",
+    "manager": "OWNERSHIP",
+    "okved": "BUSINESS_PROFILE",
+    "reestrs": "REGISTRY",
+    "relatedcomp": "RELATED_COMPANIES",
+    "site": "COMPANY_IDENTITY",
 }
 _PRESENCE_SIGNAL_POLARITY = {
-    "ARBITRATION_DEFENDANT": "negative",
-    "EXECUTION_PROCEEDINGS": "negative",
-    "BRANCHES_INFO": "positive",
-    "GOVERNMENT_CONTRACT": "positive",
-    "LICENSES": "positive",
-    "RELATED_COMPANIES": "positive",
-    "WEB_SITE": "positive",
+    "ARBITRATION_DEFENDANT": "NEGATIVE",
+    "EXECUTION_PROCEEDINGS": "NEGATIVE",
+    "BRANCHES_INFO": "POSITIVE",
+    "GOVERNMENT_CONTRACT": "POSITIVE",
+    "LICENSES": "POSITIVE",
+    "RELATED_COMPANIES": "POSITIVE",
+    "WEB_SITE": "POSITIVE",
 }
+_SOURCE_SIGNAL_RULE_VERSION = "source-signal/v1"
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
@@ -77,6 +80,8 @@ def _text(value: Any) -> str | None:
 def _number(value: Any) -> int | float | None:
     """Приводит Mongo-числа и числовые строки к int/float."""
     if isinstance(value, dict):
+        if value.get("unit") == "RUB" and "value" in value:
+            return _number(value["value"])
         for key in _MONGO_NUMBER_KEYS:
             if key in value:
                 return _number(value[key])
@@ -104,6 +109,11 @@ def _number(value: Any) -> int | float | None:
             return None
         return int(parsed) if parsed.is_integer() else parsed
     return None
+
+
+def _money(value: Any) -> dict[str, Any]:
+    """Возвращает единый формат денежного значения."""
+    return {"value": _number(value), "unit": TRANSACTION_AMOUNT_UNIT}
 
 
 def _date_scalar(value: Any) -> Any:
@@ -222,15 +232,29 @@ def _record_id(record: dict[str, Any]) -> str | None:
 
 def _normalize_signal(
     item: dict[str, Any], polarity: str, index: int
-) -> dict[str, Any]:
+) -> RiskSignal:
     chapter = (_text(item.get("chapter")) or "").casefold()
-    return {
-        "code": _canonical_signal_code(item.get("code")),
-        "domain": _CHAPTER_DOMAINS.get(chapter, "compliance"),
-        "polarity": polarity,
-        "description": _text(item.get("name")),
-        "source": f"report.reputationalRisks.{polarity}[{index}]",
-    }
+    signal_type = polarity.upper()
+    source_path = f"report.reputationalRisks.{polarity}[{index}]"
+    code = _canonical_signal_code(item.get("code"))
+    return RiskSignal(
+        code=code,
+        domain=_CHAPTER_DOMAINS.get(chapter, "COMPLIANCE"),
+        type=signal_type,  # type: ignore[arg-type]
+        impact_level="LOW" if signal_type == "POSITIVE" else "MEDIUM",
+        origin="SOURCE_SIGNAL",
+        description=_text(item.get("name")) or code,
+        evidence=[
+            SignalEvidence(
+                source_type="SOURCE_SIGNAL",
+                source_path=source_path,
+                metric="reputational_signal_code",
+                value=code,
+            )
+        ],
+        rule="Сигнал перенесён из reputationalRisks без изменения полярности.",
+        rule_version=_SOURCE_SIGNAL_RULE_VERSION,
+    )
 
 
 def _normalize_founder(item: dict[str, Any]) -> dict[str, Any]:
@@ -238,7 +262,7 @@ def _normalize_founder(item: dict[str, Any]) -> dict[str, Any]:
         "inn": _text(item.get("inn")),
         "name": _text(item.get("name")),
         "share_percent": _number(item.get("share")),
-        "contribution_amount": _number(item.get("amount")),
+        "contribution_amount": _money(item.get("amount")),
         "active": item.get("active") if isinstance(item.get("active"), bool) else None,
         "date_from": _normalized_date(item.get("dateFrom")),
     }
@@ -247,28 +271,28 @@ def _normalize_founder(item: dict[str, Any]) -> dict[str, Any]:
 def _normalize_financial_statement(item: dict[str, Any]) -> dict[str, Any]:
     return {
         "year": _number(_get(item, "common", "year")),
-        "revenue": _number(_get(item, "common", "proceeds")),
-        "profit": _number(_get(item, "common", "profit")),
+        "revenue": _money(_get(item, "common", "proceeds")),
+        "profit": _money(_get(item, "common", "profit")),
         "assets": {
-            "total": _number(_get(item, "assets", "totalAssets")),
-            "current": _number(_get(item, "assets", "currentAssets", "total")),
-            "non_current": _number(_get(item, "assets", "uncurrentAssets", "total")),
-            "receivables": _number(
+            "total": _money(_get(item, "assets", "totalAssets")),
+            "current": _money(_get(item, "assets", "currentAssets", "total")),
+            "non_current": _money(_get(item, "assets", "uncurrentAssets", "total")),
+            "receivables": _money(
                 _get(item, "assets", "currentAssets", "receivables")
             ),
-            "cash": _number(_get(item, "assets", "currentAssets", "bankroll")),
-            "stocks": _number(_get(item, "assets", "currentAssets", "stocks")),
+            "cash": _money(_get(item, "assets", "currentAssets", "bankroll")),
+            "stocks": _money(_get(item, "assets", "currentAssets", "stocks")),
         },
         "liabilities": {
-            "balance_total": _number(_get(item, "liabilities", "totalLiabilities")),
-            "capital": _number(_get(item, "liabilities", "capitals")),
-            "short_term": _number(
+            "balance_total": _money(_get(item, "liabilities", "totalLiabilities")),
+            "capital": _money(_get(item, "liabilities", "capitals")),
+            "short_term": _money(
                 _get(item, "liabilities", "shortTermLiabilities", "total")
             ),
-            "long_term": _number(
+            "long_term": _money(
                 _get(item, "liabilities", "longTermDuties", "total")
             ),
-            "accounts_payable": _number(
+            "accounts_payable": _money(
                 _get(item, "liabilities", "shortTermLiabilities", "accountsPayable")
             ),
         },
@@ -281,7 +305,7 @@ def _normalize_status_bucket(
     bucket = _as_dict(item)
     return {
         "count": _number(bucket.get(count_key)),
-        "amount_rub": _number(bucket.get(amount_key)),
+        "amount_rub": _money(bucket.get(amount_key)),
     }
 
 
@@ -291,7 +315,7 @@ def _normalize_arbitration_by_status(value: Any) -> dict[str, Any]:
     plaintiff = _as_dict(raw.get("plaintiffArbitration"))
     return {
         "common_count": _number(raw.get("commonCount")),
-        "common_amount_rub": _number(raw.get("commonAmount")),
+        "common_amount_rub": _money(raw.get("commonAmount")),
         "defendant": {
             "finished": _normalize_status_bucket(
                 defendant.get("defandantArbitrationFinished"), "dfCount", "dfAmount"
@@ -405,14 +429,15 @@ def _ratio_metric(
     )
 
 
-def _sum_optional(values: Iterable[int | float | None]) -> tuple[int | float, bool]:
+def _sum_optional(values: Iterable[Any]) -> tuple[int | float, bool]:
     total: int | float = 0
     complete = True
     for value in values:
-        if value is None:
+        number = _number(value)
+        if number is None:
             complete = False
         else:
-            total += value
+            total += number
     return total, complete
 
 
@@ -427,7 +452,7 @@ def _status_amount(
     for status in ("finished", "appealed", "pending"):
         bucket = by_status[role][status]
         count = bucket["count"] or 0
-        amount = bucket["amount_rub"]
+        amount = _number(bucket["amount_rub"])
         if count == 0 and amount is None:
             amount = 0
         values.append(amount)
@@ -447,19 +472,18 @@ def _metric_presence(
 
 
 def _add_source_conflicts(
-    positive_signals: list[dict[str, Any]],
-    negative_signals: list[dict[str, Any]],
+    source_signals: list[RiskSignal],
     raw_presence: dict[str, tuple[bool | None, list[str]]],
 ) -> list[Conflict]:
     conflicts: list[Conflict] = []
-    positive_codes = {item["code"] for item in positive_signals}
-    negative_codes = {item["code"] for item in negative_signals}
+    positive_codes = {item.code for item in source_signals if item.type == "POSITIVE"}
+    negative_codes = {item.code for item in source_signals if item.type == "NEGATIVE"}
 
     for code in sorted(positive_codes & negative_codes):
         sources = [
-            item["source"]
-            for item in positive_signals + negative_signals
-            if item["code"] == code
+            item.evidence[0].source_path
+            for item in source_signals
+            if item.code == code
         ]
         conflicts.append(
             Conflict(
@@ -470,7 +494,6 @@ def _add_source_conflicts(
             )
         )
 
-    all_signals = positive_signals + negative_signals
     for code, (is_present, raw_sources) in raw_presence.items():
         if is_present is None or code not in _PRESENCE_SIGNAL_POLARITY:
             continue
@@ -478,10 +501,10 @@ def _add_source_conflicts(
         expected_polarity = (
             expected_when_present
             if is_present
-            else ("positive" if expected_when_present == "negative" else "negative")
+            else ("POSITIVE" if expected_when_present == "NEGATIVE" else "NEGATIVE")
         )
-        for signal in all_signals:
-            if signal["code"] != code or signal["polarity"] == expected_polarity:
+        for signal in source_signals:
+            if signal.code != code or signal.type == expected_polarity:
                 continue
             conflicts.append(
                 Conflict(
@@ -491,7 +514,7 @@ def _add_source_conflicts(
                         f"Raw-признак {', '.join(raw_sources)} противоречит полярности "
                         "reputational signal."
                     ),
-                    source_fields=[*raw_sources, signal["source"]],
+                    source_fields=[*raw_sources, signal.evidence[0].source_path],
                 )
             )
     return conflicts
@@ -543,7 +566,7 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
     ownership = Ownership(
         source_available=isinstance(report.get("foundersInfo"), dict),
         founders=founders,
-        share_capital=_number(founders_info.get("shareCapital")),
+        share_capital=_money(founders_info.get("shareCapital")),
         director=director,
     )
 
@@ -624,7 +647,6 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
     }
     financial_health = FinancialHealth(
         source_available=isinstance(report.get("finReports"), list),
-        amount_unit=FINANCIAL_AMOUNT_UNIT,
         statements=normalized_financial_rows,
         coefficients=coefficients,
     )
@@ -634,9 +656,9 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
         {
             "year": _number(item.get("year")),
             "plaintiff_count": _number(item.get("plaintiffCount")),
-            "plaintiff_amount_rub": _number(item.get("plaintiffAmount")),
+            "plaintiff_amount_rub": _money(item.get("plaintiffAmount")),
             "defendant_count": _number(item.get("defendantCount")),
-            "defendant_amount_rub": _number(item.get("defendantAmount")),
+            "defendant_amount_rub": _money(item.get("defendantAmount")),
         }
         for item in raw_yearly_cases
     ]
@@ -657,13 +679,12 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
             "number": _text(item.get("number")),
             "date": _normalized_date(item.get("date")),
             "active": item.get("active") if isinstance(item.get("active"), bool) else None,
-            "amount_rub": _number(item.get("amount")),
+            "amount_rub": _money(item.get("amount")),
         }
         for item in raw_executions
     ]
     enforcement = Enforcement(
         source_available=isinstance(report.get("executionProceedings"), list),
-        amount_unit=TRANSACTION_AMOUNT_UNIT,
         proceedings=proceedings,
     )
 
@@ -702,8 +723,7 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
         for item in raw_licenses
     ]
     compliance = Compliance(
-        positive_signals=positive_signals,
-        negative_signals=negative_signals,
+        source_signals=positive_signals + negative_signals,
         inspections_source_available=isinstance(report.get("inspections"), list),
         inspections=inspections,
         licenses_source_available=isinstance(report.get("licenses"), list),
@@ -717,14 +737,13 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
             "federal_law_code": _text(item.get("federalLawCode")),
             "winner_count": _number(item.get("tenderWinnerCnt")),
             "signed_contract_count": _number(item.get("contractSignedCnt")),
-            "signed_contract_amount_rub": _number(item.get("contractSignedAmt")),
+            "signed_contract_amount_rub": _money(item.get("contractSignedAmt")),
         }
         for item in raw_procurements
     ]
     procurement_activity.sort(key=lambda item: item["year"] or -math.inf)
     procurement = Procurement(
         source_available=isinstance(report.get("procurements"), list),
-        amount_unit=TRANSACTION_AMOUNT_UNIT,
         yearly_activity=procurement_activity,
     )
 
@@ -1044,14 +1063,14 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
             "total_arbitration_cases",
             total_cases,
             total_sources,
-            "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+            "commonCount; иначе status-блоки; иначе yearly-блоки; источники не суммируются",
             unit="COUNT",
         )
         if total_cases is not None
         else _missing_metric(
             "total_arbitration_cases",
             total_sources,
-            "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+            "commonCount; иначе status-блоки; иначе yearly-блоки; источники не суммируются",
             unit="COUNT",
         )
     )
@@ -1074,21 +1093,21 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
             "defendant_cases_count",
             defendant_count,
             defendant_count_sources,
-            "Сумма дел ответчика по статусам; fallback — yearly",
+            "Сумма дел ответчика по status; fallback — yearly; источники не суммируются",
             unit="COUNT",
         )
         if defendant_count is not None
         else _missing_metric(
             "defendant_cases_count",
             defendant_count_sources,
-            "Сумма дел ответчика по статусам; fallback — yearly",
+            "Сумма дел ответчика по status; fallback — yearly; источники не суммируются",
             unit="COUNT",
         )
     )
     pending_bucket = arbitration_by_status["defendant"]["pending"]
     if status_available:
         pending_count = pending_bucket["count"] or 0
-        pending_amount = pending_bucket["amount_rub"]
+        pending_amount = _number(pending_bucket["amount_rub"])
         if pending_amount is None and pending_count == 0:
             pending_amount = 0
         metrics["defendant_pending_cases_count"] = _metric(
@@ -1331,9 +1350,73 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
         ),
         "WEB_SITE": (bool(company_identity.website), ["report.baseInfo.website"]),
     }
-    conflicts = _add_source_conflicts(
-        positive_signals, negative_signals, raw_presence
+    source_signals = positive_signals + negative_signals
+    conflicts = _add_source_conflicts(source_signals, raw_presence)
+    warnings: list[Conflict] = []
+
+    historical_total_count = (
+        sum(
+            (item["defendant_count"] or 0) + (item["plaintiff_count"] or 0)
+            for item in yearly_cases
+        )
+        if legal_risks.yearly_cases_source_available
+        else None
     )
+    current_total_count = (
+        (
+            arbitration_by_status["common_count"]
+            if arbitration_by_status["common_count"] is not None
+            else _status_count(arbitration_by_status, "defendant")
+            + _status_count(arbitration_by_status, "plaintiff")
+        )
+        if legal_risks.by_status_source_available
+        else None
+    )
+    if (
+        historical_total_count is not None
+        and current_total_count is not None
+        and historical_total_count != current_total_count
+    ):
+        warnings.append(
+            Conflict(
+                type="ARBITRATION_SCOPE_DIFFERENCE",
+                code="ARBITRATION_SCOPE_DIFFERENCE",
+                description=(
+                    "Историческое число дел в arbitrationCases отличается от "
+                    "текущего состояния arbitrationByStatus; источники имеют разные "
+                    "временные срезы и не суммируются."
+                ),
+                source_fields=[
+                    "report.arbitrationCases[].defendantCount",
+                    "report.arbitrationCases[].plaintiffCount",
+                    "report.arbitrationByStatus.commonCount",
+                    "report.arbitrationByStatus.defandantArbitration",
+                    "report.arbitrationByStatus.plaintiffArbitration",
+                ],
+            )
+        )
+
+    partial_metrics = sorted(
+        metric.metric for metric in metrics.values() if metric.status == "PARTIAL"
+    )
+    if partial_metrics:
+        warnings.append(
+            Conflict(
+                type="PARTIAL_DERIVED_METRICS",
+                code="PARTIAL_DERIVED_METRICS",
+                description=(
+                    "Часть метрик рассчитана по неполному набору исходных значений: "
+                    + ", ".join(partial_metrics)
+                ),
+                source_fields=sorted(
+                    {
+                        source
+                        for name in partial_metrics
+                        for source in metrics[name].source_fields
+                    }
+                ),
+            )
+        )
 
     return NormalizedCompanyProfile(
         company_identity=company_identity,
@@ -1347,7 +1430,7 @@ def normalize_record(record: dict[str, Any]) -> NormalizedCompanyProfile:
         compliance=compliance,
         procurement=procurement,
         derived_metrics=metrics,
-        conflicts=conflicts,
+        data_quality=DataQuality(conflicts=conflicts, warnings=warnings),
     )
 
 

@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import copy
 import json
 import unittest
 
-from contractor_agent.risk_signals import RiskRuleConfig, generate_risk_signal_dicts
+from contractor_agent.risk_signals import (
+    RiskRuleConfig,
+    generate_risk_signal_dicts,
+    load_rule_config,
+)
 
 
 def metric(name: str, value: object, status: str = "CALCULATED") -> dict[str, object]:
@@ -24,13 +29,17 @@ class RiskSignalsTest(unittest.TestCase):
                 "statements": [
                     {
                         "year": 2024,
-                        "profit": 100,
-                        "liabilities": {"capital": 500},
+                        "profit": {"value": 100, "unit": "RUB"},
+                        "liabilities": {
+                            "capital": {"value": 500, "unit": "RUB"}
+                        },
                     },
                     {
                         "year": 2025,
-                        "profit": -200,
-                        "liabilities": {"capital": -50},
+                        "profit": {"value": -200, "unit": "RUB"},
+                        "liabilities": {
+                            "capital": {"value": -50, "unit": "RUB"}
+                        },
                     },
                 ]
             },
@@ -56,35 +65,37 @@ class RiskSignalsTest(unittest.TestCase):
                 "is_active_company": metric("is_active_company", False),
             },
             "compliance": {
-                "negative_signals": [
+                "source_signals": [
                     {
                         "code": "MASS_AUTHPERSONS",
-                        "domain": "ownership",
-                        "polarity": "negative",
+                        "domain": "OWNERSHIP",
+                        "type": "NEGATIVE",
+                        "origin": "SOURCE_SIGNAL",
                         "description": "Массовый руководитель",
-                        "source": "report.reputationalRisks.negative[0]",
                     },
                     {
                         "code": "FNS_BLOCKING",
-                        "domain": "compliance",
-                        "polarity": "negative",
+                        "domain": "REGISTRY",
+                        "type": "NEGATIVE",
+                        "origin": "SOURCE_SIGNAL",
                         "description": "Есть блокировка ФНС",
-                        "source": "report.reputationalRisks.negative[1]",
                     },
                 ],
-                "positive_signals": [],
             },
-            "conflicts": [
-                {
-                    "type": "SOURCE_CONFLICT",
-                    "code": "INVALID_AUTHPERSONS_DATA",
-                    "description": "Противоречие в данных руководителя",
-                    "source_fields": [
-                        "report.foundersInfo.authPerson",
-                        "report.reputationalRisks.positive[0]",
-                    ],
-                }
-            ],
+            "data_quality": {
+                "conflicts": [
+                    {
+                        "type": "SOURCE_CONFLICT",
+                        "code": "INVALID_AUTHPERSONS_DATA",
+                        "description": "Противоречие в данных руководителя",
+                        "source_fields": [
+                            "report.foundersInfo.authPerson",
+                            "report.reputationalRisks.positive[0]",
+                        ],
+                    }
+                ],
+                "warnings": [],
+            },
         }
 
     def test_generates_all_initial_signal_types(self) -> None:
@@ -112,22 +123,40 @@ class RiskSignalsTest(unittest.TestCase):
         signals = generate_risk_signal_dicts(self.profile)
 
         for signal in signals:
-            self.assertIn(signal["severity"], {"LOW", "MEDIUM", "HIGH"})
+            self.assertIn(signal["type"], {"POSITIVE", "NEGATIVE", "CONFLICT"})
+            self.assertIn(signal["impact_level"], {"LOW", "MEDIUM", "HIGH"})
+            self.assertEqual(signal["origin"], "DERIVED_RULE")
             self.assertTrue(signal["description"])
             self.assertTrue(signal["rule"])
+            self.assertEqual(signal["rule_version"], "1.0.0")
             self.assertTrue(signal["evidence"])
             for evidence in signal["evidence"]:
+                self.assertEqual(
+                    set(evidence),
+                    {"source_type", "source_path", "metric", "value"},
+                )
+                self.assertTrue(evidence["source_type"])
+                self.assertTrue(evidence["source_path"])
                 self.assertTrue(evidence["metric"])
-                self.assertTrue(evidence["source_fields"])
         self.assertNotIn("risk_score", json.dumps(signals, ensure_ascii=False))
+        by_code = {signal["code"]: signal for signal in signals}
+        self.assertEqual(by_code["OWNERSHIP_DATA_CONFLICT"]["type"], "CONFLICT")
+        self.assertTrue(
+            all(
+                signal["type"] == "NEGATIVE"
+                for code, signal in by_code.items()
+                if code != "OWNERSHIP_DATA_CONFLICT"
+            )
+        )
 
     def test_thresholds_are_configurable_and_boundaries_are_explicit(self) -> None:
-        config = RiskRuleConfig(
-            low_liquidity_ratio=0.5,
-            high_defendant_amount_rub=3_000_000,
-            high_defendant_amount_to_revenue=0.3,
-            repeated_arbitration_cases=5,
-        )
+        values = copy.deepcopy(load_rule_config().values)
+        values["finance"]["low_liquidity"]["warning"] = 0.5
+        values["finance"]["low_liquidity"]["critical"] = 0.25
+        values["legal"]["high_defendant_amount"]["warning_rub"] = 3_000_000
+        values["legal"]["high_defendant_amount"]["warning_to_revenue"] = 0.3
+        values["legal"]["repeated_arbitration"]["warning_count"] = 5
+        config = RiskRuleConfig(values)
 
         codes = {
             signal["code"]
@@ -150,8 +179,10 @@ class RiskSignalsTest(unittest.TestCase):
         self.assertEqual(after, before)
 
     def test_invalid_thresholds_are_rejected(self) -> None:
+        values = copy.deepcopy(load_rule_config().values)
+        values["finance"]["low_liquidity"]["warning"] = 0
         with self.assertRaises(ValueError):
-            RiskRuleConfig(low_liquidity_ratio=0)
+            RiskRuleConfig(values)
 
 
 if __name__ == "__main__":

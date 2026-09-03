@@ -7,7 +7,9 @@ from typing import Any, Literal
 
 
 MetricStatus = Literal["CALCULATED", "PARTIAL", "NOT_AVAILABLE", "NOT_APPLICABLE"]
-RiskSeverity = Literal["LOW", "MEDIUM", "HIGH"]
+RiskType = Literal["POSITIVE", "NEGATIVE", "CONFLICT"]
+RiskImpactLevel = Literal["LOW", "MEDIUM", "HIGH"]
+RiskOrigin = Literal["SOURCE_SIGNAL", "DERIVED_RULE"]
 
 
 @dataclass(slots=True)
@@ -30,19 +32,23 @@ class Conflict:
 
 @dataclass(slots=True)
 class SignalEvidence:
+    source_type: str
+    source_path: str
     metric: str
     value: Any
-    source_fields: list[str]
 
 
 @dataclass(slots=True)
 class RiskSignal:
     code: str
     domain: str
-    severity: RiskSeverity
+    type: RiskType
+    impact_level: RiskImpactLevel
+    origin: RiskOrigin
     description: str
     evidence: list[SignalEvidence]
     rule: str
+    rule_version: str
 
     def to_dict(self) -> dict[str, Any]:
         """Возвращает JSON-совместимый risk signal."""
@@ -78,7 +84,7 @@ class BankRisk:
 class Ownership:
     source_available: bool
     founders: list[dict[str, Any]] = field(default_factory=list)
-    share_capital: int | float | None = None
+    share_capital: dict[str, Any] = field(default_factory=dict)
     director: dict[str, Any] | None = None
 
 
@@ -101,7 +107,6 @@ class BusinessProfile:
 @dataclass(slots=True)
 class FinancialHealth:
     source_available: bool
-    amount_unit: str
     statements: list[dict[str, Any]] = field(default_factory=list)
     coefficients: dict[str, Any] = field(default_factory=dict)
 
@@ -117,14 +122,12 @@ class LegalRisks:
 @dataclass(slots=True)
 class Enforcement:
     source_available: bool
-    amount_unit: str
     proceedings: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(slots=True)
 class Compliance:
-    positive_signals: list[dict[str, Any]] = field(default_factory=list)
-    negative_signals: list[dict[str, Any]] = field(default_factory=list)
+    source_signals: list[RiskSignal] = field(default_factory=list)
     inspections_source_available: bool = False
     inspections: list[dict[str, Any]] = field(default_factory=list)
     licenses_source_available: bool = False
@@ -134,8 +137,13 @@ class Compliance:
 @dataclass(slots=True)
 class Procurement:
     source_available: bool
-    amount_unit: str
     yearly_activity: list[dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class DataQuality:
+    conflicts: list[Conflict] = field(default_factory=list)
+    warnings: list[Conflict] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -151,7 +159,7 @@ class NormalizedCompanyProfile:
     compliance: Compliance
     procurement: Procurement
     derived_metrics: dict[str, DerivedMetric] = field(default_factory=dict)
-    conflicts: list[Conflict] = field(default_factory=list)
+    data_quality: DataQuality = field(default_factory=DataQuality)
 
     def to_dict(self) -> dict[str, Any]:
         """Возвращает JSON-совместимое представление профиля."""

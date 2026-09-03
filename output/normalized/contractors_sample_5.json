@@ -28,12 +28,18 @@
           "inn": "130801590508",
           "name": "ШИРИКОВ ЕВГЕНИЙ ЛЕОНИДОВИЧ",
           "share_percent": 100,
-          "contribution_amount": 10000,
+          "contribution_amount": {
+            "value": 10000,
+            "unit": "RUB"
+          },
           "active": true,
           "date_from": "2024-01-14T21:00:00.000Z"
         }
       ],
-      "share_capital": 10000,
+      "share_capital": {
+        "value": 10000,
+        "unit": "RUB"
+      },
       "director": {
         "inn": "130801590508",
         "name": "ШИРИКОВ ЕВГЕНИЙ ЛЕОНИДОВИЧ",
@@ -150,66 +156,182 @@
     },
     "financial_health": {
       "source_available": true,
-      "amount_unit": "RUB",
       "statements": [
         {
           "year": 2023,
-          "revenue": 0,
-          "profit": null,
+          "revenue": {
+            "value": 0,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": null,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 0,
-            "current": null,
-            "non_current": null,
-            "receivables": 0,
-            "cash": 0,
-            "stocks": null
+            "total": {
+              "value": 0,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 0,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 0,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 0,
-            "capital": 0,
-            "short_term": null,
-            "long_term": null,
-            "accounts_payable": 0
+            "balance_total": {
+              "value": 0,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 0,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 0,
+              "unit": "RUB"
+            }
           }
         },
         {
           "year": 2024,
-          "revenue": 7618000,
-          "profit": null,
+          "revenue": {
+            "value": 7618000,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": null,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 6768000,
-            "current": null,
-            "non_current": null,
-            "receivables": 6531000,
-            "cash": 237000,
-            "stocks": null
+            "total": {
+              "value": 6768000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 6531000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 237000,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 6768000,
-            "capital": 838000,
-            "short_term": null,
-            "long_term": null,
-            "accounts_payable": 3495000
+            "balance_total": {
+              "value": 6768000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 838000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 3495000,
+              "unit": "RUB"
+            }
           }
         },
         {
           "year": 2025,
-          "revenue": 60746000,
-          "profit": null,
+          "revenue": {
+            "value": 60746000,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": null,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 39448000,
-            "current": null,
-            "non_current": null,
-            "receivables": 24998000,
-            "cash": 14451000,
-            "stocks": null
+            "total": {
+              "value": 39448000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 24998000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 14451000,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 39448000,
-            "capital": 22836000,
-            "short_term": null,
-            "long_term": null,
-            "accounts_payable": 10292000
+            "balance_total": {
+              "value": 39448000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 22836000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 10292000,
+              "unit": "RUB"
+            }
           }
         }
       ],
@@ -226,158 +348,353 @@
       "by_status_source_available": true,
       "by_status": {
         "common_count": null,
-        "common_amount_rub": null,
+        "common_amount_rub": {
+          "value": null,
+          "unit": "RUB"
+        },
         "defendant": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         },
         "plaintiff": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         }
       }
     },
     "enforcement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "proceedings": []
     },
     "compliance": {
-      "positive_signals": [
+      "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
-          "source": "report.reputationalRisks.positive[0]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[0]",
+              "metric": "reputational_signal_code",
+              "value": "FNS_BLOCKING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "RELATED_COMPANIES",
-          "domain": "related_companies",
-          "polarity": "positive",
+          "domain": "RELATED_COMPANIES",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
-          "source": "report.reputationalRisks.positive[1]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[1]",
+              "metric": "reputational_signal_code",
+              "value": "RELATED_COMPANIES"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
-          "domain": "enforcement",
-          "polarity": "positive",
+          "domain": "ENFORCEMENT",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
-          "source": "report.reputationalRisks.positive[2]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[2]",
+              "metric": "reputational_signal_code",
+              "value": "EXECUTION_PROCEEDINGS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
-          "source": "report.reputationalRisks.positive[3]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[3]",
+              "metric": "reputational_signal_code",
+              "value": "LIQUIDATION_STATUS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
-          "source": "report.reputationalRisks.positive[4]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[4]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
-          "source": "report.reputationalRisks.positive[5]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[5]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
-          "source": "report.reputationalRisks.positive[6]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[6]",
+              "metric": "reputational_signal_code",
+              "value": "DISHONEST_PROVIDER"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
-          "source": "report.reputationalRisks.positive[7]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[7]",
+              "metric": "reputational_signal_code",
+              "value": "DISQUALIFIED_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "legal_risks",
-          "polarity": "positive",
+          "domain": "LEGAL",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
-          "source": "report.reputationalRisks.positive[8]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[8]",
+              "metric": "reputational_signal_code",
+              "value": "ARBITRATION_DEFENDANT"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
-          "source": "report.reputationalRisks.positive[9]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[9]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_ARREARS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
-          "source": "report.reputationalRisks.positive[10]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[10]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_REPORTING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
-          "source": "report.reputationalRisks.positive[11]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[11]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
-          "source": "report.reputationalRisks.positive[12]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[12]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_AUTHPERSONS_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
-          "source": "report.reputationalRisks.positive[13]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[13]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_REGISTRATION_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "PROCEEDS",
-          "domain": "financial_health",
-          "polarity": "positive",
+          "domain": "FINANCE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании есть выручка за предыдущий год в размере 60746.0 тыс. руб., что свидетельствует о наличии стабильного дохода и успешной деятельности.",
-          "source": "report.reputationalRisks.positive[14]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[14]",
+              "metric": "reputational_signal_code",
+              "value": "PROCEEDS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_OKVED",
-          "domain": "business_profile",
-          "polarity": "positive",
+          "domain": "BUSINESS_PROFILE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
-          "source": "report.reputationalRisks.positive[15]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[15]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_OKVED"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         }
       ],
-      "negative_signals": [],
       "inspections_source_available": false,
       "inspections": [],
       "licenses_source_available": false,
@@ -385,7 +702,6 @@
     },
     "procurement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "yearly_activity": []
     },
     "derived_metrics": {
@@ -589,7 +905,7 @@
           "report.arbitrationByStatus.defandantArbitration",
           "report.arbitrationByStatus.plaintiffArbitration"
         ],
-        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "formula": "commonCount; иначе status-блоки; иначе yearly-блоки; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -599,7 +915,7 @@
         "source_fields": [
           "report.arbitrationByStatus.defandantArbitration"
         ],
-        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "formula": "Сумма дел ответчика по status; fallback — yearly; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -718,7 +1034,10 @@
         "unit": "RUB"
       }
     },
-    "conflicts": []
+    "data_quality": {
+      "conflicts": [],
+      "warnings": []
+    }
   },
   {
     "company_identity": {
@@ -745,7 +1064,10 @@
     "ownership": {
       "source_available": false,
       "founders": [],
-      "share_capital": null,
+      "share_capital": {
+        "value": null,
+        "unit": "RUB"
+      },
       "director": null
     },
     "related_companies": {
@@ -802,7 +1124,6 @@
     },
     "financial_health": {
       "source_available": false,
-      "amount_unit": "RUB",
       "statements": [],
       "coefficients": {
         "year": null,
@@ -817,144 +1138,317 @@
       "by_status_source_available": true,
       "by_status": {
         "common_count": null,
-        "common_amount_rub": null,
+        "common_amount_rub": {
+          "value": null,
+          "unit": "RUB"
+        },
         "defendant": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         },
         "plaintiff": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         }
       }
     },
     "enforcement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "proceedings": []
     },
     "compliance": {
-      "positive_signals": [
+      "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
-          "source": "report.reputationalRisks.positive[0]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[0]",
+              "metric": "reputational_signal_code",
+              "value": "FNS_BLOCKING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
-          "domain": "enforcement",
-          "polarity": "positive",
+          "domain": "ENFORCEMENT",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
-          "source": "report.reputationalRisks.positive[1]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[1]",
+              "metric": "reputational_signal_code",
+              "value": "EXECUTION_PROCEEDINGS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
-          "source": "report.reputationalRisks.positive[2]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[2]",
+              "metric": "reputational_signal_code",
+              "value": "LIQUIDATION_STATUS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
-          "source": "report.reputationalRisks.positive[3]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[3]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
-          "source": "report.reputationalRisks.positive[4]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[4]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
-          "source": "report.reputationalRisks.positive[5]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[5]",
+              "metric": "reputational_signal_code",
+              "value": "DISHONEST_PROVIDER"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
-          "source": "report.reputationalRisks.positive[6]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[6]",
+              "metric": "reputational_signal_code",
+              "value": "DISQUALIFIED_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "legal_risks",
-          "polarity": "positive",
+          "domain": "LEGAL",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
-          "source": "report.reputationalRisks.positive[7]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[7]",
+              "metric": "reputational_signal_code",
+              "value": "ARBITRATION_DEFENDANT"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
-          "source": "report.reputationalRisks.positive[8]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[8]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_ARREARS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
-          "source": "report.reputationalRisks.positive[9]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[9]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_REPORTING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
-          "source": "report.reputationalRisks.positive[10]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[10]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
-          "source": "report.reputationalRisks.positive[11]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[11]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_AUTHPERSONS_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
-          "source": "report.reputationalRisks.positive[12]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[12]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_REGISTRATION_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_OKVED",
-          "domain": "business_profile",
-          "polarity": "positive",
+          "domain": "BUSINESS_PROFILE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
-          "source": "report.reputationalRisks.positive[13]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[13]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_OKVED"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         }
       ],
-      "negative_signals": [],
       "inspections_source_available": false,
       "inspections": [],
       "licenses_source_available": false,
@@ -962,7 +1456,6 @@
     },
     "procurement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "yearly_activity": []
     },
     "derived_metrics": {
@@ -1163,7 +1656,7 @@
           "report.arbitrationByStatus.defandantArbitration",
           "report.arbitrationByStatus.plaintiffArbitration"
         ],
-        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "formula": "commonCount; иначе status-блоки; иначе yearly-блоки; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -1173,7 +1666,7 @@
         "source_fields": [
           "report.arbitrationByStatus.defandantArbitration"
         ],
-        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "formula": "Сумма дел ответчика по status; fallback — yearly; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -1292,7 +1785,10 @@
         "unit": "RUB"
       }
     },
-    "conflicts": []
+    "data_quality": {
+      "conflicts": [],
+      "warnings": []
+    }
   },
   {
     "company_identity": {
@@ -1323,7 +1819,10 @@
           "inn": "9705138170",
           "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
           "share_percent": 99,
-          "contribution_amount": 10552,
+          "contribution_amount": {
+            "value": 10552,
+            "unit": "RUB"
+          },
           "active": true,
           "date_from": "2021-02-11T21:00:00.000Z"
         },
@@ -1331,7 +1830,10 @@
           "inn": "7705560491",
           "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ПРОФ\"",
           "share_percent": 0,
-          "contribution_amount": 10,
+          "contribution_amount": {
+            "value": 10,
+            "unit": "RUB"
+          },
           "active": true,
           "date_from": "2021-02-11T21:00:00.000Z"
         },
@@ -1339,7 +1841,10 @@
           "inn": "7705560491",
           "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ПРОФ\"",
           "share_percent": 0,
-          "contribution_amount": 10,
+          "contribution_amount": {
+            "value": 10,
+            "unit": "RUB"
+          },
           "active": true,
           "date_from": "2021-02-11T21:00:00.000Z"
         },
@@ -1347,7 +1852,10 @@
           "inn": "9714072342",
           "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ ВТБ СПОРТ",
           "share_percent": 49,
-          "contribution_amount": 10075,
+          "contribution_amount": {
+            "value": 10075,
+            "unit": "RUB"
+          },
           "active": true,
           "date_from": "2025-06-02T21:00:00.000Z"
         },
@@ -1355,12 +1863,18 @@
           "inn": "9705138170",
           "name": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ГАЛС-ДЕВЕЛОПМЕНТ\"",
           "share_percent": 51,
-          "contribution_amount": 10486,
+          "contribution_amount": {
+            "value": 10486,
+            "unit": "RUB"
+          },
           "active": true,
           "date_from": "2021-02-11T21:00:00.000Z"
         }
       ],
-      "share_capital": 20562,
+      "share_capital": {
+        "value": 20562,
+        "unit": "RUB"
+      },
       "director": {
         "inn": "532117462758",
         "name": "КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ",
@@ -1861,66 +2375,182 @@
     },
     "financial_health": {
       "source_available": true,
-      "amount_unit": "RUB",
       "statements": [
         {
           "year": 2023,
-          "revenue": null,
-          "profit": -23349000,
+          "revenue": {
+            "value": null,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": -23349000,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 2809723000,
-            "current": 2806868000,
-            "non_current": 2855000,
-            "receivables": 2654827000,
-            "cash": 43000,
-            "stocks": 126288000
+            "total": {
+              "value": 2809723000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": 2806868000,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": 2855000,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 2654827000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 43000,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": 126288000,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 2809723000,
-            "capital": 2540684000,
-            "short_term": 236538000,
-            "long_term": 32501000,
-            "accounts_payable": 50050000
+            "balance_total": {
+              "value": 2809723000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 2540684000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": 236538000,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": 32501000,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 50050000,
+              "unit": "RUB"
+            }
           }
         },
         {
           "year": 2024,
-          "revenue": null,
-          "profit": -1645000,
+          "revenue": {
+            "value": null,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": -1645000,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 109426000,
-            "current": 14430000,
-            "non_current": 94996000,
-            "receivables": 3629000,
-            "cash": 5026000,
-            "stocks": 0
+            "total": {
+              "value": 109426000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": 14430000,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": 94996000,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 3629000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 5026000,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": 0,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 109426000,
-            "capital": -5865000,
-            "short_term": 52552000,
-            "long_term": 62739000,
-            "accounts_payable": 13028000
+            "balance_total": {
+              "value": 109426000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": -5865000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": 52552000,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": 62739000,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 13028000,
+              "unit": "RUB"
+            }
           }
         },
         {
           "year": 2025,
-          "revenue": null,
-          "profit": -6518000,
+          "revenue": {
+            "value": null,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": -6518000,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 358998000,
-            "current": 121259000,
-            "non_current": 237739000,
-            "receivables": 35079000,
-            "cash": 48245000,
-            "stocks": 0
+            "total": {
+              "value": 358998000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": 121259000,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": 237739000,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 35079000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 48245000,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": 0,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 358998000,
-            "capital": 289043000,
-            "short_term": 27046000,
-            "long_term": 42909000,
-            "accounts_payable": 26841000
+            "balance_total": {
+              "value": 358998000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 289043000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": 27046000,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": 42909000,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 26841000,
+              "unit": "RUB"
+            }
           }
         }
       ],
@@ -1937,171 +2567,387 @@
       "by_status_source_available": true,
       "by_status": {
         "common_count": null,
-        "common_amount_rub": null,
+        "common_amount_rub": {
+          "value": null,
+          "unit": "RUB"
+        },
         "defendant": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         },
         "plaintiff": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         }
       }
     },
     "enforcement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "proceedings": []
     },
     "compliance": {
-      "positive_signals": [
+      "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
-          "source": "report.reputationalRisks.positive[0]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[0]",
+              "metric": "reputational_signal_code",
+              "value": "FNS_BLOCKING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "RELATED_COMPANIES",
-          "domain": "related_companies",
-          "polarity": "positive",
+          "domain": "RELATED_COMPANIES",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
-          "source": "report.reputationalRisks.positive[1]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[1]",
+              "metric": "reputational_signal_code",
+              "value": "RELATED_COMPANIES"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
-          "domain": "enforcement",
-          "polarity": "positive",
+          "domain": "ENFORCEMENT",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
-          "source": "report.reputationalRisks.positive[2]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[2]",
+              "metric": "reputational_signal_code",
+              "value": "EXECUTION_PROCEEDINGS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
-          "source": "report.reputationalRisks.positive[3]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[3]",
+              "metric": "reputational_signal_code",
+              "value": "LIQUIDATION_STATUS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
-          "source": "report.reputationalRisks.positive[4]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[4]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
-          "source": "report.reputationalRisks.positive[5]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[5]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
-          "source": "report.reputationalRisks.positive[6]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[6]",
+              "metric": "reputational_signal_code",
+              "value": "DISHONEST_PROVIDER"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
-          "source": "report.reputationalRisks.positive[7]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[7]",
+              "metric": "reputational_signal_code",
+              "value": "DISQUALIFIED_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "legal_risks",
-          "polarity": "positive",
+          "domain": "LEGAL",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
-          "source": "report.reputationalRisks.positive[8]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[8]",
+              "metric": "reputational_signal_code",
+              "value": "ARBITRATION_DEFENDANT"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
-          "source": "report.reputationalRisks.positive[9]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[9]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_ARREARS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
-          "source": "report.reputationalRisks.positive[10]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[10]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_REPORTING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
-          "source": "report.reputationalRisks.positive[11]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[11]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
-          "source": "report.reputationalRisks.positive[12]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[12]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_AUTHPERSONS_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
-          "source": "report.reputationalRisks.positive[13]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[13]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_REGISTRATION_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_OKVED",
-          "domain": "business_profile",
-          "polarity": "positive",
+          "domain": "BUSINESS_PROFILE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
-          "source": "report.reputationalRisks.positive[14]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[14]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_OKVED"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "CURRENT_ASSETS",
-          "domain": "financial_health",
-          "polarity": "positive",
+          "domain": "FINANCE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании имеются оборотные активы в размере 121259.0 тыс. руб., что обеспечивает достаточную ликвидность для покрытия краткосрочных обязательств и ведения текущей деятельности.",
-          "source": "report.reputationalRisks.positive[15]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[15]",
+              "metric": "reputational_signal_code",
+              "value": "CURRENT_ASSETS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "UNCURRENT_ASSETS",
-          "domain": "financial_health",
-          "polarity": "positive",
+          "domain": "FINANCE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании есть внеоборотные активы на сумму 237739.0 тыс. руб., что, вероятно, может говорить о стабильном положении и долгосрочных перспективах развития.",
-          "source": "report.reputationalRisks.positive[16]"
-        }
-      ],
-      "negative_signals": [
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[16]",
+              "metric": "reputational_signal_code",
+              "value": "UNCURRENT_ASSETS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
+        },
         {
           "code": "PROFIT",
-          "domain": "financial_health",
-          "polarity": "negative",
+          "domain": "FINANCE",
+          "type": "NEGATIVE",
+          "impact_level": "MEDIUM",
+          "origin": "SOURCE_SIGNAL",
           "description": "Компания понесла убыток в размере -6518.0 тыс. руб., что может указывать на нестабильность финансовых результатов.",
-          "source": "report.reputationalRisks.negative[0]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.negative[0]",
+              "metric": "reputational_signal_code",
+              "value": "PROFIT"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         }
       ],
       "inspections_source_available": false,
@@ -2111,7 +2957,6 @@
     },
     "procurement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "yearly_activity": []
     },
     "derived_metrics": {
@@ -2314,7 +3159,7 @@
           "report.arbitrationByStatus.defandantArbitration",
           "report.arbitrationByStatus.plaintiffArbitration"
         ],
-        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "formula": "commonCount; иначе status-блоки; иначе yearly-блоки; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -2324,7 +3169,7 @@
         "source_fields": [
           "report.arbitrationByStatus.defandantArbitration"
         ],
-        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "formula": "Сумма дел ответчика по status; fallback — yearly; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -2443,7 +3288,10 @@
         "unit": "RUB"
       }
     },
-    "conflicts": []
+    "data_quality": {
+      "conflicts": [],
+      "warnings": []
+    }
   },
   {
     "company_identity": {
@@ -2470,7 +3318,10 @@
     "ownership": {
       "source_available": false,
       "founders": [],
-      "share_capital": null,
+      "share_capital": {
+        "value": null,
+        "unit": "RUB"
+      },
       "director": null
     },
     "related_companies": {
@@ -2527,7 +3378,6 @@
     },
     "financial_health": {
       "source_available": false,
-      "amount_unit": "RUB",
       "statements": [],
       "coefficients": {
         "year": null,
@@ -2542,144 +3392,317 @@
       "by_status_source_available": true,
       "by_status": {
         "common_count": null,
-        "common_amount_rub": null,
+        "common_amount_rub": {
+          "value": null,
+          "unit": "RUB"
+        },
         "defendant": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         },
         "plaintiff": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         }
       }
     },
     "enforcement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "proceedings": []
     },
     "compliance": {
-      "positive_signals": [
+      "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
-          "source": "report.reputationalRisks.positive[0]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[0]",
+              "metric": "reputational_signal_code",
+              "value": "FNS_BLOCKING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
-          "domain": "enforcement",
-          "polarity": "positive",
+          "domain": "ENFORCEMENT",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
-          "source": "report.reputationalRisks.positive[1]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[1]",
+              "metric": "reputational_signal_code",
+              "value": "EXECUTION_PROCEEDINGS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
-          "source": "report.reputationalRisks.positive[2]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[2]",
+              "metric": "reputational_signal_code",
+              "value": "LIQUIDATION_STATUS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
-          "source": "report.reputationalRisks.positive[3]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[3]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым адресом, что может свидетельствовать о достоверности и актуальности данных об адресе юридического лица.",
-          "source": "report.reputationalRisks.positive[4]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[4]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
-          "source": "report.reputationalRisks.positive[5]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[5]",
+              "metric": "reputational_signal_code",
+              "value": "DISHONEST_PROVIDER"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
-          "source": "report.reputationalRisks.positive[6]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[6]",
+              "metric": "reputational_signal_code",
+              "value": "DISQUALIFIED_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "legal_risks",
-          "polarity": "positive",
+          "domain": "LEGAL",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
-          "source": "report.reputationalRisks.positive[7]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[7]",
+              "metric": "reputational_signal_code",
+              "value": "ARBITRATION_DEFENDANT"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
-          "source": "report.reputationalRisks.positive[8]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[8]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_ARREARS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
-          "source": "report.reputationalRisks.positive[9]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[9]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_REPORTING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
-          "source": "report.reputationalRisks.positive[10]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[10]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
-          "source": "report.reputationalRisks.positive[11]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[11]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_AUTHPERSONS_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
-          "source": "report.reputationalRisks.positive[12]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[12]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_REGISTRATION_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_OKVED",
-          "domain": "business_profile",
-          "polarity": "positive",
+          "domain": "BUSINESS_PROFILE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании небольшое количество кодов ОКВЭД, что может указывать на то, что компания сосредоточена на определенных видах деятельности и, вероятно, обладает опытом и специализацией в этих областях.",
-          "source": "report.reputationalRisks.positive[13]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[13]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_OKVED"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         }
       ],
-      "negative_signals": [],
       "inspections_source_available": false,
       "inspections": [],
       "licenses_source_available": false,
@@ -2687,7 +3710,6 @@
     },
     "procurement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "yearly_activity": []
     },
     "derived_metrics": {
@@ -2888,7 +3910,7 @@
           "report.arbitrationByStatus.defandantArbitration",
           "report.arbitrationByStatus.plaintiffArbitration"
         ],
-        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "formula": "commonCount; иначе status-блоки; иначе yearly-блоки; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -2898,7 +3920,7 @@
         "source_fields": [
           "report.arbitrationByStatus.defandantArbitration"
         ],
-        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "formula": "Сумма дел ответчика по status; fallback — yearly; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -3017,7 +4039,10 @@
         "unit": "RUB"
       }
     },
-    "conflicts": []
+    "data_quality": {
+      "conflicts": [],
+      "warnings": []
+    }
   },
   {
     "company_identity": {
@@ -3048,12 +4073,18 @@
           "inn": "772874439303",
           "name": "МЕЖЕВЫХ ВИКТОРИЯ АНДРЕЕВНА",
           "share_percent": 100,
-          "contribution_amount": 100000,
+          "contribution_amount": {
+            "value": 100000,
+            "unit": "RUB"
+          },
           "active": true,
           "date_from": "2025-12-07T21:00:00.000Z"
         }
       ],
-      "share_capital": 100000,
+      "share_capital": {
+        "value": 100000,
+        "unit": "RUB"
+      },
       "director": {
         "inn": "772270625603",
         "name": "ДАУТОВА АНАСТАСИЯ АРТУРОВНА",
@@ -3340,66 +4371,182 @@
     },
     "financial_health": {
       "source_available": true,
-      "amount_unit": "RUB",
       "statements": [
         {
           "year": 2023,
-          "revenue": 569240000,
-          "profit": 5830000,
+          "revenue": {
+            "value": 569240000,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": 5830000,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 13204000,
-            "current": 13204000,
-            "non_current": null,
-            "receivables": 9963000,
-            "cash": 15000,
-            "stocks": 3241000
+            "total": {
+              "value": 13204000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": 13204000,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 9963000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 15000,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": 3241000,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 13204000,
-            "capital": 4781000,
-            "short_term": 8423000,
-            "long_term": null,
-            "accounts_payable": 8423000
+            "balance_total": {
+              "value": 13204000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 4781000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": 8423000,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 8423000,
+              "unit": "RUB"
+            }
           }
         },
         {
           "year": 2024,
-          "revenue": 761280000,
-          "profit": 6390000,
+          "revenue": {
+            "value": 761280000,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": 6390000,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 16350000,
-            "current": 16350000,
-            "non_current": null,
-            "receivables": 11843000,
-            "cash": 1000,
-            "stocks": 4507000
+            "total": {
+              "value": 16350000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": 16350000,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 11843000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": 1000,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": 4507000,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 16350000,
-            "capital": 5136000,
-            "short_term": 11214000,
-            "long_term": null,
-            "accounts_payable": 11214000
+            "balance_total": {
+              "value": 16350000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 5136000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": 11214000,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 11214000,
+              "unit": "RUB"
+            }
           }
         },
         {
           "year": 2025,
-          "revenue": 806284000,
-          "profit": 7894000,
+          "revenue": {
+            "value": 806284000,
+            "unit": "RUB"
+          },
+          "profit": {
+            "value": 7894000,
+            "unit": "RUB"
+          },
           "assets": {
-            "total": 18696000,
-            "current": 18696000,
-            "non_current": null,
-            "receivables": 10302000,
-            "cash": null,
-            "stocks": 8394000
+            "total": {
+              "value": 18696000,
+              "unit": "RUB"
+            },
+            "current": {
+              "value": 18696000,
+              "unit": "RUB"
+            },
+            "non_current": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "receivables": {
+              "value": 10302000,
+              "unit": "RUB"
+            },
+            "cash": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "stocks": {
+              "value": 8394000,
+              "unit": "RUB"
+            }
           },
           "liabilities": {
-            "balance_total": 18696000,
-            "capital": 10834000,
-            "short_term": 7862000,
-            "long_term": null,
-            "accounts_payable": 7862000
+            "balance_total": {
+              "value": 18696000,
+              "unit": "RUB"
+            },
+            "capital": {
+              "value": 10834000,
+              "unit": "RUB"
+            },
+            "short_term": {
+              "value": 7862000,
+              "unit": "RUB"
+            },
+            "long_term": {
+              "value": null,
+              "unit": "RUB"
+            },
+            "accounts_payable": {
+              "value": 7862000,
+              "unit": "RUB"
+            }
           }
         }
       ],
@@ -3416,179 +4563,401 @@
         {
           "year": 2023,
           "plaintiff_count": 1,
-          "plaintiff_amount_rub": 957189,
+          "plaintiff_amount_rub": {
+            "value": 957189,
+            "unit": "RUB"
+          },
           "defendant_count": 0,
-          "defendant_amount_rub": 0
+          "defendant_amount_rub": {
+            "value": 0,
+            "unit": "RUB"
+          }
         }
       ],
       "by_status_source_available": true,
       "by_status": {
         "common_count": 1,
-        "common_amount_rub": 957189,
+        "common_amount_rub": {
+          "value": 957189,
+          "unit": "RUB"
+        },
         "defendant": {
           "finished": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         },
         "plaintiff": {
           "finished": {
             "count": 1,
-            "amount_rub": 957189
+            "amount_rub": {
+              "value": 957189,
+              "unit": "RUB"
+            }
           },
           "appealed": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           },
           "pending": {
             "count": null,
-            "amount_rub": null
+            "amount_rub": {
+              "value": null,
+              "unit": "RUB"
+            }
           }
         }
       }
     },
     "enforcement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "proceedings": []
     },
     "compliance": {
-      "positive_signals": [
+      "source_signals": [
         {
           "code": "FNS_BLOCKING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет блокировок банковских счетов по постановлениям налоговой на текущую дату, что может говорить об отсутствии у компании проблем с налоговыми органами, которые привели бы к блокировке счетов.",
-          "source": "report.reputationalRisks.positive[0]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[0]",
+              "metric": "reputational_signal_code",
+              "value": "FNS_BLOCKING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "RELATED_COMPANIES",
-          "domain": "related_companies",
-          "polarity": "positive",
+          "domain": "RELATED_COMPANIES",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании есть связанные компании, это позволяет проанализировать не только текущую деятельность контрагента, но и историю связанных с ним организаций. Изучите информацию о связанных компаниях, их деятельности и истории, чтобы получить более полное представление о контрагенте и его надежности.",
-          "source": "report.reputationalRisks.positive[1]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[1]",
+              "metric": "reputational_signal_code",
+              "value": "RELATED_COMPANIES"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "EXECUTION_PROCEEDINGS",
-          "domain": "enforcement",
-          "polarity": "positive",
+          "domain": "ENFORCEMENT",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Нет действующих исполнительных производств, в которых выступает в качестве ответчика, это может указывать на то, что компания своевременно исполняет свои обязательства и не имеет серьезных финансовых проблем.",
-          "source": "report.reputationalRisks.positive[2]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[2]",
+              "metric": "reputational_signal_code",
+              "value": "EXECUTION_PROCEEDINGS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "LIQUIDATION_STATUS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций проходящих процедуру банкротства, что может свидетельствовать об отсутствии у компании текущих процедур банкротства, что является положительным знаком при оценке ее финансовой устойчивости.",
-          "source": "report.reputationalRisks.positive[3]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[3]",
+              "metric": "reputational_signal_code",
+              "value": "LIQUIDATION_STATUS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с массовым директором или учредителем, вероятно, компания не используется в сомнительных схемах, что повышает доверие к ее деятельности.",
-          "source": "report.reputationalRisks.positive[4]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[4]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISHONEST_PROVIDER",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций недобросовестных поставщиков, что может свидетельствовать об отсутствии у компании негативных историй участия в государственных закупках.",
-          "source": "report.reputationalRisks.positive[5]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[5]",
+              "metric": "reputational_signal_code",
+              "value": "DISHONEST_PROVIDER"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "DISQUALIFIED_AUTHPERSONS",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Руководитель организации не найден в реестре дисквалифицированных лиц, руководитель компании, вероятно, не имеет ограничений на занятие руководящих должностей и не был дисквалифицирован за нарушения законодательства.",
-          "source": "report.reputationalRisks.positive[6]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[6]",
+              "metric": "reputational_signal_code",
+              "value": "DISQUALIFIED_AUTHPERSONS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "ARBITRATION_DEFENDANT",
-          "domain": "legal_risks",
-          "polarity": "positive",
+          "domain": "LEGAL",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найдены арбитражные дела, в которых выступает в качестве ответчика, что может свидетельствовать о том, что компания, вероятно, соблюдает свои обязательства и эффективно решает возникающие споры.",
-          "source": "report.reputationalRisks.positive[7]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[7]",
+              "metric": "reputational_signal_code",
+              "value": "ARBITRATION_DEFENDANT"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_ARREARS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций должников ФНС, что может свидетельствовать об отсутствии задолженности перед налоговыми органами, что является положительным фактором при оценке надежности контрагента.",
-          "source": "report.reputationalRisks.positive[8]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[8]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_ARREARS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "TAX_REPORTING",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций не сдающих отчётность, компания соблюдает свои обязательства по предоставлению отчетности и, вероятно, ведет бизнес прозрачно.",
-          "source": "report.reputationalRisks.positive[9]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[9]",
+              "metric": "reputational_signal_code",
+              "value": "TAX_REPORTING"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_ADDRESS",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с фиктивным адресом, это подтверждает, что компания зарегистрирована по реальному адресу, где фактически осуществляет свою деятельность.",
-          "source": "report.reputationalRisks.positive[10]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[10]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_AUTHPERSONS_DATA",
-          "domain": "ownership",
-          "polarity": "positive",
+          "domain": "OWNERSHIP",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с номинальным руководителем или с меткой о недостоверных данных руководителя, руководитель компании, вероятно, является реальным лицом, управляющим компанией, и информация о нем достоверна.",
-          "source": "report.reputationalRisks.positive[11]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[11]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_AUTHPERSONS_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "INVALID_REGISTRATION_DATA",
-          "domain": "compliance",
-          "polarity": "positive",
+          "domain": "REGISTRY",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "Не найден в реестре организаций с недостоверными регистрационными данными, что говорит о благонадежности компании, информация о компании соответствует действительности.",
-          "source": "report.reputationalRisks.positive[12]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[12]",
+              "metric": "reputational_signal_code",
+              "value": "INVALID_REGISTRATION_DATA"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "PROCEEDS",
-          "domain": "financial_health",
-          "polarity": "positive",
+          "domain": "FINANCE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании есть выручка за предыдущий год в размере 806284.0 тыс. руб., что свидетельствует о наличии стабильного дохода и успешной деятельности.",
-          "source": "report.reputationalRisks.positive[13]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[13]",
+              "metric": "reputational_signal_code",
+              "value": "PROCEEDS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "PROFIT",
-          "domain": "financial_health",
-          "polarity": "positive",
+          "domain": "FINANCE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании есть прибыль за предыдущий год в размере 7894.0 тыс. руб., что указывает на эффективное управление затратами и положительные финансовые результаты.",
-          "source": "report.reputationalRisks.positive[14]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[14]",
+              "metric": "reputational_signal_code",
+              "value": "PROFIT"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "CURRENT_ASSETS",
-          "domain": "financial_health",
-          "polarity": "positive",
+          "domain": "FINANCE",
+          "type": "POSITIVE",
+          "impact_level": "LOW",
+          "origin": "SOURCE_SIGNAL",
           "description": "У компании имеются оборотные активы в размере 18696.0 тыс. руб., что обеспечивает достаточную ликвидность для покрытия краткосрочных обязательств и ведения текущей деятельности.",
-          "source": "report.reputationalRisks.positive[15]"
-        }
-      ],
-      "negative_signals": [
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.positive[15]",
+              "metric": "reputational_signal_code",
+              "value": "CURRENT_ASSETS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
+        },
         {
           "code": "MASS_OKVED",
-          "domain": "business_profile",
-          "polarity": "negative",
+          "domain": "BUSINESS_PROFILE",
+          "type": "NEGATIVE",
+          "impact_level": "MEDIUM",
+          "origin": "SOURCE_SIGNAL",
           "description": "Компания имеет большое количество кодов ОКВЭД, что  может быть связано с попыткой компании охватить как можно больше направлений бизнеса, это может отрицательно сказаться на ее эффективности и надежности.",
-          "source": "report.reputationalRisks.negative[0]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.negative[0]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_OKVED"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         },
         {
           "code": "MASS_ADDRESS",
-          "domain": "compliance",
-          "polarity": "negative",
+          "domain": "REGISTRY",
+          "type": "NEGATIVE",
+          "impact_level": "MEDIUM",
+          "origin": "SOURCE_SIGNAL",
           "description": "Находится в реестре организаций с массовым адресом, что может быть признаком фиктивной регистрации.",
-          "source": "report.reputationalRisks.negative[1]"
+          "evidence": [
+            {
+              "source_type": "SOURCE_SIGNAL",
+              "source_path": "report.reputationalRisks.negative[1]",
+              "metric": "reputational_signal_code",
+              "value": "MASS_ADDRESS"
+            }
+          ],
+          "rule": "Сигнал перенесён из reputationalRisks без изменения полярности.",
+          "rule_version": "source-signal/v1"
         }
       ],
       "inspections_source_available": false,
@@ -3598,7 +4967,6 @@
     },
     "procurement": {
       "source_available": true,
-      "amount_unit": "RUB",
       "yearly_activity": []
     },
     "derived_metrics": {
@@ -3803,7 +5171,7 @@
         "source_fields": [
           "report.arbitrationByStatus.commonCount"
         ],
-        "formula": "commonCount; иначе сумма status-блоков; иначе сумма yearly-блоков",
+        "formula": "commonCount; иначе status-блоки; иначе yearly-блоки; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -3813,7 +5181,7 @@
         "source_fields": [
           "report.arbitrationByStatus.defandantArbitration"
         ],
-        "formula": "Сумма дел ответчика по статусам; fallback — yearly",
+        "formula": "Сумма дел ответчика по status; fallback — yearly; источники не суммируются",
         "status": "CALCULATED",
         "unit": "COUNT"
       },
@@ -3931,6 +5299,9 @@
         "unit": "RUB"
       }
     },
-    "conflicts": []
+    "data_quality": {
+      "conflicts": [],
+      "warnings": []
+    }
   }
 ]

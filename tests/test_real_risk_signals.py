@@ -40,11 +40,22 @@ class RealRiskSignalsTest(unittest.TestCase):
             for signal in signals:
                 self.assertEqual(
                     set(signal),
-                    {"code", "domain", "severity", "description", "evidence", "rule"},
+                    {
+                        "code",
+                        "domain",
+                        "type",
+                        "impact_level",
+                        "origin",
+                        "description",
+                        "evidence",
+                        "rule",
+                        "rule_version",
+                    },
                 )
+                self.assertEqual(signal["origin"], "DERIVED_RULE")
                 self.assertTrue(signal["evidence"])
                 self.assertTrue(
-                    all(item["source_fields"] for item in signal["evidence"])
+                    all(item["source_path"] for item in signal["evidence"])
                 )
             json.dumps(signals, ensure_ascii=False)
 

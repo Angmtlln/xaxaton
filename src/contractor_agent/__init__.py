@@ -2,7 +2,12 @@
 
 from .models import NormalizedCompanyProfile, RiskSignal
 from .normalization import normalize_record, normalize_records
-from .risk_signals import RiskRuleConfig, generate_risk_signal_dicts, generate_risk_signals
+from .risk_signals import (
+    RiskRuleConfig,
+    generate_risk_signal_dicts,
+    generate_risk_signals,
+    load_rule_config,
+)
 
 __all__ = [
     "NormalizedCompanyProfile",
@@ -10,6 +15,7 @@ __all__ = [
     "RiskSignal",
     "generate_risk_signal_dicts",
     "generate_risk_signals",
+    "load_rule_config",
     "normalize_record",
     "normalize_records",
 ]
