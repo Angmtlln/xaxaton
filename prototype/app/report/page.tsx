@@ -1,4 +1,5 @@
 'use client';
+/* oxlint-disable next/no-html-link-for-pages */
 
 import {
   ArrowLeft,
@@ -15,7 +16,6 @@ import {
   ShieldCheck,
   Shuffle,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
 import type { SyntheticEvent } from 'react';
 
@@ -386,19 +386,19 @@ export default function ReportPage() {
     <main className="report-shell">
       <header className="report-header">
         <div className="report-header-inner">
-          <Link className="brand brand-dark" href="/" aria-label="Альфа-Банк — поиск контрагентов">
+          <a className="brand brand-dark" href="/" aria-label="Альфа-Банк — поиск контрагентов">
             <span className="brand-mark brand-mark-red" aria-hidden="true">A</span>
             <span>
               <b>Альфа-Банк</b>
               <small>Проверка контрагентов</small>
             </span>
-          </Link>
+          </a>
 
           <nav className="report-actions" aria-label="Действия с отчётом">
-            <Link className="new-search-link" href="/">
+            <a className="new-search-link" href="/">
               <Search aria-hidden="true" />
               Новый поиск
-            </Link>
+            </a>
             <ProductButton
               view="secondary"
               controlSize={48}
@@ -413,10 +413,10 @@ export default function ReportPage() {
 
       <div className="report-layout">
         <aside className="report-sidebar" aria-label="Разделы отчёта">
-          <Link className="back-link" href="/">
+          <a className="back-link" href="/">
             <ArrowLeft aria-hidden="true" />
             К поиску
-          </Link>
+          </a>
           <p className="sidebar-label">В отчёте</p>
           <nav>
             <a className="active" href="#summary"><ShieldCheck aria-hidden="true" />Сводка</a>

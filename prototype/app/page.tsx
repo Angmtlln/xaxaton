@@ -1,7 +1,7 @@
 'use client';
+/* oxlint-disable next/no-html-link-for-pages */
 
 import { ChevronDown, Search, SlidersHorizontal } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
 
 import { ProductButton } from '@/components/product-button';
@@ -13,13 +13,13 @@ export default function Home() {
   return (
     <main className="landing-shell">
       <header className="landing-header" aria-label="Шапка сервиса">
-        <Link className="brand" href="/" aria-label="Альфа-Банк — на главную">
+        <a className="brand" href="/" aria-label="Альфа-Банк — на главную">
           <span className="brand-mark" aria-hidden="true">A</span>
           <span>
             <b>Альфа-Банк</b>
             <small>Бизнес</small>
           </span>
-        </Link>
+        </a>
         <span className="prototype-pill">AI-прототип</span>
       </header>
 
