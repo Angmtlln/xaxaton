@@ -13,8 +13,10 @@ import {
   FileText,
   Search,
   Send,
+  ShieldAlert,
   ShieldCheck,
   Shuffle,
+  TriangleAlert,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { SyntheticEvent } from 'react';
@@ -49,8 +51,15 @@ type Scenario = {
   updated: string;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN';
   zskRiskLevel: 'GREEN' | 'YELLOW' | 'RED';
+  summaryTheme: 'positive' | 'review' | 'intensive';
+  summaryLabel: string;
   headline: string;
   note: string;
+  summaryItems: {
+    label: string;
+    value: string;
+    detail: string;
+  }[];
   factsCount: number;
   cards: RiskCard[];
 };
@@ -66,8 +75,27 @@ const scenarios: Scenario[] = [
     updated: 'сегодня, 14:32',
     riskLevel: 'MEDIUM',
     zskRiskLevel: 'GREEN',
-    headline: 'Есть факты, которые стоит проверить до сделки',
+    summaryTheme: 'review',
+    summaryLabel: 'Проверить 3 наблюдения',
+    headline: 'Ликвидность снизилась, есть взыскание и расхождение по адресу',
     note: 'Банковские оценки показаны отдельно. Вывод собран только по фактам мокового отчёта.',
+    summaryItems: [
+      {
+        label: 'Текущая ликвидность',
+        value: '0,82',
+        detail: 'Снизилась с 1,14; краткосрочные обязательства выросли на 37%.',
+      },
+      {
+        label: 'Открытое взыскание',
+        value: '128 400 ₽',
+        detail: 'Одно незавершённое исполнительное производство.',
+      },
+      {
+        label: 'Расхождение источников',
+        value: '5 юрлиц по адресу',
+        detail: 'Источник помечает адрес как массовый — факт требует сверки.',
+      },
+    ],
     factsCount: 18,
     cards: [
       {
@@ -196,8 +224,27 @@ const scenarios: Scenario[] = [
     updated: 'сегодня, 14:18',
     riskLevel: 'LOW',
     zskRiskLevel: 'GREEN',
-    headline: 'Существенных негативных фактов в отчёте не найдено',
+    summaryTheme: 'positive',
+    summaryLabel: 'Негативных фактов не найдено',
+    headline: 'Финансы растут, судебных взысканий и открытых производств нет',
     note: 'Это не гарантия благонадёжности: вывод ограничен составом и датой моковых данных.',
+    summaryItems: [
+      {
+        label: 'Выручка за 2025 год',
+        value: '2,4 млрд ₽',
+        detail: 'Рост на 12% год к году, рентабельность продаж — 9,7%.',
+      },
+      {
+        label: 'Дела в роли ответчика',
+        value: '0',
+        detail: 'За доступный период найдено только одно дело в роли истца.',
+      },
+      {
+        label: 'Открытые производства',
+        value: '0',
+        detail: 'Исполнительные производства в моковом отчёте отсутствуют.',
+      },
+    ],
     factsCount: 21,
     cards: [
       {
@@ -273,8 +320,27 @@ const scenarios: Scenario[] = [
     updated: 'вчера, 18:46',
     riskLevel: 'HIGH',
     zskRiskLevel: 'YELLOW',
-    headline: 'Перед сделкой нужны дополнительные документы и проверка фактов',
+    summaryTheme: 'intensive',
+    summaryLabel: 'Сначала проверить эти факты',
+    headline: 'Убыток, судебные требования и открытые взыскания',
     note: 'Оценка банка и ЗСК не объединяются. AI показывает наблюдения, но не присваивает свой уровень риска.',
+    summaryItems: [
+      {
+        label: 'Чистый результат',
+        value: '−14,8 млн ₽',
+        detail: 'Второй убыточный год подряд, выручка снизилась на 19%.',
+      },
+      {
+        label: 'Требования к компании',
+        value: '26,4 млн ₽',
+        detail: 'Четыре арбитражных дела в роли ответчика.',
+      },
+      {
+        label: 'Открытые взыскания',
+        value: '8,7 млн ₽',
+        detail: 'Семь незавершённых исполнительных производств.',
+      },
+    ],
     factsCount: 24,
     cards: [
       {
@@ -350,6 +416,12 @@ const stateIcons = {
   unknown: CircleHelp,
 };
 
+const summaryIcons = {
+  positive: ShieldCheck,
+  review: TriangleAlert,
+  intensive: ShieldAlert,
+};
+
 const typeLabels = {
   RAW_FACT: 'Исходный факт',
   DERIVED_METRIC: 'Расчётная метрика',
@@ -362,6 +434,7 @@ export default function ReportPage() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const scenario = scenarios[scenarioIndex];
+  const SummaryIcon = summaryIcons[scenario.summaryTheme];
   const attentionCount = scenario.cards.filter((card) => card.state === 'attention').length;
 
   function shuffleScenario() {
@@ -449,30 +522,50 @@ export default function ReportPage() {
             <div><dt>Фактов в контексте</dt><dd>{scenario.factsCount}</dd></div>
           </dl>
 
-          <section id="summary" className="summary-panel">
-            <div className="summary-copy">
-              <span className="summary-icon"><ShieldCheck aria-hidden="true" /></span>
-              <div>
-                <span className="eyebrow">AI-сводка по доступным фактам</span>
-                <h2>{scenario.headline}</h2>
-                <p>{scenario.note}</p>
+          <section
+            id="summary"
+            className={`summary-panel summary-${scenario.summaryTheme}`}
+          >
+            <div className="summary-top">
+              <div className="summary-copy">
+                <span className="summary-icon"><SummaryIcon aria-hidden="true" /></span>
+                <div>
+                  <span className="eyebrow">AI-сводка по доступным фактам</span>
+                  <span className="summary-result-label">{scenario.summaryLabel}</span>
+                  <h2>{scenario.headline}</h2>
+                </div>
+              </div>
+              <div className="bank-risks" aria-label="Банковские оценки">
+                <div>
+                  <span>Риск-уровень банка</span>
+                  <b className={`risk-level risk-${scenario.riskLevel.toLowerCase()}`}>
+                    {scenario.riskLevel}
+                  </b>
+                </div>
+                <div>
+                  <span>ЗСК</span>
+                  <b className={`zsk-level zsk-${scenario.zskRiskLevel.toLowerCase()}`}>
+                    {scenario.zskRiskLevel}
+                  </b>
+                </div>
+                <small>Независимые оценки — не объединяются</small>
               </div>
             </div>
-            <div className="bank-risks" aria-label="Банковские оценки">
-              <div>
-                <span>Риск-уровень банка</span>
-                <b className={`risk-level risk-${scenario.riskLevel.toLowerCase()}`}>
-                  {scenario.riskLevel}
-                </b>
-              </div>
-              <div>
-                <span>ЗСК</span>
-                <b className={`zsk-level zsk-${scenario.zskRiskLevel.toLowerCase()}`}>
-                  {scenario.zskRiskLevel}
-                </b>
-              </div>
-              <small>Независимые оценки — не объединяются</small>
+
+            <div className="summary-facts" aria-label="Главные факты отчёта">
+              {scenario.summaryItems.map((item, index) => (
+                <article className="summary-fact" key={item.label}>
+                  <span className="summary-fact-number" aria-hidden="true">0{index + 1}</span>
+                  <div>
+                    <small>{item.label}</small>
+                    <strong>{item.value}</strong>
+                    <p>{item.detail}</p>
+                  </div>
+                </article>
+              ))}
             </div>
+
+            <p className="summary-note">{scenario.note}</p>
           </section>
 
           <section id="signals" className="signals-section" aria-labelledby="signals-title">

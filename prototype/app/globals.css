@@ -546,9 +546,9 @@
 
 .company-heading h1 {
   margin: 0;
-  font-size: clamp(36px, 5vw, 62px);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  font-size: clamp(30px, 3.6vw, 46px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
 }
 
 .company-heading > div > p {
@@ -614,12 +614,42 @@
 }
 
 .summary-panel {
+  --summary-bg: #111111;
+  --summary-surface: #1b1b1b;
+  --summary-border: #3c3c3c;
+  --summary-accent: #f1c34e;
+  padding: clamp(24px, 4vw, 42px);
+  color: #ffffff;
+  background: var(--summary-bg);
+  border: 1px solid var(--summary-border);
+}
+
+.summary-positive {
+  --summary-bg: #10291f;
+  --summary-surface: #17382b;
+  --summary-border: #35644f;
+  --summary-accent: #62d99a;
+}
+
+.summary-review {
+  --summary-bg: #292512;
+  --summary-surface: #39331a;
+  --summary-border: #665a29;
+  --summary-accent: #f1c34e;
+}
+
+.summary-intensive {
+  --summary-bg: #2c1514;
+  --summary-surface: #3d1e1c;
+  --summary-border: #713630;
+  --summary-accent: #ff6258;
+}
+
+.summary-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 290px;
   gap: 32px;
-  padding: clamp(24px, 4vw, 42px);
-  color: #ffffff;
-  background: #111111;
+  align-items: stretch;
 }
 
 .summary-copy {
@@ -628,7 +658,7 @@
 }
 
 .summary-copy .eyebrow {
-  color: #a5a5a5;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .summary-icon {
@@ -637,8 +667,8 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  color: #ffffff;
-  background: #ef3124;
+  color: #111111;
+  background: var(--summary-accent);
 }
 
 .summary-icon svg {
@@ -648,18 +678,23 @@
 
 .summary-copy h2 {
   max-width: 670px;
-  margin: 0;
-  font-size: clamp(26px, 3.2vw, 42px);
-  line-height: 1.05;
-  letter-spacing: -0.035em;
+  margin: 12px 0 0;
+  font-size: clamp(25px, 2.8vw, 37px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
 }
 
-.summary-copy p {
-  max-width: 670px;
-  margin: 18px 0 0;
-  color: #bdbdbd;
-  font-size: 14px;
-  line-height: 1.5;
+.summary-result-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  color: #111111;
+  background: var(--summary-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .bank-risks {
@@ -667,8 +702,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1px;
-  border: 1px solid #3c3c3c;
-  background: #3c3c3c;
+  border: 1px solid var(--summary-border);
+  background: var(--summary-border);
 }
 
 .bank-risks > div {
@@ -677,11 +712,11 @@
   align-content: center;
   gap: 10px;
   padding: 16px;
-  background: #1b1b1b;
+  background: var(--summary-surface);
 }
 
 .bank-risks > div span {
-  color: #a9a9a9;
+  color: rgba(255, 255, 255, 0.64);
   font-size: 11px;
   line-height: 1.3;
 }
@@ -720,10 +755,72 @@
 .bank-risks > small {
   grid-column: 1 / -1;
   padding: 11px 14px;
-  color: #bdbdbd;
-  background: #1b1b1b;
+  color: rgba(255, 255, 255, 0.66);
+  background: var(--summary-surface);
   font-size: 10px;
   line-height: 1.35;
+}
+
+.summary-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 30px;
+  border: 1px solid var(--summary-border);
+  background: var(--summary-border);
+}
+
+.summary-fact {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 13px;
+  padding: 19px;
+  background: var(--summary-surface);
+}
+
+.summary-fact-number {
+  color: var(--summary-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.summary-fact div {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+}
+
+.summary-fact small {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.summary-fact strong {
+  margin-top: 9px;
+  color: #ffffff;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.summary-fact p {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.summary-note {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--summary-border);
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .signals-section {
@@ -1077,7 +1174,7 @@
     display: none;
   }
 
-  .summary-panel {
+  .summary-top {
     grid-template-columns: 1fr;
   }
 
@@ -1125,12 +1222,15 @@
   }
 
   .summary-panel {
-    gap: 24px;
     margin-inline: -14px;
   }
 
   .summary-copy {
     flex-direction: column;
+  }
+
+  .summary-facts {
+    grid-template-columns: 1fr;
   }
 
   .section-heading {
