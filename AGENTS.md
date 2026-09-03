@@ -155,9 +155,11 @@ LLM Interpretation
 
 # Current Phase
 
-Текущий этап: **Data modeling and normalization**.
+Текущий этап: **Deterministic analytics and risk signals**.
 
-Первый приоритет: создать нормализованную бизнес-модель данных из исходного `GetFullReportResponse` JSON.
+Нормализованная бизнес-модель `GetFullReportResponse` уже создана. Текущий
+приоритет: строить прозрачные risk signals только поверх normalized profile и
+сохранять metric evidence и применённое правило для каждого сигнала.
 
 До завершения этого этапа и явного подтверждения не начинать:
 

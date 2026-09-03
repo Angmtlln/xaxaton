@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 
 MetricStatus = Literal["CALCULATED", "PARTIAL", "NOT_AVAILABLE", "NOT_APPLICABLE"]
+RiskSeverity = Literal["LOW", "MEDIUM", "HIGH"]
 
 
 @dataclass(slots=True)
@@ -25,6 +26,27 @@ class Conflict:
     description: str
     source_fields: list[str]
     code: str | None = None
+
+
+@dataclass(slots=True)
+class SignalEvidence:
+    metric: str
+    value: Any
+    source_fields: list[str]
+
+
+@dataclass(slots=True)
+class RiskSignal:
+    code: str
+    domain: str
+    severity: RiskSeverity
+    description: str
+    evidence: list[SignalEvidence]
+    rule: str
+
+    def to_dict(self) -> dict[str, Any]:
+        """Возвращает JSON-совместимый risk signal."""
+        return asdict(self)
 
 
 @dataclass(slots=True)
