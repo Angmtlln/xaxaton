@@ -1,888 +1,559 @@
-# Agent-first архитектура продукта проверки контрагентов
+# Agent-First Architecture
 
-## 1. Главная идея
+## 1. Product goal
 
-Продукт становится **agent-first**.
+The product is an **AI counterparty analyst**, not a web-rendered report.
 
-Пользователь не начинает с формы поиска по ИНН и не обязан сначала получать полный отчёт. Основной интерфейс — чат с AI-аналитиком по контрагентам.
+The core job is:
 
-Сценарий:
+> Move the cognitive load of collecting, reading, reconciling and interpreting counterparty information from the user to the agent.
 
-```text
-User → Chat → Master Agent → Tools / Capabilities → Structured Response → Rich UI
-```
+The user should be able to arrive with a business question such as:
 
-Пользователь может писать естественные запросы:
+- `Проверь этого контрагента.`
+- `Что здесь самое опасное?`
+- `Почему это важно?`
+- `Мне предлагают отсрочку 60 дней — что думаешь?`
+- `Сравни этих поставщиков и объясни, кого выбрать.`
 
-- «Проверь ООО Ромашка»
-- «Какая у них прибыль за последние три года?»
-- «Что у них с судами?»
-- «Можно ли дать им отсрочку 60 дней?»
-- «Сравни этих трёх поставщиков»
-- «Кого безопаснее выбрать?»
+The agent decides which data and capabilities are needed, reasons over verified information, explains the result and shows evidence.
 
-Главный принцип: **снаружи агент выглядит универсальным, внутри он работает через ограниченный и качественный набор инструментов**.
+## 2. Product interaction model
 
----
+### Primary interface: conversation
 
-## 2. Что сохраняем из текущего проекта
-
-Не переписывать работающее ядро без необходимости.
-
-Существующие:
-
-- data providers;
-- API-клиенты;
-- парсеры;
-- модели данных;
-- финансовый анализ;
-- юридический анализ;
-- procurement-анализ;
-- другие субагенты;
-- pipeline полного отчёта;
-
-нужно превращать в **domain capabilities / tools**, которыми пользуется Master Agent.
-
-Субагенты остаются implementation detail. Пользователь напрямую с ними не взаимодействует.
-
----
-
-## 3. Архитектура верхнего уровня
+The chat is the product.
 
 ```text
-Frontend
-   ↓
-Chat API / Streaming
-   ↓
-LangChain create_agent
-   ↓
-LangGraph execution runtime (под капотом LangChain)
-   ↓
-LangChain tool adapter
-   ↓
-Domain Tool Registry
-   ↓
-Domain Capabilities
-   ↓
-Existing Services / Subagents / Data Providers
-```
-
-Отдельный поток представления:
-
-```text
+User need
+  ↓
 Master Agent
-   ↓
+  ↓
+relevant tools / verified data
+  ↓
+reasoning
+  ↓
+conversational answer
+  + optional inline artifacts
+```
+
+The old model:
+
+```text
+INN → full report → user reads it → user draws conclusions
+```
+
+is no longer the primary UX.
+
+### Full check response
+
+For a broad request such as:
+
+`Проверь контрагента <ИНН>`
+
+the response may be:
+
+```text
+compact deterministic company_summary
+↓
+Master conversational synthesis
+↓
+0..N relevant inline artifacts
+↓
+compact/collapsed evidence
+↓
+optional "Полный анализ"
+```
+
+`company_summary` is a stable context artifact produced from verified backend data. It is not repeated on ordinary follow-up turns.
+
+The legacy full report remains a secondary drill-down artifact.
+
+## 3. High-level architecture
+
+```text
+Frontend chat workspace
+        ↓
+Chat API
+        ↓
+Master Agent (LangChain create_agent)
+        ↓
+LangGraph execution/state runtime
+        ↓
+Tool / capability layer
+        ↓
+Normalized verified ToolResults
+        ↓
+Master reasoning / synthesis
+        ↓
+Grounding verification when required
+        ↓
 AssistantResponse
-   ↓
-UIBlock[]
-   ↓
-Frontend Renderer
+        ├─ natural-language message
+        ├─ leading artifact (optional company_summary)
+        ├─ inline artifacts
+        ├─ evidence
+        └─ suggested follow-ups
 ```
 
----
+The orchestration framework is infrastructure, not the domain model.
 
-## 4. Master Agent
+## 4. Orchestration
 
-Master Agent — единственная точка общения пользователя с системой.
+Use:
+- `langchain.agents.create_agent` as the high-level Master Agent harness;
+- LangGraph as the underlying execution/state runtime.
 
-Он отвечает за:
+Do not build raw `StateGraph` workflows unless the product later has real requirements such as:
+- durable long-running execution;
+- complex deterministic branching;
+- human approval nodes;
+- resume after long interruption;
+- workflow-level recovery/checkpoints.
 
-- понимание intent пользователя;
-- определение компаний и сущностей;
-- ведение conversation context;
-- выбор минимально необходимого набора tools;
-- вызов capabilities;
-- объединение результатов;
-- формирование ответа;
-- выбор UI blocks для отображения.
-
-Master Agent не должен:
-
-- иметь arbitrary code execution;
-- генерировать React/HTML/SVG;
-- напрямую зависеть от конкретных API/data providers;
-- получать огромные сырые JSON, если domain layer может их нормализовать;
-- выдумывать company-specific факты при отсутствии данных;
-- запускать полный анализ на каждый вопрос.
-
----
-
-## 5. Domain capabilities / tools
-
-Не делать десятки микротулов. Для MVP достаточно примерно 10–15 нормальных capabilities.
-
-Пример:
+Current primary pattern:
 
 ```text
-resolve_company(query)
-get_company_profile(company)
-get_financial_data(company, period?)
-get_legal_data(company, filters?)
-get_enforcement_data(company)
-get_procurement_data(company)
-get_external_risk_data(company)
-analyze_financials(company)
-analyze_legal_risks(company)
-full_company_check(company)
-compare_companies(companies, priorities?)
-assess_deal_risk(company, deal_context)
+Master → tool(s) → ToolResult → Master → answer
 ```
 
-Внутри tool может находиться обычный код, API-запрос или существующий LLM-субагент. Master Agent этого знать не должен.
+Domain capabilities must not depend deeply on LangChain/LangGraph types.
 
----
+## 5. Domain capability layer
 
-## 6. Full company check
+The current analytical core is reused, not replaced.
 
-Текущий pipeline полного отчёта не удаляем.
+Examples of capabilities:
+- `full_company_check`
+- company identity/profile
+- finance
+- legal/reliability
+- enforcement
+- procurement
+- external signals
+- comparison
+- deal-context analysis
 
-Он становится capability:
+Existing specialized LLM agents (GPT-OSS/Qwen/etc.) may remain implementation details inside these capabilities.
+
+The Master should not care whether a capability is implemented with deterministic Python, SQL/database access, external APIs, GPT-OSS, Qwen, or another LLM.
+
+`run_check()` is wrapped as `full_company_check`; it is not the required path for every user request.
+
+## 6. ToolResult design: verified data, not hardcoded reasoning
+
+Domain tools should return **normalized verified observations** rather than a fixed catalog of conclusions.
+
+Prefer data like:
+
+```json
+{
+  "domain": "finance",
+  "metrics": [
+    {
+      "name": "revenue",
+      "period": 2025,
+      "value": 748359000,
+      "unit": "RUB",
+      "evidence_ref": "..."
+    }
+  ],
+  "series": [],
+  "events": [],
+  "coverage": {},
+  "policy_signals": [],
+  "evidence": []
+}
+```
+
+over a large set of rules such as:
 
 ```text
-full_company_check(company)
+if metric X has value Y → prewritten conclusion Z
 ```
 
-Этот tool используется только для широких запросов вроде:
+### Provenance IDs
 
-- «Проверь компанию»
-- «Дай полный анализ»
-- «Какие основные риски?»
+Fact/evidence IDs are technical references for:
+- traceability;
+- audit;
+- grounding;
+- source navigation;
+- UI hydration.
 
-Если пользователь спрашивает только выручку или суды, запускать полный анализ нельзя.
+They are **not a whitelist of conclusions** the Master is allowed to make.
 
-Полный check должен возвращать структурированный объект, а не только готовый markdown/html.
+A strong Master must be able to connect multiple verified observations and reason about their relevance to the user's context.
 
----
+## 7. Three-layer decision model
 
-## 7. Conversation / company context
+### Layer A — verified facts/data
 
-Нужно хранить сущности, о которых идёт разговор.
+Backend-owned:
+- metrics;
+- events;
+- statuses;
+- company identifiers;
+- court/procurement/enforcement records;
+- time series;
+- data coverage;
+- provenance/evidence.
 
-Пример:
+### Layer B — deterministic policy
 
-```text
-User: Проверь Сбер
-→ resolve_company("Сбер")
-→ active company = ПАО Сбербанк
+Keep a small explicit deterministic layer only where the business/domain itself defines a rule.
 
-User: А что у них с судами?
-→ legal tool для active company
-```
+Examples:
+- official stop signals;
+- bank-provided risk status;
+- ZSK signal;
+- explicit compliance policy.
 
-Минимальные модели:
+A model must not override a deterministic hard stop by rhetorical reasoning.
 
-```text
-CompanyRef
-ConversationState
-ConversationStore
-```
+### Layer C — Master reasoning
 
-`ConversationStore` должен быть интерфейсом. Для MVP можно начать с in-memory implementation, позже заменить на Postgres без изменения Agent Runtime.
+The Master decides:
+- which observations are relevant;
+- how multiple observations relate;
+- why something matters;
+- what information is missing;
+- what the user should verify next;
+- how the evidence affects this particular business context or deal.
 
----
+Do not reduce Layer C to a hardcoded rule catalog.
 
-## 8. Tool contract
+## 8. Grounding and hallucination defense
 
-Все tools должны иметь единый контракт.
+The system should protect facts **without preventing reasoning**.
 
-Domain contracts остаются framework-agnostic: LangChain adapter экспортирует
-их модели, но `ToolResult`, `Evidence` и executors не наследуются от LangChain
-и не зависят от состояния LangGraph.
+### 8.1 Structured truth boundary
 
-```text
-Tool:
-  name
-  description
-  input_schema
-  execute(context, args) -> ToolResult
-```
-
-Пример `ToolResult`:
-
-```text
-status: success | partial | error
-data: structured payload
-evidence: Evidence[]
-warnings: string[]
-freshness?: metadata
-```
-
-Не отдавать Master Agent огромные сырые ответы внешних API.
-
----
-
-## 9. Evidence / источники
-
-Все значимые выводы должны быть связаны с источниками.
-
-Минимальная модель:
-
-```text
-Evidence:
-  id
-  source
-  title
-  url?
-  observed_at?
-  fetched_at?
-  excerpt?
-  metadata?
-```
-
-Аналитические находки:
-
-```text
-Finding:
-  id
-  domain
-  title
-  explanation
-  evidence_ids[]
-```
-
-В новых agent-first контрактах не добавлять `severity`, domain risk level или
-скрытую классификацию риска. Приоритет и смысл находки объясняются через
-проверенные факты, детерминированные стоп-факторы и явную интерпретацию. Также
-не использовать красивые числовые risk scores вроде `8.7/10`: это создаёт
-псевдоточность и нарушает границу между фактами и AI-интерпретацией.
-
----
-
-## 10. Deal risk
-
-Отдельный first-class сценарий:
-
-```text
-assess_deal_risk(company, deal_context)
-```
-
-`deal_context` может содержать:
-
-```text
-amount
-currency
-prepayment_percent
-payment_delay_days
-contract_type
-priorities
-freeform_context
-```
-
-Важно отличать общий риск компании от риска конкретной сделки.
-
----
-
-## 11. Comparison
-
-Сравнение компаний должно быть отдельной capability:
-
-```text
-compare_companies(companies, priorities)
-```
-
-Не генерировать N полных отчётов.
-
-Возвращать нормализованный comparison result:
-
-```text
-companies[]
-dimensions[]
-comparison_rows[]
-strengths[]
-weaknesses[]
-recommendation?
-evidence[]
-```
-
-Приоритеты пользователя должны влиять на сравнение.
-
----
-
-## 12. Agent runtime
-
-Master Agent harness строится на high-level `langchain.agents.create_agent`.
-Он отвечает за native tool-calling loop, а LangGraph используется как
-underlying execution/state runtime, который создаёт сам LangChain:
-
-```text
-create_agent
-  → ChatGroq model node
-  → allowlisted LangChain tool adapter
-  → собственный domain Tool Registry
-  → ToolResult artifact
-```
-
-Application boundary вокруг `create_agent` сохраняет:
-
-- deterministic preflight до model/tool execution;
-- model-call, tool-call и recursion budgets;
-- tool timeout;
-- локальную schema validation;
-- structured errors;
-- общий deadline и deterministic fallback;
-- backend-controlled hydration `AssistantResponse`.
-
-Raw `StateGraph`, собственные nodes и отдельный параллельный tool loop не нужны.
-Их можно вводить только если позже появится действительно сложный
-deterministic/stateful workflow, который нельзя выразить `create_agent` и
-middleware. Независимые read-only tools можно выполнять параллельно только
-когда это даёт измеримую пользу и не нарушает execution limits.
-LangSmith не является обязательным runtime-сервисом: текущий срез не требует
-его API key или tracing-конфигурации. Multi-turn срез использует встроенный
-InMemorySaver для временного состояния диалога.
-
----
-
-## 13. LLM integration
-
-Есть ограничение на модели: Qwen / GPT-OSS.
-
-Master Agent использует официальный `langchain-groq` / `ChatGroq` и native
-tool calling внутри `create_agent`. Provider-specific настройки остаются в
-runtime integration boundary. Текущие доменные LLM-вызовы и summary продолжают
-использовать существующий `GroqClient.complete_json()`; migration Master Agent
-не является причиной переписывать аналитический pipeline.
-
-Если native tool calling недоступен, нарушает schema или не вызывает ожидаемый
-tool для очевидного full-check/finance/legal запроса, application boundary выполняет
-детерминированный fallback с уже проверенным ИНН. Модель не определяет verified
-числа, evidence, URL или chart series.
-
----
-
-## 14. Master prompt
-
-System prompt Master Agent должен быть отдельным versioned файлом.
-
-Основные правила:
-
-- использовать минимально необходимое количество tools;
-- не выдумывать факты;
-- narrow question → targeted tool;
-- broad due diligence → `full_company_check`;
-- использовать active company context;
-- учитывать priorities пользователя;
-- отделять факты от интерпретации и рекомендации;
-- показывать uncertainty;
-- опираться на evidence;
-- не раскрывать chain-of-thought;
-- не показывать внутреннюю структуру субагентов;
-- не генерировать неподдерживаемые UI-компоненты.
-
----
-
-## 15. Structured AssistantResponse
-
-Frontend не должен получать произвольную LLM-разметку.
-
-Пример:
-
-```text
-AssistantResponse:
-  message
-  leading_artifact?  # company_summary после full_company_check
-  blocks[]
-  evidence[]
-  suggested_actions?
-  metadata?
-```
-
-`message` — основной conversational ответ. `leading_artifact` — компактная
-детерминированная сводка компании перед текстом, только после full check.
-`blocks` — выборочные вспомогательные визуальные элементы после текста.
-Источники показываются компактно и свёрнуты по умолчанию. Узкие вопросы не
-повторяют сводку компании и не разворачивают страницу отчёта внутри чата.
-
----
-
-## 16. UI Blocks
-
-Для MVP достаточно ограниченного набора компонентов:
-
-```text
-text
-company_card
-risk_summary
-metric_grid
-table
-line_chart
-bar_chart
-finding_list
-comparison_table
-evidence_list
-```
-
-Master Agent может предложить только allowlisted тип блока. Все verified числа,
-evidence, URL и chart series гидратируются backend из `ToolResult` и повторно
-валидируются. Frontend полностью контролирует визуальный рендеринг.
-
-Никакого arbitrary HTML/CSS/JS от модели.
-
-Для графиков backend передаёт проверенные данные, например:
-
-```text
-LineChartBlock:
-  type
-  title
-  x_axis
-  series[]
-  unit?
-```
-
----
-
-## 17. Frontend
-
-Первый экран — максимально простой agent-first entry point:
-
-```text
-AI-аналитик контрагентов
-
-[ Спросите что угодно о контрагенте... ]
-
-Примеры:
-Проверить компанию
-Сравнить поставщиков
-Оценить риск сделки
-```
-
-После первого сообщения открывается chat workspace.
-
-Нужно поддержать:
-
-- сообщения;
-- rich UI blocks;
-- company context chips;
-- charts;
-- tables;
-- comparison;
-- evidence/source drawer;
-- loading/tool statuses;
-- follow-up вопросы;
-- ошибки и partial results.
-
----
-
-## 18. Streaming
-
-Если текущий стек позволяет — использовать SSE.
-
-Не вводить WebSocket только ради модности.
-
-Пример событий:
-
-```text
-run_started
-status
-tool_started
-tool_completed
-assistant_delta
-assistant_blocks
-run_completed
-error
-```
-
-Показывать пользователю понятные статусы:
-
-- «Ищу компанию»
-- «Проверяю финансы»
-- «Анализирую судебные дела»
-- «Сравниваю компании»
-
-Не показывать chain-of-thought.
-
----
-
-## 19. Cache
-
-Нужна cache boundary, но необязательно сразу Redis.
-
-Интерфейс:
-
-```text
-CacheStore
-```
-
-Кэшировать дорогие read-only запросы по компании и доменам.
-
-Ключ должен учитывать:
-
-- company id;
-- capability;
-- параметры;
-- при необходимости версию.
-
----
-
-## 20. Errors
-
-Tool не должен ронять весь агент сырой ошибкой.
-
-Нормализованный формат:
-
-```text
-status: error
-error_code
-user_safe_message
-retryable
-diagnostics // только server-side
-```
-
-Master Agent должен уметь вернуть partial answer, если часть источников недоступна.
-
----
-
-## 21. Observability
-
-Даже для MVP логировать каждый agent run:
-
-```text
-run_id
-conversation_id
-model
-iterations
-tool_calls
-tool_latency
-model_latency
-errors
-total_duration
-token_usage?
-```
-
-Не тащить тяжёлую observability платформу без необходимости.
-
----
-
-## 22. Security boundaries
-
-Master Agent работает только через allowlist tools.
-
-Нельзя давать:
-
-- arbitrary shell;
-- arbitrary SQL;
-- arbitrary Python execution;
-- прямой доступ к секретам;
-- произвольный fetch любых URL без контроля.
-
-Tool input валидируется schema validator'ом.
-External content считать untrusted.
-
----
-
-## 23. Предлагаемая структура кода
-
-Не копировать буквально, если текущий repo устроен иначе.
-
-```text
-backend/
-  agent/
-    runtime
-    langchain_tools
-    master_prompt
-    models
-    context
-    tool_registry
-    llm
-
-  capabilities/
-    company
-    finance
-    legal
-    enforcement
-    procurement
-    external_risk
-    full_check
-    comparison
-    deal_risk
-
-  domain/
-    models
-    evidence
-    findings
-
-  infrastructure/
-    providers
-    persistence
-    cache
-
-  api/
-    chat
-
-frontend/
-  features/
-    chat/
-    assistant-blocks/
-```
-
----
-
-## 24. Что не делать сейчас
-
-Не добавлять без конкретной необходимости:
-
-- raw LangGraph `StateGraph` и custom graph nodes;
-- CrewAI;
-- AutoGen;
-- vector DB;
-- RAG framework;
-- Kafka;
-- microservices;
-- agent swarm;
-- planner/critic/judge agents;
-- self-reflection loops;
-- dynamic React generation;
-- arbitrary code execution.
-
-LangChain `create_agent` уже является выбранным Master Agent harness. Если
-предлагается другой или дополнительный framework, сначала должна быть
-сформулирована конкретная проблема, которую он решает.
-
----
-
-## 25. MVP scope
-
-Обязательно:
-
-1. Master Agent runtime.
-2. LangChain `create_agent` + `ChatGroq` для Qwen/GPT-OSS.
-3. Tool Registry.
-4. Wrappers над существующими capabilities.
-5. Company conversation context.
-6. `full_company_check` как tool.
-7. Targeted finance/legal запросы.
-8. `compare_companies`.
-9. Structured `AssistantResponse`.
-10. UIBlock renderer.
-11. Text/table/metric/chart/risk/evidence blocks.
-12. Chat frontend.
-13. Evidence display.
-14. Basic errors.
-15. Basic logging.
-16. Streaming — если легко ложится в текущий стек.
-
-Не обязательно для MVP:
-
-- semantic long-term memory;
-- background job infrastructure;
-- granular RBAC;
-- billing;
-- multi-tenant platform;
-- distributed agents.
-
----
-
-## 26. Основные acceptance flows
-
-### Flow A — полный анализ
-
-```text
-User: Проверь ООО X
-→ resolve company
-→ full_company_check
-→ structured summary
-→ risks
-→ metrics
-→ evidence
-```
-
-### Flow B — точечный финансовый вопрос
-
-```text
-User: Какая выручка у ООО X за последние три года?
-→ resolve company
-→ financial data only
-```
-
-`full_company_check` не должен запускаться.
-
-### Flow C — follow-up
-
-```text
-User: А с судами что?
-→ использовать active company
-→ legal capability
-```
-
-### Flow D — сравнение
-
-```text
-User: Сравни ООО A, ООО B и ООО C. Главное — финансовая устойчивость.
-→ resolve companies
-→ targeted analyses
-→ compare_companies
-→ table/chart
-→ explainable recommendation
-```
-
-### Flow E — риск сделки
-
-```text
-User: Контракт 15 млн, аванс 30%, остаток через 60 дней. Рискованно?
-→ active company
-→ relevant capabilities
-→ assess_deal_risk
-→ вывод относительно конкретной сделки
-```
-
-### Flow F — partial failure
-
-Если один provider падает, весь conversation не должен падать.
-Агент возвращает доступную часть результата и сообщает, чего не удалось получить.
-
----
-
-## 27. Тесты
-
-Минимум unit tests на:
-
-- tool schema validation;
-- Tool Registry;
-- company context;
-- AssistantResponse schema;
-- UIBlock schema;
-- error normalization;
-- conversation state;
-- routing behaviour.
-
-Integration tests с mock LLM:
-
-- finance question не вызывает full check;
-- broad request вызывает full check;
-- follow-up использует active company;
-- comparison вызывает comparison capability.
-
-Не завязывать основные тесты на реальный LLM/API.
-
----
-
-## 28. Порядок разработки
-
-1. Изучить repo и составить карту текущей архитектуры.
-2. Определить, что уже есть и что можно переиспользовать.
-3. Ввести domain contracts: `CompanyRef`, `Evidence`, `Finding`, `ToolResult`, `AssistantResponse`, `UIBlock`.
-4. Обернуть существующие сервисы в capabilities/tools.
-5. Проверить tools независимо от LLM.
-6. Добавить Tool Registry.
-7. Добавить Master Agent runtime через LangChain `create_agent`.
-8. Добавить company/conversation context.
-9. Подключить chat API.
-10. Сделать один end-to-end сценарий.
-11. Сделать frontend chat и UIBlock renderer.
-12. Подключить full check.
-13. Добавить comparison.
-14. Добавить deal-risk.
-15. Добавить streaming/evidence UX.
-16. Прогнать acceptance scenarios и тесты.
-
-Главное: **никакого Big Bang rewrite**.
-
-Работать небольшими этапами и после каждого запускать доступные tests/typecheck/lint/build.
-
----
-
-## 29. MVP vs production vs overengineering
-
-### Быстрый MVP
-
-- один Master Agent;
-- 10–15 tools;
-- существующие subagents как implementation detail;
-- LangChain `create_agent` без raw graph;
-- structured responses;
-- chat;
+LLMs do not own:
+- identifiers;
+- amounts;
+- dates used as verified company data;
+- metrics;
+- chart series;
 - evidence;
-- несколько UI blocks.
+- source URLs;
+- deterministic policy signals.
 
-### Production evolution
+Backend validates and hydrates these values.
 
-Позже можно добавить:
+### 8.2 Conversation history is not factual memory
 
-- persistent conversations;
-- более серьёзный cache;
-- evals;
-- tracing;
-- cost control;
-- permissions;
-- audit log;
-- queues/background jobs;
-- richer report/artifact system.
-
-### Переусложнение сейчас
-
-- swarm агентов;
-- planner + executor + critic + judge;
-- self-reflection;
-- raw/custom graph и дополнительные workflow frameworks;
-- микросервисы;
-- event-driven architecture;
-- vector DB без конкретного retrieval use case.
-
----
-
-## 30. Definition of Done
-
-Архитектура считается реализованной достаточно хорошо для MVP, если:
-
-- пользователь начинает работу прямо с chat input;
-- Master Agent понимает company context;
-- точечные вопросы используют точечные tools;
-- широкий запрос запускает full check;
-- текущие domain capabilities переиспользуются;
-- работает сравнение компаний;
-- работают follow-up вопросы;
-- ответы связаны с evidence;
-- UI строится из structured blocks;
-- charts не генерируются произвольным кодом модели;
-- падение одного tool не ломает весь run;
-- модель заменяема через LangChain chat-model integration;
-- Qwen/GPT-OSS не зашиты в application logic;
-- нет самописного дублирующего tool loop или raw LangGraph без необходимости;
-- основные сценарии покрыты тестами.
-
----
-
-# Коротко
-
-Не строим «магического суперагента».
-
-Строим:
+Keep two different concepts:
 
 ```text
-Master Agent
-+
-ограниченные domain tools
-+
-существующее аналитическое ядро
-+
-conversation context
-+
-evidence
-+
-structured rich UI
+message_history
+    → helps understand the dialogue
+
+trusted_context
+    → contains verified structured company data
 ```
 
-Chat становится основным интерфейсом продукта, а отчёт, comparison, финансовый анализ, legal-анализ и deal-risk — capabilities внутри агента.
+Recommended trusted context includes:
+- active company;
+- verified compact ToolResults/observations;
+- evidence/provenance;
+- user-supplied business/deal context;
+- relevant last domain/topic.
 
-## Реализованный multi-turn срез
+A factual statement from a prior assistant message is not trusted merely because it is present in chat history.
 
-Временное состояние работает через LangChain AgentState и InMemorySaver, без
-PostgreSQL history. Один conversation_id хранит одну active_company и последние
-завершённые turns; company сохраняется только из результата backend tool.
+This prevents hallucinations from compounding across turns.
 
-Нормальный путь: Master → один разрешённый domain tool → compact ToolResult →
-второй шаг Master → backend hydration. Master выбирает и упорядочивает finding_ids;
-произвольный prose модели не публикуется. Backend сохраняет значения, evidence,
-графики, required findings и gaps. Такой ограниченный synthesis не является
-произвольной аналитической беседой или расчётом новых метрик.
+### 8.3 Grounding verifier
 
-Полная проверка тоже использует post-tool synthesis по компактным наблюдениям.
-Backend автоматически ставит `company_summary` перед conversational текстом,
-затем добавляет только выбранные допустимые артефакты. Стоп-факторы и пробелы
-данных сохраняются независимо от выбора модели; malformed synthesis даёт
-grounded fallback в том же conversational формате. Отдельный `/report`
-открывается второстепенной ссылкой «Полный анализ».
+For substantive company-specific analytical/recommendation answers, use a bounded grounding-verification step.
 
-Targeted get_financial_data и get_legal_data используют существующие builders,
-не вызывая run_check. Полный анализ и /report сохранены.
-Операционные границы и пример API: [MULTI_TURN_CHAT.md](MULTI_TURN_CHAT.md).
+Verifier input:
+
+```text
+candidate Master answer
++
+verified trusted context used for the answer
+```
+
+Verifier output should be narrow and structured, for example:
+
+```json
+{
+  "supported": false,
+  "unsupported_claims": ["..."]
+}
+```
+
+The verifier checks whether concrete company-specific factual claims are unsupported by the provided verified context.
+
+It does **not**:
+- judge writing style;
+- require specific Russian sentence templates;
+- implement a regex grammar;
+- replace the Master reasoning.
+
+If unsupported claims are found:
+1. allow at most one repair attempt;
+2. if it still fails, use a conservative grounded fallback.
+
+Do not create critic swarms or open-ended self-reflection loops.
+
+### 8.4 Deterministic checks remain useful
+
+Use deterministic validation for things that are actually deterministic:
+- schema;
+- known IDs;
+- allowed tools;
+- source URLs;
+- company identifiers;
+- evidence references;
+- UI payloads;
+- exact verified metrics when presented as trusted UI data.
+
+Do not turn deterministic checks into an NLP entailment engine.
+
+## 9. Natural-language synthesis
+
+The Master is the author of the conversational answer.
+
+It may:
+- explain;
+- interpret;
+- connect observations;
+- answer `Почему?`;
+- answer `Объясни проще`;
+- state uncertainty;
+- ask useful clarifying questions;
+- give cautious recommendations based on verified context.
+
+Backend must not sentence-by-sentence rewrite or censor normal Russian prose with a large regex/word-list policy.
+
+The backend may fall back to deterministic text when the model/provider or structured contract fails, but fallback is a safety net, not the normal user experience.
+
+## 10. Conversation state
+
+Conversation is a first-class entity.
+
+Minimum useful state:
+
+```text
+conversation_id
+active_company
+message_history
+trusted_context
+user/business context
+last relevant domain/topic (optional)
+Master model/provider for the thread
+```
+
+Follow-ups such as:
+- `Почему это плохо?`
+- `Объясни проще`
+- `Что это значит?`
+- `Насколько это критично?`
+
+must use the current conversation and trusted context.
+
+They should not require another INN or explicit domain keyword.
+
+Do not call a tool if the answer can be produced from already trusted context.
+
+The Master model should be stable for the lifetime of a conversation unless the system explicitly starts a new thread/migration strategy.
+
+## 11. Master model strategy
+
+The architecture must be provider/model agnostic.
+
+The Master model is a configuration choice and may be A/B-tested.
+
+Stronger reasoning/conversation models such as GLM or DeepSeek may be used when they improve:
+- natural dialogue;
+- contextual follow-ups;
+- tool routing;
+- complex reasoning;
+- grounded synthesis.
+
+Existing GPT-OSS/Qwen models may continue as specialized domain agents.
+
+Do not bake a single provider into the domain layer.
+
+## 12. UI architecture
+
+The assistant response is conversation-first.
+
+Conceptually:
+
+```text
+AssistantResponse
+├── message
+├── leading_artifact?       # company_summary for full check
+├── artifacts[]
+├── evidence[]
+├── notices[]
+└── suggested_actions[]
+```
+
+Rules:
+- text is primary;
+- artifacts are secondary;
+- evidence is compact/collapsible;
+- charts/tables use backend-verified data;
+- no arbitrary model-generated HTML/SVG/JS;
+- `/report` remains a drill-down, not the default user journey.
+
+## 13. Failure model
+
+Use simple bounded failure handling:
+- typed errors;
+- timeouts;
+- tool-call/recursion limits;
+- PARTIAL / NO_DATA;
+- deterministic fallback;
+- one bounded grounding repair attempt.
+
+Do not build heavyweight distributed reliability infrastructure for the hackathon.
+
+## 14. What we deliberately do not build now
+
+Unless a concrete requirement appears:
+- no raw LangGraph graph for marketing;
+- no custom LangGraph clone;
+- no vector database;
+- no generic RAG framework;
+- no Redis/Kafka/message broker;
+- no microservice split;
+- no agent swarm;
+- no planner/critic/judge chain;
+- no semantic regex verifier;
+- no arbitrary code execution;
+- no dynamic React generation;
+- no permanent semantic memory.
+
+Engineering effort should go into agent behavior, reasoning quality, evidence and demo scenarios.
+
+# Roadmap
+
+## Stage 1 — Agent-first foundation — DONE
+- chat API;
+- Master Agent shell;
+- `full_company_check`;
+- reuse of `run_check()`;
+- ToolResult/AssistantResponse;
+- rich UI;
+- legacy report preserved.
+
+## Stage 2 — LangChain orchestration — DONE
+- `LangChain create_agent`;
+- LangGraph runtime;
+- LangChain tool integration;
+- live Groq tool-calling smoke;
+- bounded execution and deterministic fallback.
+
+## Stage 3 — Conversation-first UX / multi-turn — DONE, STABILIZING
+
+Implemented:
+- chat workspace;
+- compact `company_summary`;
+- full report as drill-down;
+- active-company conversation basics;
+- targeted finance/legal flows;
+- inline artifacts.
+
+Current stabilization priorities:
+1. remove report-style synthesis;
+2. remove hardcoded reasoning catalogs where they act as a conclusion whitelist;
+3. remove semantic/lexical regex policing of natural prose;
+4. keep trusted structured context separate from chat history;
+5. let the Master reason over normalized verified data;
+6. add bounded grounding verification;
+7. A/B test a stronger Master model;
+8. behavioral multi-turn evals.
+
+Acceptance conversation:
+
+```text
+Проверь контрагента ...
+→ А что с финансами?
+→ Почему это плохо?
+→ Объясни проще.
+→ Насколько это критично для моей сделки?
+→ А с судами?
+→ Что там самое неприятное?
+```
+
+This must feel like one continuous analyst conversation, not seven report renders.
+
+## Stage 4 — Multi-company comparison — NEXT
+
+Support several company refs and requests such as:
+
+`Сравни этих поставщиков. Главное — финансовая устойчивость и судебные риски.`
+
+The Master should:
+- collect only relevant domains;
+- compare observations;
+- account for user priorities;
+- explain trade-offs;
+- use compact comparison artifacts;
+- avoid generating N separate full reports.
+
+## Stage 5 — Deal-context reasoning
+
+Use business context:
+- role of the counterparty;
+- amount;
+- prepayment;
+- payment delay;
+- contract type;
+- user priorities.
+
+Goal:
+
+Not merely:
+`company has risk`
+
+but:
+`what these verified observations mean for this specific deal`.
+
+## Stage 6 — Complex agent scenarios
+
+Focus on behavior:
+- ambiguous requests;
+- missing data;
+- conflicting signals;
+- changed priorities;
+- explaining a previous conclusion;
+- deciding whether a new tool call is necessary;
+- asking useful clarifying questions;
+- targeted additional checks.
+
+This is more valuable than adding infrastructure or many UI screens.
+
+## Stage 7 — Evaluation, demo polish and deploy
+
+- curated behavioral eval set;
+- model A/B;
+- groundedness;
+- tool-call correctness;
+- latency;
+- graceful failures;
+- remove technical terminology / AI-slop from UI;
+- rehearse the 8-minute pitch;
+- simple deployment.
+
+## Product definition of done
+
+The product is successful when a user can say:
+
+> `Мне предлагают работать с этой компанией с отсрочкой 60 дней. Что думаешь?`
+
+and the system:
+1. understands the business goal;
+2. asks for missing context only when useful;
+3. chooses relevant capabilities;
+4. reasons over verified data;
+5. explains the important parts;
+6. shows evidence;
+7. maintains follow-up context;
+8. reduces the need to manually read and reconcile a long counterparty report.
