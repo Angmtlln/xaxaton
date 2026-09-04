@@ -64,6 +64,18 @@ class FullCompanyCheckArgs(StrictModel):
         return value
 
 
+class CompanyRef(StrictModel):
+    inn: str
+    name: Optional[SafeText] = None
+
+    @field_validator("inn")
+    @classmethod
+    def validate_inn(cls, value: str) -> str:
+        if not is_valid_inn(value):
+            raise ValueError("Некорректный ИНН активной компании")
+        return value
+
+
 class Evidence(StrictModel):
     id: SafeText = Field(min_length=1, max_length=160)
     fact_id: SafeText = Field(min_length=1, max_length=160)
@@ -278,6 +290,8 @@ class AssistantMetadata(StrictModel):
     prompt_version: SafeText
     latency_ms: int = Field(ge=0)
     error_code: Optional[SafeText] = None
+    model_calls: int = Field(default=0, ge=0, le=2)
+    synthesis: Literal["deterministic", "model", "fallback"] = "deterministic"
 
 
 class AssistantResponse(StrictModel):
@@ -286,6 +300,8 @@ class AssistantResponse(StrictModel):
     evidence: List[Evidence] = Field(default_factory=list, max_length=60)
     suggested_actions: List[SafeText] = Field(default_factory=list, max_length=4)
     metadata: AssistantMetadata
+    conversation_id: Optional[str] = None
+    active_company: Optional[CompanyRef] = None
 
     @model_validator(mode="after")
     def validate_evidence_references(self) -> "AssistantResponse":

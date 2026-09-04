@@ -1909,6 +1909,27 @@ select {
 
 .last-report-link:hover { background: #292929; }
 
+.active-company-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.active-company-bar[hidden] { display: none; }
+.active-company-bar span { min-width: 0; overflow-wrap: anywhere; }
+.active-company-bar button {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #d9dee7;
+  border-radius: 10px;
+  background: #fff;
+  color: #252b37;
+  cursor: pointer;
+}
+.active-company-bar button:focus-visible { outline: 2px solid #e32636; outline-offset: 3px; }
 .chat-main {
   width: min(960px, calc(100% - 48px));
   margin-inline: auto;

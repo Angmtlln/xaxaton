@@ -76,14 +76,16 @@ User
 - grounding, guardrails, audit и deterministic fallback;
 - первый agent-first vertical slice через LangChain `create_agent`, один
   allowlisted `full_company_check`, typed `ToolResult` и rich chat;
+- multi-turn через `AgentState`/`InMemorySaver`, одна active company,
+  targeted `get_financial_data`/`get_legal_data` и второй шаг Master с
+  backend-controlled synthesis (см. `docs/MULTI_TURN_CHAT.md`);
 - статический рабочий интерфейс `/` + `/report?inn=...`;
 - отдельный моковый React/Vinext-прототип.
 
 Пока не реализовано, если код явно не говорит обратное:
 
 - persistent conversation state;
-- follow-up по active company;
-- targeted finance/legal/procurement tools;
+- targeted procurement tools;
 - comparison и deal-risk capabilities;
 - универсальный renderer структурированных `UIBlock`;
 - streaming событий agent run.

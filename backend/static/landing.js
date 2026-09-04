@@ -7,6 +7,42 @@ const sendButton = document.getElementById('send-button');
 const intro = document.getElementById('chat-intro');
 const thread = document.getElementById('chat-thread');
 const lastReportLink = document.getElementById('last-report-link');
+const activeCompanyBar = document.getElementById('active-company-bar');
+const activeCompanyLabel = document.getElementById('active-company-label');
+const newConversationButton = document.getElementById('new-conversation');
+const CHAT_STORAGE_KEY = 'counterparty-current-conversation-v1';
+let conversationId = null;
+let activeCompany = null;
+let conversationHistory = [];
+
+function saveConversation() {
+  try {
+    sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify({
+      conversationId, activeCompany, messages: conversationHistory.slice(-24),
+    }));
+  } catch (error) { /* Диалог остаётся доступен при запрете/переполнении storage. */ }
+}
+
+function showActiveCompany() {
+  activeCompanyBar.hidden = !conversationId && !conversationHistory.length;
+  activeCompanyLabel.textContent = activeCompany
+    ? `${activeCompany.name || 'Контрагент'} · ИНН ${activeCompany.inn}`
+    : 'Компания ещё не выбрана';
+}
+
+function resetConversation() {
+  if (form.hasAttribute('aria-busy')) return;
+  conversationId = null;
+  activeCompany = null;
+  conversationHistory = [];
+  thread.replaceChildren();
+  thread.hidden = true;
+  intro.hidden = false;
+  lastReportLink.hidden = true;
+  showActiveCompany();
+  saveConversation();
+  input.focus();
+}
 
 const moneyFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
 const integerFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
@@ -55,6 +91,7 @@ function resizeInput() {
 function setBusy(value) {
   input.disabled = value;
   sendButton.disabled = value;
+  newConversationButton.disabled = value;
   form.toggleAttribute('aria-busy', value);
 }
 
@@ -451,7 +488,7 @@ function appendAssistantMessage(payload) {
   };
   const stack = element('div', 'rich-stack');
   safeArray(payload.blocks).forEach((block) => {
-    const renderer = block && BLOCK_RENDERERS[block.type];
+    const renderer = block && Object.hasOwn(BLOCK_RENDERERS, block.type) && BLOCK_RENDERERS[block.type];
     stack.appendChild(renderer ? renderer(block, context) : renderUnsupportedBlock());
   });
   body.appendChild(stack);
@@ -477,13 +514,16 @@ function appendAssistantMessage(payload) {
 }
 
 function appendRequestError(message) {
-  appendAssistantMessage({
+  const payload = {
     message,
     blocks: [{ type: 'text', title: 'Не удалось получить ответ', text: message }],
     evidence: [],
     suggested_actions: [],
     metadata: { status: 'error', agent_run_id: `client-${Date.now()}` },
-  });
+  };
+  appendAssistantMessage(payload);
+  conversationHistory.push({ role: 'assistant', payload });
+  saveConversation();
 }
 
 async function sendMessage(message) {
@@ -492,6 +532,9 @@ async function sendMessage(message) {
   intro.hidden = true;
   thread.hidden = false;
   appendUserMessage(text);
+  conversationHistory.push({ role: 'user', message: text });
+  saveConversation();
+  showActiveCompany();
   input.value = '';
   resizeInput();
   setBusy(true);
@@ -502,7 +545,7 @@ async function sendMessage(message) {
     const response = await fetch('/api/v1/chat/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, conversation_id: conversationId }),
     });
     let payload = null;
     try {
@@ -518,7 +561,18 @@ async function sendMessage(message) {
         : (detail || 'Сервис временно не ответил. Попробуйте ещё раз.');
       appendRequestError(messageText);
     } else {
+      if (payload && payload.metadata && payload.metadata.error_code === 'unknown_conversation') {
+        conversationId = null;
+        activeCompany = null;
+        lastReportLink.hidden = true;
+      } else if (payload && payload.conversation_id) {
+        conversationId = payload.conversation_id;
+        activeCompany = payload.active_company || null;
+      }
       appendAssistantMessage(payload || {});
+      conversationHistory.push({ role: 'assistant', payload: payload || {} });
+      saveConversation();
+      showActiveCompany();
     }
   } catch (error) {
     loading.remove();
@@ -554,3 +608,20 @@ document.querySelectorAll('[data-prompt]').forEach((button) => {
 });
 
 resizeInput();
+
+newConversationButton.addEventListener('click', resetConversation);
+try {
+  const saved = JSON.parse(sessionStorage.getItem(CHAT_STORAGE_KEY) || 'null');
+  if (saved && Array.isArray(saved.messages)) {
+    conversationId = typeof saved.conversationId === 'string' ? saved.conversationId : null;
+    activeCompany = saved.activeCompany || null;
+    conversationHistory = saved.messages.slice(-24);
+    conversationHistory.forEach((item) => {
+      if (item.role === 'user') appendUserMessage(item.message);
+      else if (item.role === 'assistant' && item.payload) appendAssistantMessage(item.payload);
+    });
+    intro.hidden = conversationHistory.length > 0;
+    thread.hidden = !conversationHistory.length;
+    showActiveCompany();
+  }
+} catch (error) { /* Некорректный сохранённый диалог не мешает начать новый. */ }

@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import repository
 from app.agent.models import AssistantResponse
+from app.agent.conversations import ConversationStore
 from app.agent.runtime import build_master_runtime
 from app.api.schemas import (ChatMessageRequest, CheckRequest, CheckResponse,
                              CompanyListItem, CoverageOut, ErrorOut, FactsResponse,
@@ -31,7 +32,10 @@ log = logging.getLogger("contractor-agent")
 DESCRIPTION = """
 Agent-first PoC проверки контрагента. Основной путь начинается с сообщения
 `Проверь контрагента <ИНН>` в chat API, а существующий полный проход сохранён
-как единственный allowlisted tool `full_company_check`. Master Agent использует
+как allowlisted tool `full_company_check`. Финансовые и юридические follow-up
+используют `get_financial_data` и `get_legal_data` без повторного полного анализа.
+Передайте `conversation_id` из ответа, чтобы продолжить диалог об активной компании.
+Состояние хранится в памяти одного процесса и теряется при перезапуске. Master Agent использует
 LangChain `create_agent`, а rich response гидратируется backend-кодом.
 
 Как устроен проход:
@@ -81,6 +85,7 @@ app = FastAPI(
     openapi_tags=TAGS,
     lifespan=lifespan,
 )
+app.state.conversation_store = ConversationStore()
 
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
@@ -94,7 +99,7 @@ if STATIC_DIR.exists():
 
 @app.get("/", include_in_schema=False)
 async def index() -> FileResponse:
-    """Agent-first чат для полной проверки по явному ИНН."""
+    """Agent-first чат с контекстом компании и targeted follow-up."""
     return FileResponse(str(STATIC_DIR / "index.html"))
 
 
@@ -123,9 +128,15 @@ async def create_chat_message(
     settings: Settings = Depends(settings_dep),
     client: GroqClient = Depends(groq_dep),
 ) -> AssistantResponse:
-    """Первый vertical slice: один явный ИНН → один full_company_check."""
-    runtime = build_master_runtime(settings, client, persist=True)
-    return await runtime.run(payload.message)
+    """Новый диалог или продолжение по conversation_id; неизвестный ID не запускает tools."""
+    runtime = build_master_runtime(
+        settings, client, persist=True,
+        conversation_store=app.state.conversation_store,
+    )
+    return await runtime.run(
+        payload.message,
+        conversation_id=str(payload.conversation_id) if payload.conversation_id else None,
+    )
 
 
 @app.get("/health", response_model=HealthOut, tags=["service"], summary="Здоровье сервиса")

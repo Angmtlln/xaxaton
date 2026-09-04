@@ -328,7 +328,8 @@ deterministic/stateful workflow, который нельзя выразить `c
 middleware. Независимые read-only tools можно выполнять параллельно только
 когда это даёт измеримую пользу и не нарушает execution limits.
 LangSmith не является обязательным runtime-сервисом: текущий срез не требует
-его API key, tracing-конфигурации или checkpointer.
+его API key или tracing-конфигурации. Multi-turn срез использует встроенный
+InMemorySaver для временного состояния диалога.
 
 ---
 
@@ -343,7 +344,7 @@ runtime integration boundary. Текущие доменные LLM-вызовы �
 не является причиной переписывать аналитический pipeline.
 
 Если native tool calling недоступен, нарушает schema или не вызывает ожидаемый
-tool для очевидного full-check запроса, application boundary выполняет
+tool для очевидного full-check/finance/legal запроса, application boundary выполняет
 детерминированный fallback с уже проверенным ИНН. Модель не определяет verified
 числа, evidence, URL или chart series.
 
@@ -858,3 +859,19 @@ structured rich UI
 ```
 
 Chat становится основным интерфейсом продукта, а отчёт, comparison, финансовый анализ, legal-анализ и deal-risk — capabilities внутри агента.
+
+## Реализованный multi-turn срез
+
+Временное состояние работает через LangChain AgentState и InMemorySaver, без
+PostgreSQL history. Один conversation_id хранит одну active_company и последние
+завершённые turns; company сохраняется только из результата backend tool.
+
+Нормальный путь: Master → один разрешённый domain tool → compact ToolResult →
+второй шаг Master → backend hydration. Master выбирает и упорядочивает finding_ids;
+произвольный prose модели не публикуется. Backend сохраняет значения, evidence,
+графики, required findings и gaps. Такой ограниченный synthesis не является
+произвольной аналитической беседой или расчётом новых метрик.
+
+Targeted get_financial_data и get_legal_data используют существующие builders,
+не вызывая run_check. Полный анализ и /report сохранены.
+Операционные границы и пример API: [MULTI_TURN_CHAT.md](MULTI_TURN_CHAT.md).

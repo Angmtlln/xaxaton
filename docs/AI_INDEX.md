@@ -8,7 +8,7 @@
 
 | Если задача про… | Сначала прочитать | Основные файлы |
 |---|---|---|
-| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/langchain_tools.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/main.py`, `backend/static/landing.js` |
+| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/langchain_tools.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/agent/conversations.py`, `backend/app/agent/finance.py`, `backend/app/agent/legal.py`, `backend/app/main.py`, `backend/static/landing.js` |
 | продукт, скоуп, критерии успеха | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md), [`product_materials.md`](../product_materials.md) | `project_description.md`, `hypotheses.md` |
 | продуктовые гипотезы и приоритеты | [`hypotheses.md`](../hypotheses.md) | `product_materials.md` |
 | состав четырёх блоков анализа | [`blocks_summary_design.md`](../blocks_summary_design.md) | `backend/app/domain/facts.py`, `backend/app/llm/prompts.py` |
@@ -47,10 +47,11 @@ POST /api/v1/chat/messages
   -> LangChain create_agent / LangGraph runtime
   -> ChatGroq native tool call
   -> LangChain StructuredTool adapter
-  -> ToolRegistry.full_company_check
-  -> существующий run_check()
-  -> ToolResult
-  -> deterministic AssistantResponse adapter
+  -> ToolRegistry: full_company_check | get_financial_data | get_legal_data
+  -> run_check() | build_finance() | build_reliability()
+  -> compact ToolResult -> Master synthesis (выбор finding_ids)
+  -> backend hydration AssistantResponse
+  -> InMemorySaver: bounded messages + active_company по conversation_id
   -> allowlisted UIBlock renderer
 
 ИНН
@@ -86,12 +87,13 @@ POST /api/v1/chat/messages
   аудит и fallback без LLM;
 - реализованы agent-first чат, legacy-отчёт, диаграммы и паспорт полноты;
 - реализован первый agent-first vertical slice: сообщение с одним валидным ИНН,
-  LangChain `create_agent` + underlying LangGraph, один `full_company_check`,
+  LangChain `create_agent` + underlying LangGraph, `full_company_check`,
   typed `ToolResult`, deterministic `AssistantResponse` и rich chat из шести
   allowlisted блоков;
 - отдельный React/Vinext-прототип содержит моковый интерфейс;
-- follow-up context, targeted tools, persistence диалога и streaming пока не
-  реализованы;
+- реализованы multi-turn context в InMemorySaver, одна active_company, targeted
+  finance/legal без полного pipeline и второй шаг Master с выбором grounded findings;
+- persistent history в БД, name resolution, comparison, deal risk и streaming не реализованы;
 - сравнение нескольких контрагентов, банковские интеграции и большая база не
   относятся к готовому текущему проходу.
 
@@ -148,3 +150,21 @@ npm run dev
 - Помечай датой снимки результатов, но не добавляй дату в стабильные правила.
 - При добавлении новой подсистемы дополни этот индекс одной строкой маршрута и
   ссылкой на её источник истины.
+
+## Multi-turn entrypoints и проверки
+
+- `backend/app/agent/conversations.py`: LangChain AgentState, InMemorySaver и
+  lifecycle сессий (30 минут бездействия, 100 диалогов, последние 6 turns).
+- `backend/app/agent/finance.py`, `legal.py`: targeted snapshot adapters;
+  `targeted_models.py`: framework-agnostic контракты и MasterSynthesis.
+- `runtime.py`, `langchain_tools.py`, `prompt.py`: 2 model steps, 1 domain call,
+  recursion limit 12; неверный routing использует очевидный deterministic fallback.
+- `response.py`: строгая связь evidence с фактами, hydration verified data,
+  обязательные findings и gaps независимо от выбора модели.
+- `tests/test_agent_multiturn.py`, `tests/test_agent_runtime.py`: routing, state,
+  второй model step, budgets и fallback.
+- `tests/test_financial_capability.py`, `tests/test_legal_capability.py`,
+  `tests/test_targeted_response.py`, `tests/test_chat_api.py`: данные, grounding и API.
+- Клиент `backend/static/landing.js` передаёт conversation_id и сохраняет текущий
+  диалог в sessionStorage вкладки. Новый диалог сбрасывает клиентский контекст.
+- Подробности, API-пример и проверка: [MULTI_TURN_CHAT.md](MULTI_TURN_CHAT.md).

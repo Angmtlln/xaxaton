@@ -172,6 +172,10 @@ class ToolRegistry:
 
 
 def build_tool_registry(settings: Settings) -> ToolRegistry:
+    from .finance import execute_financial_data
+    from .legal import execute_legal_data
+    from .targeted_models import TargetedData
+
     return ToolRegistry([
         ToolDefinition(
             name="full_company_check",
@@ -187,7 +191,25 @@ def build_tool_registry(settings: Settings) -> ToolRegistry:
             result_size_limit=settings.agent_tool_result_max_chars,
             retry_policy="none",
             executor=_execute_full_company_check,
-        )
+        ),
+        *[
+            ToolDefinition(
+                name=name,
+                description=description,
+                input_model=FullCompanyCheckArgs,
+                output_model=TargetedData,
+                risk_class="read_only",
+                side_effects="none",
+                timeout_s=settings.agent_tool_timeout_s,
+                result_size_limit=min(settings.agent_tool_result_max_chars, 40_000),
+                retry_policy="none",
+                executor=executor,
+            )
+            for name, description, executor in (
+                ("get_financial_data", "Финансовые показатели и динамика одного контрагента по ИНН, без полной проверки.", execute_financial_data),
+                ("get_legal_data", "Суды, исполнительные производства и правовые факты одного контрагента по ИНН, без полной проверки.", execute_legal_data),
+            )
+        ],
     ])
 
 

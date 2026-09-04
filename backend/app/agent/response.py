@@ -1,6 +1,7 @@
 """Детерминированное преобразование ToolResult в allowlisted rich response."""
 from __future__ import annotations
 
+import json
 import time
 from typing import Dict, List, Optional
 
@@ -9,7 +10,8 @@ from .models import (AssistantMetadata, AssistantResponse, ChartPoint, ChartSeri
                      FindingListBlock, FullCompanyCheckData, LineChartBlock,
                      MetricGridBlock, MetricItem, TextBlock, ToolFact, ToolResult)
 from .prompt import MASTER_PROMPT_VERSION
-from .tools import display_fact_value
+from .tools import display_fact_value, _evidence_from_fact
+from .targeted_models import MasterSynthesis, TargetedData
 
 
 METRIC_FACT_IDS = (
@@ -39,13 +41,14 @@ VERDICT_MESSAGES = {
 }
 
 GUARD_MESSAGES = {
-    "missing_inn": "Укажите один ИНН в сообщении, чтобы запустить полную проверку контрагента.",
+    "missing_inn": "Укажите ИНН контрагента. После выбора компании можно задавать вопросы без повторного ИНН.",
     "invalid_inn": "Проверьте ИНН: нужны 10 или 12 цифр с корректными контрольными знаками.",
     "ambiguous_inn": "На этом этапе можно проверить только одного контрагента за запрос. Укажите один ИНН.",
     "unsupported_request": (
-        "На первом этапе доступна полная проверка по явному ИНН. "
-        "Напишите, например: «Проверь контрагента 6165169320»."
+        "Доступны полная проверка, финансовые и юридические вопросы об одном контрагенте. "
+        "Напишите, например: «Проверь контрагента 6165169320», затем «А что у них с финансами?»."
     ),
+    "unknown_conversation": "Диалог истёк или не найден. Начните новый диалог и укажите ИНН контрагента.",
 }
 
 
@@ -73,6 +76,7 @@ def tool_result_to_assistant(
     routing: str,
     model: Optional[str],
     started: float,
+    synthesis: object = None,
 ) -> AssistantResponse:
     if result.status == "error":
         message = (
@@ -96,6 +100,12 @@ def tool_result_to_assistant(
             ),
         )
 
+    if result.metadata.tool in ("get_financial_data", "get_legal_data"):
+        return _targeted_response(
+            result, agent_run_id=agent_run_id, routing=routing,
+            model=model, started=started, synthesis=synthesis,
+        )
+
     data = FullCompanyCheckData.model_validate(result.data)
     evidence_by_id = {item.id: item for item in result.evidence}
     blocks = [
@@ -114,6 +124,7 @@ def tool_result_to_assistant(
         message=VERDICT_MESSAGES[data.summary.verdict_group],
         blocks=blocks,
         evidence=list(evidence_by_id.values()),
+        suggested_actions=["А что у них с финансами?", "А что у них с судами?"],
         metadata=AssistantMetadata(
             agent_run_id=agent_run_id,
             check_run_id=data.check_run_id,
@@ -123,6 +134,82 @@ def tool_result_to_assistant(
             model=model,
             prompt_version=MASTER_PROMPT_VERSION,
             latency_ms=_elapsed_ms(started),
+        ),
+    )
+
+
+def _targeted_response(result, *, agent_run_id, routing, model, started, synthesis):
+    data = TargetedData.model_validate(result.data)
+    # A reference alone is insufficient: match the complete evidence to its fact.
+    expected = {key: _evidence_from_fact(fact) for key, fact in data.facts.items()}
+    evidence_by_id = {}
+    for item in result.evidence:
+        if item.id in evidence_by_id or expected.get(item.id) != item:
+            raise ValueError("Targeted evidence does not match backend fact")
+        evidence_by_id[item.id] = item
+    referenced = set(data.metric_ids)
+    referenced.update(ref for finding in data.findings for ref in finding.evidence_ids)
+    if referenced - evidence_by_id.keys():
+        raise ValueError("Targeted observations lack verified evidence")
+
+    known = {item.id: item for item in data.findings}
+    selected = list(known)
+    synthesis_status = "deterministic" if synthesis is None else "fallback"
+    if synthesis is not None:
+        try:
+            proposal = MasterSynthesis.model_validate(
+                json.loads(synthesis) if isinstance(synthesis, str) else synthesis
+            )
+            if len(set(proposal.finding_ids)) != len(proposal.finding_ids):
+                raise ValueError("Repeated findings")
+            if set(proposal.finding_ids) - known.keys() or (known and not proposal.finding_ids):
+                raise ValueError("Unknown or empty synthesis")
+            selected = proposal.finding_ids + [
+                item.id for item in data.findings
+                if item.required and item.id not in proposal.finding_ids
+            ]
+            synthesis_status = "model"
+        except (ValueError, TypeError):
+            pass
+
+    title = "Финансы" if data.domain == "finance" else "Суды и правовые факты"
+    items = []
+    for fact_id in data.metric_ids:
+        fact = data.facts[fact_id]
+        value = fact.value if isinstance(fact.value, (int, float, str, bool)) else None
+        items.append(MetricItem(
+            id=fact.id, label=fact.label, value=value,
+            display_value=display_fact_value(fact), unit=fact.unit,
+            state="no_data" if value is None else "data", evidence_id=fact.id,
+        ))
+    blocks = [_company_block(data, evidence_by_id)]
+    if data.availability == "NO_DATA":
+        message = "%s: невозможно оценить по доступным данным." % title
+    else:
+        message = "%s: наблюдения по доступной карточке." % title
+    if data.availability == "PARTIAL":
+        message += " Данные неполные."
+    # Source gaps and warnings cannot be suppressed by model selections.
+    if data.gaps or result.warnings:
+        blocks.append(TextBlock(title="Ограничения данных", text=" ".join(dict.fromkeys(data.gaps + result.warnings))))
+    if items:
+        blocks.append(MetricGridBlock(title=title, items=items))
+    if data.domain == "finance":
+        blocks.append(_chart_block(data, evidence_by_id))
+    blocks.append(FindingListBlock(
+        title="Наблюдения по фактам",
+        items=[FindingItem(title=known[key].title, text=known[key].text,
+                           evidence_ids=known[key].evidence_ids) for key in selected],
+        empty_message="Невозможно оценить по доступным данным." if not selected else None,
+    ))
+    blocks.append(EvidenceListBlock(title="Факты и поля исходной карточки", evidence_ids=list(evidence_by_id)))
+    return AssistantResponse(
+        message=message, blocks=blocks, evidence=list(evidence_by_id.values()),
+        suggested_actions=["А что у них с финансами?", "А что у них с судами?"],
+        metadata=AssistantMetadata(
+            agent_run_id=agent_run_id, status="partial" if result.status == "partial" or data.availability != "DATA" else "completed",
+            tool_calls=1, routing=routing, model=model, prompt_version=MASTER_PROMPT_VERSION,
+            latency_ms=_elapsed_ms(started), synthesis=synthesis_status,
         ),
     )
 

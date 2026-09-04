@@ -19,6 +19,7 @@ class FakeToolCallingModel(FakeMessagesListChatModel):
     _bound_tools = PrivateAttr(default_factory=list)
     _bind_kwargs = PrivateAttr(default_factory=dict)
     _calls = PrivateAttr(default=0)
+    _messages = PrivateAttr(default_factory=list)
 
     def bind_tools(self, tools, **kwargs):
         self._bound_tools = list(tools)
@@ -27,6 +28,7 @@ class FakeToolCallingModel(FakeMessagesListChatModel):
 
     def _generate(self, messages, stop=None, run_manager=None, **kwargs):
         self._calls += 1
+        self._messages.append(list(messages))
         return super()._generate(
             messages, stop=stop, run_manager=run_manager, **kwargs
         )
@@ -88,14 +90,14 @@ async def test_broad_request_routes_through_create_agent_to_single_full_check(
         return check_payload
 
     monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
-    model = _model(AIMessage(content="", tool_calls=[_tool_call()]))
+    model = _model(AIMessage(content="", tool_calls=[_tool_call()]), AIMessage(content='{"finding_ids":[]}'))
 
     response = await _runtime(model).run("Проверь контрагента 6165169320")
 
     assert calls == [{"inn": "6165169320", "persist": False}]
-    assert model.calls == 1
+    assert model.calls == 2
     assert [tool.name for tool in model._bound_tools] == ["full_company_check"]
-    assert model._bind_kwargs["tool_choice"] == "required"
+    assert model._bind_kwargs["tool_choice"] == "none"
     assert model._bind_kwargs["parallel_tool_calls"] is False
     assert response.metadata.tool_calls == 1
     assert response.metadata.routing == "model"
@@ -133,7 +135,7 @@ async def test_router_model_text_is_never_used_for_rich_response(
     [
         ("Проверь контрагента", "missing_inn"),
         ("Проверь контрагента 1234567890", "invalid_inn"),
-        ("Какая выручка у контрагента 6165169320?", "unsupported_request"),
+        ("Какие закупки у контрагента 6165169320?", "unsupported_request"),
         ("Проверь 6165169320 и 0278949271", "ambiguous_inn"),
     ],
 )
@@ -328,10 +330,12 @@ def test_inn_and_intent_checks_are_deterministic():
     assert not is_full_check_request("Какая выручка у 6165169320?")
 
 
-def test_registry_exposes_exactly_one_bounded_tool():
+def test_registry_exposes_three_bounded_tools():
     contracts = build_tool_registry(_settings()).visible_contracts()
 
-    assert [item["name"] for item in contracts] == ["full_company_check"]
+    assert [item["name"] for item in contracts] == [
+        "full_company_check", "get_financial_data", "get_legal_data"
+    ]
     assert contracts[0]["risk_class"] == "read_only"
     assert contracts[0]["retry_policy"] == "none"
     assert contracts[0]["input_schema"]["additionalProperties"] is False

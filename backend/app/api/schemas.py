@@ -1,5 +1,6 @@
 """Модели запросов и ответов API. Они же формируют схему Swagger."""
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -11,8 +12,12 @@ class ChatMessageRequest(BaseModel):
         ...,
         min_length=1,
         max_length=1000,
-        description="Сообщение пользователя с запросом полной проверки и явным ИНН",
+        description="Полная проверка, финансовый или юридический вопрос; продолжение использует активную компанию диалога",
         json_schema_extra={"example": "Проверь контрагента 6165169320"},
+    )
+    conversation_id: Optional[UUID] = Field(
+        default=None,
+        description="ID из предыдущего ответа. Без ID создаётся новый диалог; состояние временно хранится в памяти процесса.",
     )
 
 

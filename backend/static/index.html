@@ -30,12 +30,17 @@
   </header>
 
   <main class="chat-main" id="chat-main">
+    <div class="active-company-bar" id="active-company-bar" hidden>
+      <span id="active-company-label"></span>
+      <button type="button" id="new-conversation">Новый диалог</button>
+    </div>
     <section class="chat-intro" id="chat-intro" aria-labelledby="chat-title">
       <span class="chat-kicker">AI-аналитик контрагентов</span>
       <h1 id="chat-title">Начните с полной проверки по ИНН</h1>
       <p>
         Агент проверит профиль, правовые факты, финансы и опыт, а затем покажет
-        наблюдения и показатели рядом с источниками.
+        наблюдения и показатели рядом с источниками. Затем задавайте вопросы
+        о финансах и судах без повторного ИНН.
       </p>
       <div class="scope-row" aria-label="Границы текущей версии">
         <span>Один контрагент</span>
@@ -72,7 +77,7 @@
         </button>
       </div>
       <div class="composer-meta">
-        <span id="composer-hint">Доступна полная проверка одного контрагента по явному ИНН</span>
+        <span id="composer-hint">Выберите компанию по ИНН, затем задавайте вопросы о финансах и судах</span>
         <span>Enter — отправить · Shift+Enter — новая строка</span>
       </div>
     </form>

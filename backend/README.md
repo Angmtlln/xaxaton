@@ -74,9 +74,9 @@ curl -X POST http://localhost:8000/api/v1/chat/messages \
      -d '{"message":"Проверь контрагента 6165169320"}' | jq .
 ```
 
-Для первого среза runtime принимает только широкий запрос с одним явно
-указанным ИНН, проверяет его контрольные цифры и допускает максимум один tool
-call. Master Agent использует официальный `ChatGroq`; без ключа или при ошибке
+Runtime принимает полную проверку и узкие финансовые/юридические вопросы.
+Передайте `conversation_id` из предыдущего ответа, чтобы использовать активную
+компанию без повторного ИНН. На turn допускаются два model steps и один domain tool call. Master Agent использует официальный `ChatGroq`; без ключа или при ошибке
 native tool calling runtime переходит на deterministic fallback. Сам
 `run_check()` и его доменные LLM-вызовы не переписаны.
 LangGraph устанавливается транзитивно через LangChain; LangSmith tracing и API
@@ -91,13 +91,15 @@ LLM_MOCK=true python scripts/demo_offline.py --inn 6165169320
 ## Модели
 
 Сам `run_check()` делает пять вызовов: четыре блочных агента параллельно и один
-Summary-LLM поверх их ответов. Chat flow добавляет перед ними один короткий
-router-вызов, если Groq доступен; в mock-режиме routing детерминированный.
+Summary-LLM поверх их ответов. Chat flow добавляет выбор tool и финальный шаг Master, если Groq доступен;
+в mock-режиме routing детерминированный. Targeted finance/legal читают только
+snapshot и нужный builder, не вызывая полный pipeline и доменные LLM.
+Подробнее: [multi-turn chat](../docs/MULTI_TURN_CHAT.md).
 Модели заданы в `.env`, код к конкретной модели не привязан.
 
 | Роль | Модель | Почему |
 |---|---|---|
-| Master router | `openai/gpt-oss-20b` | возвращает только один компактный JSON-action |
+| Master | `openai/gpt-oss-20b` | native tool call, затем grounded выбор findings |
 | Блок «Кто это» | `openai/gpt-oss-20b` | короткий блок, младшей модели достаточно |
 | Блок «Надёжность и правовые риски» | `openai/gpt-oss-120b` | самый ответственный блок, отдаём сильнейшей модели |
 | Блок «Финансовое состояние» | `qwen/qwen3.8-27b` | устойчиво держит JSON-схему на числовых данных |

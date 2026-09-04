@@ -3,12 +3,14 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings
+from app.agent.conversations import ConversationStore
 from app.llm.groq_client import GroqClient
 from app.main import app, groq_dep, settings_dep
 
 
 @pytest.fixture
 def api_client():
+    app.state.conversation_store = ConversationStore()
     settings = Settings(
         llm_mock=True,
         groq_api_key=None,
@@ -54,7 +56,7 @@ def test_chat_api_runs_complete_vertical_slice_once(
     [
         "Проверь контрагента",
         "Проверь контрагента 1234567890",
-        "Какая выручка у 6165169320?",
+        "Какие тендеры у 6165169320?",
     ],
 )
 def test_chat_api_does_not_run_check_without_valid_broad_request(
@@ -109,3 +111,55 @@ def test_legacy_report_and_landing_routes_are_unchanged(api_client):
     assert "AI-аналитик" in landing.text
     assert report.status_code == 200
     assert "Отчёт" in report.text
+
+
+def test_multi_turn_api_uses_active_company_and_only_targeted_tools(
+    api_client, monkeypatch, check_payload, documents
+):
+    calls = []
+    document = next(item for item in documents if item["report"]["baseInfo"]["inn"] == "6165169320")
+
+    async def full_check(inn, *args, **kwargs):
+        calls.append(("full", inn))
+        return check_payload
+
+    async def snapshot(inn):
+        calls.append(("snapshot", inn))
+        return {"inn": inn, "document": document, "short_name": "Демо"}
+
+    monkeypatch.setattr("app.agent.tools.run_check", full_check)
+    monkeypatch.setattr("app.repository.get_latest_snapshot", snapshot)
+    first = api_client.post("/api/v1/chat/messages", json={"message": "Проверь контрагента 6165169320"}).json()
+    conversation_id = first["conversation_id"]
+    assert first["active_company"]["inn"] == "6165169320"
+    for question, label in (("А что у них с финансами?", "Финансы"), ("А что у них с судами?", "Суды")):
+        response = api_client.post("/api/v1/chat/messages", json={
+            "message": question, "conversation_id": conversation_id,
+        })
+        assert response.status_code == 200
+        body = response.json()
+        assert body["conversation_id"] == conversation_id
+        assert body["active_company"]["inn"] == "6165169320"
+        assert body["metadata"]["tool_calls"] == 1
+        assert body["message"].startswith(label)
+    assert calls == [("full", "6165169320"), ("snapshot", "6165169320"), ("snapshot", "6165169320")]
+
+
+def test_unknown_conversation_does_not_start_check(api_client, monkeypatch):
+    async def forbidden(*args, **kwargs):
+        raise AssertionError("Unknown conversations must not execute tools")
+
+    monkeypatch.setattr("app.agent.tools.run_check", forbidden)
+    response = api_client.post("/api/v1/chat/messages", json={
+        "message": "Проверь контрагента 6165169320",
+        "conversation_id": "00000000-0000-0000-0000-000000000099",
+    })
+    assert response.status_code == 200
+    assert response.json()["metadata"]["error_code"] == "unknown_conversation"
+    assert response.json()["metadata"]["tool_calls"] == 0
+
+
+def test_conversation_id_schema_is_uuid(api_client):
+    assert api_client.post("/api/v1/chat/messages", json={
+        "message": "А финансы?", "conversation_id": "arbitrary-thread",
+    }).status_code == 422
