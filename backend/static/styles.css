@@ -1840,7 +1840,7 @@ select {
 
 .chat-page {
   min-width: 320px;
-  background: #f5f5f5;
+  background: #ffffff;
 }
 
 .chat-app {
@@ -1900,14 +1900,14 @@ select {
   display: inline-flex;
   align-items: center;
   padding: 0 14px;
-  color: #ffffff;
-  background: #111111;
+  color: #555555;
+  background: transparent;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
 }
 
-.last-report-link:hover { background: #292929; }
+.last-report-link:hover { color: #111111; background: #f5f5f5; }
 
 .active-company-bar {
   display: flex;
@@ -1931,9 +1931,9 @@ select {
 }
 .active-company-bar button:focus-visible { outline: 2px solid #e32636; outline-offset: 3px; }
 .chat-main {
-  width: min(960px, calc(100% - 48px));
+  width: min(820px, calc(100% - 48px));
   margin-inline: auto;
-  padding: 54px 0 48px;
+  padding: 28px 0 40px;
 }
 
 .chat-intro {
@@ -1955,8 +1955,8 @@ select {
 .chat-intro h1 {
   max-width: 800px;
   margin: 14px 0 0;
-  font-size: clamp(42px, 6vw, 72px);
-  line-height: 0.98;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.08;
   letter-spacing: -0.055em;
 }
 
@@ -1990,9 +1990,9 @@ select {
 .prompt-examples {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 38px;
+  margin-top: 30px;
 }
 
 .prompt-example {
@@ -2016,11 +2016,12 @@ select {
 
 .chat-thread {
   display: grid;
-  gap: 28px;
+  gap: 32px;
 }
 
 .chat-message {
   min-width: 0;
+  scroll-margin-top: 88px;
 }
 
 .chat-message-user {
@@ -2031,8 +2032,9 @@ select {
 .user-bubble {
   max-width: min(680px, 86%);
   padding: 14px 18px;
-  color: #ffffff;
-  background: #111111;
+  color: #252525;
+  background: #f1f1f1;
+  border-radius: 18px 18px 4px 18px;
   font-size: 15px;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -2062,20 +2064,28 @@ select {
   min-width: 0;
 }
 
+.assistant-author {
+  margin: 7px 0 14px;
+  color: #656565;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .assistant-lead {
   display: grid;
   justify-items: start;
-  gap: 10px;
-  margin: 2px 0 16px;
+  gap: 15px;
+  margin: 0 0 18px;
 }
 
 .assistant-lead p {
   max-width: 760px;
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .assistant-status {
@@ -2088,8 +2098,7 @@ select {
   background: #ffffff;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  border-radius: 5px;
 }
 
 .assistant-status.status-partial,
@@ -2111,8 +2120,7 @@ select {
   align-content: center;
   justify-items: start;
   gap: 5px;
-  padding: 14px 18px;
-  border: 1px solid #d7d7d7;
+  padding: 6px 0;
   background: #ffffff;
 }
 
@@ -2147,7 +2155,8 @@ select {
 
 .rich-block {
   min-width: 0;
-  border: 1px solid #d5d5d5;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
   background: #ffffff;
 }
 
@@ -2161,70 +2170,60 @@ select {
   letter-spacing: -0.02em;
 }
 
-.company-card-block {
-  border-top: 3px solid #111111;
+.company-summary {
+  padding: 15px 18px;
+  margin-bottom: 22px;
+  background: #fafafa;
 }
 
-.company-card-top {
+.company-summary-identity {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 22px 24px;
-  border-bottom: 1px solid #e1e1e1;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
 }
 
-.company-card-identity h2 {
-  margin: 7px 0 0;
-  font-size: 26px;
-  letter-spacing: -0.035em;
+.company-summary-identity h2 {
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
 }
 
-.company-card-identity p {
-  margin: 7px 0 0;
-  color: #686868;
-  font-size: 12px;
-}
-
+.company-summary-inn { color: #666666; font-size: 11px; }
 .company-report-link {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
-  flex: none;
-  padding: 0 14px;
-  color: #111111;
-  background: #eeeeee;
+  color: #555555;
   font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
+.company-report-link:hover { color: #111111; }
 
-.company-report-link:hover { background: #dedede; }
-
-.company-data-grid {
+.company-summary-facts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  margin: 0;
-  background: #e2e2e2;
+  grid-template-columns: 1.2fr 0.8fr 1fr 1fr;
+  gap: 12px;
+  margin: 8px 0 0;
 }
-
-.company-data-item {
-  min-height: 82px;
-  padding: 14px 16px;
-  background: #ffffff;
+.company-summary-facts dt { color: #717171; font-size: 11px; }
+.company-summary-facts dd {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
-
-.company-data-wide { grid-column: span 4; }
-.company-data-item dt { color: #717171; font-size: 11px; }
-.company-data-item dd { margin: 8px 0 0; font-size: 13px; font-weight: 700; line-height: 1.4; }
 
 .text-block,
 .metric-block,
 .chat-chart-block,
 .finding-block,
 .unsupported-block {
-  padding: 22px 24px;
+  padding: 16px 18px;
 }
 
 .text-block > p,
@@ -2244,10 +2243,10 @@ select {
 
 .evidence-jump {
   min-height: 44px;
-  padding: 0 9px;
-  border: 1px solid #d5d5d5;
+  padding: 0 6px;
+  border: 0;
   color: #5f5f5f;
-  background: #f8f8f8;
+  background: transparent;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -2260,7 +2259,7 @@ select {
 
 .chat-metric-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
   margin-top: 17px;
   border: 1px solid #dddddd;
@@ -2268,11 +2267,11 @@ select {
 }
 
 .chat-metric {
-  min-height: 112px;
+  min-height: 80px;
   display: grid;
   align-content: start;
   gap: 9px;
-  padding: 16px;
+  padding: 12px;
   background: #ffffff;
 }
 
@@ -2365,7 +2364,7 @@ select {
 .chart-data-table td:first-child { text-align: left; }
 
 .chat-empty-state {
-  min-height: 94px;
+  min-height: 52px;
   display: grid;
   place-items: center;
   margin-top: 16px;
@@ -2407,20 +2406,27 @@ select {
 .finding-item strong { font-size: 13px; }
 .finding-item p { margin: 6px 0 0; color: #555555; font-size: 13px; line-height: 1.5; }
 
+.evidence-block {
+  margin-top: 10px;
+  border: 0;
+  border-top: 1px solid #ededed;
+  border-radius: 0;
+}
+
 .evidence-block summary {
-  min-height: 72px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 16px 24px;
+  padding: 8px 0;
   cursor: pointer;
   list-style: none;
 }
 
 .evidence-block summary::-webkit-details-marker { display: none; }
-.evidence-block summary > span:first-child { display: grid; gap: 4px; }
-.evidence-block summary strong { font-size: 15px; }
+.evidence-block summary > span:first-child { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.evidence-block summary strong { color: #555555; font-size: 12px; font-weight: 500; }
 .evidence-block summary small { color: #717171; font-size: 11px; }
 .evidence-toggle { color: #555555; font-size: 11px; font-weight: 800; text-transform: uppercase; }
 
@@ -2446,7 +2452,7 @@ select {
   gap: 16px;
 }
 
-.evidence-item-heading strong { font-size: 13px; }
+.evidence-item-heading strong { min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
 .evidence-item-heading span { color: #777777; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .evidence-value { margin: 7px 0 0; color: #414141; font-size: 13px; line-height: 1.45; }
 .evidence-item code { display: block; margin-top: 7px; color: #777777; font-size: 10px; overflow-wrap: anywhere; }
@@ -2459,9 +2465,12 @@ select {
 }
 
 .suggested-action {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   min-height: 44px;
   padding: 0 14px;
-  border: 1px solid #bfbfbf;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
   color: #111111;
   background: #ffffff;
   font-size: 12px;
@@ -2476,13 +2485,12 @@ select {
   bottom: 0;
   z-index: 25;
   padding: 12px 0 14px;
-  border-top: 1px solid #dedede;
-  background: rgba(245, 245, 245, 0.97);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(14px);
 }
 
 .chat-composer {
-  width: min(960px, calc(100% - 48px));
+  width: min(820px, calc(100% - 48px));
   margin-inline: auto;
 }
 
@@ -2492,7 +2500,8 @@ select {
   align-items: end;
   gap: 8px;
   padding: 8px;
-  border: 1px solid #bbbbbb;
+  border: 1px solid #d0d0d0;
+  border-radius: 14px;
   background: #ffffff;
 }
 
@@ -2525,6 +2534,7 @@ select {
   border: 0;
   color: #ffffff;
   background: var(--primary);
+  border-radius: 9px;
   cursor: pointer;
 }
 
@@ -2542,21 +2552,24 @@ select {
   line-height: 1.35;
 }
 
+.chat-page :is(button, a, summary):focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .loading-dots i { animation: none; opacity: 0.75; }
   html { scroll-behavior: auto; }
 }
 
 @media (max-width: 820px) {
-  .company-data-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .company-data-wide { grid-column: span 2; }
   .chat-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 620px) {
   .chat-topbar-inner,
   .chat-main,
-  .chat-composer { width: min(100% - 28px, 960px); }
+  .chat-composer { width: min(100% - 28px, 820px); }
   .chat-topbar-inner { min-height: 60px; }
   .chat-topbar .brand-mark {
     width: 34px;
@@ -2568,32 +2581,30 @@ select {
   .chat-topbar .brand small { display: block; }
   .runtime-pill { display: none; }
   .last-report-link { min-height: 44px; padding-inline: 10px; font-size: 11px; }
-  .chat-main { padding-top: 34px; }
-  .chat-intro { min-height: 56vh; }
-  .chat-intro h1 { font-size: clamp(38px, 12vw, 54px); }
+  .chat-main { padding-top: 18px; }
+  .chat-intro { min-height: 48vh; }
+  .chat-intro h1 { font-size: clamp(34px, 9vw, 42px); }
   .chat-intro > p { font-size: 15px; }
   .prompt-examples { grid-template-columns: 1fr; margin-top: 28px; }
   .chat-message-assistant { grid-template-columns: 30px minmax(0, 1fr); gap: 9px; }
   .assistant-avatar { width: 30px; height: 30px; font-size: 18px; }
-  .assistant-lead p { font-size: 18px; }
+  .assistant-lead p { font-size: 15px; line-height: 1.65; }
   .user-bubble { max-width: 92%; }
-  .company-card-top { display: grid; padding: 18px; }
-  .company-card-identity h2 { font-size: 22px; }
-  .company-report-link { justify-self: start; }
-  .company-data-grid,
-  .chat-metric-grid { grid-template-columns: 1fr; }
-  .company-data-wide { grid-column: span 1; }
-  .company-data-item { min-height: 70px; }
+  .company-summary { padding: 12px; }
+  .company-summary-identity h2 { flex-basis: 100%; font-size: 16px; }
+  .company-summary-inn { flex: 1; }
+  .company-summary-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+  .chat-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chat-metric-value { font-size: 16px; }
   .text-block,
   .metric-block,
   .chat-chart-block,
   .finding-block,
   .unsupported-block { padding: 18px; }
-  .evidence-block summary,
-  .evidence-item { padding-inline: 18px; }
+  .evidence-item { padding-inline: 12px; }
   .evidence-item-heading { display: grid; gap: 5px; }
   .chat-chart { overflow-x: auto; }
-  .chat-chart svg { min-width: 610px; }
+  .chat-chart svg { min-width: 410px; }
   .composer-meta span:last-child { display: none; }
   .chat-composer-shell { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 }

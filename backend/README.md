@@ -141,7 +141,8 @@ curl -s https://api.groq.com/openai/v1/models \
 
 Две страницы, обе раздаёт тот же сервис:
 
-* `/` — agent-first чат с allowlisted rich blocks;
+* `/` — conversation-first чат: компактная сводка компании после full check,
+  основной текст аналитика, выборочные артефакты и свёрнутые источники;
 * `/report?inn=...` — отчёт по контрагенту, ссылка воспроизводимая.
 
 Chat renderer поддерживает только `company_card`, `text`, `metric_grid`,
@@ -304,6 +305,7 @@ pytest -q
 
 - Проход синхронный: один ИНН, ответ в том же запросе. Очередь и фоновые
   задачи не нужны при 5 вызовах модели на проход.
-- В первом agent-first срезе нет follow-up context, targeted tools, сравнения,
-  persistence истории и SSE. Эти сценарии не имитируются пустыми wrappers.
+- Работают follow-up context, targeted finance/legal и post-tool synthesis.
+  Сравнения, persistence истории и SSE пока нет. Контракт ответа и границы
+  описаны в [MULTI_TURN_CHAT.md](../docs/MULTI_TURN_CHAT.md).
 - Веб-поиск (S9) и граф связей (S10) сознательно не реализованы.

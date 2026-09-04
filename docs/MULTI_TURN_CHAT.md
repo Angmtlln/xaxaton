@@ -27,6 +27,7 @@ Comparison, поиск по названию, deal risk, SSE и persistent histo
   "conversation_id":"<UUID из ответа>",
   "active_company":{"inn":"6165169320","name":"<название из snapshot>"},
   "message":"<подтверждённый ответ>",
+  "leading_artifact":null,
   "blocks":[],
   "evidence":[],
   "metadata":{"model_calls":2,"tool_calls":1,"synthesis":"deterministic"}
@@ -83,6 +84,35 @@ Synthesis намеренно ограничен: Master выбирает и уп
 series, evidence и ссылки. Выдуманные IDs, дополнительные поля, markup или
 пустой выбор при наличии findings дают fallback. Required findings и data gaps
 показываются независимо от выбора Master.
+
+## Conversation-first ответ
+
+Полная проверка возвращает `leading_artifact` типа `company_summary`: название,
+ИНН, статус, возраст и два независимых показателя банка из проверенных фактов,
+а также локальную ссылку «Полный анализ». Backend добавляет этот блок всегда
+для успешного/частичного full check; модель не может убрать его или подставить URL.
+Схема доступна в Swagger `/docs` и `/openapi.json`.
+
+Следом UI показывает основной `message`: прямой вывод, выбранные наблюдения
+с объяснением значения для проверки и предложение продолжить разговор.
+Full-check ToolResult больше не используется как готовая страница отчёта:
+второй вызов Master получает компактные структурированные наблюдения и выбирает
+их порядок и необязательный вспомогательный артефакт. Backend собирает текст
+из проверенных наблюдений; свободная генерация новых фактических утверждений
+в этом срезе по-прежнему не разрешена.
+
+`blocks` содержат только вспомогательные артефакты, `evidence` — источники.
+Источники свёрнуты по умолчанию и относятся к конкретному ответу. На узкий
+вопрос «А что с прибылью?» возвращается `leading_artifact=null`, текст и при
+необходимости один график или блок показателей. Такой вопрос начинается со
+значения последней доступной прибыли либо явного отсутствия данных о ней;
+артефакт показывает прибыль. Смешанный вопрос о выручке или кредиторской
+задолженности вместе с прибылью сохраняет оба показателя. Старый набор из шести блоков
+не добавляется автоматически. `/report?inn=6165169320` остаётся отдельным
+подробным режимом.
+
+Изменена только схема HTTP-ответа и представление, модели хранения и SQL
+не затронуты; DB impact отсутствует, миграция не требуется.
 
 Evidence проверяется не только по существованию ID: `fact_id`, `field_ref`,
 source, display value и прочие поля должны совпасть с evidence, построенным из
@@ -146,7 +176,7 @@ grounding tests проверяют legacy-регрессию.
 | Сборка | `backend/.dockerignore` исключает локальные секреты и virtualenv из Docker context |
 | Документация | `AGENTS.md`, `docs/AI_INDEX.md`, `docs/AGENT_FIRST_ARCHITECTURE.md`, этот файл, `backend/README.md` |
 
-## Результат проверки 04.09.2026
+## Предыдущая проверка multi-turn 04.09.2026 (до conversation-first)
 
 - Полный backend regression: **137 passed** (одно предупреждение внешнего
   Starlette/AnyIO о deprecated alias); compileall, оба JS syntax checks и
@@ -175,3 +205,42 @@ cd backend
 docker compose build api
 docker compose up -d api
 ```
+
+## Проверка conversation-first 04.09.2026
+
+- Полный backend regression: **164 passed**, одно прежнее предупреждение
+  Starlette/AnyIO. `compileall`, оба `node --check` и `git diff --check` успешны.
+- Browser smoke на desktop 1366 × 900 и mobile 390 × 844: компактная сводка
+  перед ответом, отсутствие автоматического dashboard, продолжение без ИНН,
+  один график прибыли, свёрнутые источники и переход к `field_ref`, Enter /
+  Shift+Enter, восстановление истории и reset/focus — успешно.
+- Управляемые ответы API в браузере: `NO_DATA`, HTTP 404, network error,
+  восстановление ошибок после reload, неизвестный/prototype UIBlock,
+  HTML-подобные строки, недопустимый URL и длинные названия — успешно.
+- Реальный browser → API → PostgreSQL/Groq full check завершился и отобразился
+  в новом формате. Legacy `/report?inn=6165169320` загрузил все четыре блока
+  без горизонтального переполнения на desktop и mobile.
+- Live API подтвердил `model_calls=2`, `tool_calls=1`, `synthesis=model`
+  у full check и finance. Самостоятельный legal-запрос также дал model synthesis.
+  Однако два строгих прогона full → finance → legal завершились ошибкой smoke
+  на последнем требовании `synthesis=model`: legal использовал безопасный
+  fallback. В отдельном browser full check fallback тоже сработал. Данные,
+  сводка и источники сохранились. Поэтому стабильный model synthesis на каждом
+  live turn не заявляется; malformed synthesis проверен unit-тестами.
+
+Актуальный локальный UI доступен на `http://localhost:8001`, контейнер
+`contractors-multiturn-smoke` перезапущен с текущими app/static. Сервис на 8000
+не обновлялся. Для ручной приёмки: полный запрос → «А что с прибылью?» →
+источники → «Полный анализ», затем новый диалог. Строгий live smoke можно
+повторить командой выше, оставив паузу 60 секунд при ограничениях Groq.
+
+Файлы conversation-first изменения:
+
+| Область | Изменённые файлы |
+|---|---|
+| Контракт и синтез | `backend/app/agent/models.py`, `targeted_models.py`, `response.py`, новый `synthesis.py` |
+| Runtime и tool context | `backend/app/agent/runtime.py`, `langchain_tools.py`, `prompt.py`, `tools.py` |
+| API и live smoke | `backend/app/main.py`, `backend/scripts/smoke_multiturn.py` |
+| Интерфейс | `backend/static/index.html`, `landing.js`, `styles.css` |
+| Регрессии | `backend/tests/test_agent_response.py`, `test_targeted_response.py`, `test_agent_runtime.py`, `test_agent_multiturn.py`, `test_chat_api.py` |
+| Документация | `backend/README.md`, `docs/AI_INDEX.md`, `docs/AGENT_FIRST_ARCHITECTURE.md`, `docs/MULTI_TURN_CHAT.md` |

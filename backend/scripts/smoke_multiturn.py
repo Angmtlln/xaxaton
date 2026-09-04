@@ -41,9 +41,19 @@ def main():
         if conversation_id:
             assert payload["conversation_id"] == conversation_id
         conversation_id = payload["conversation_id"]
+        assert meta["synthesis"] == "model", meta
+        assert payload["message"].strip(), payload
         if index:
-            assert meta["synthesis"] == "model", meta
+            assert payload["leading_artifact"] is None, payload
+            assert len(payload["blocks"]) <= 1, payload["blocks"]
             assert meta["check_run_id"] is None, meta
+        else:
+            summary = payload["leading_artifact"]
+            assert summary["type"] == "company_summary", summary
+            assert summary["inn"] == args.inn, summary
+            assert summary["report_url"] == "/report?inn=" + args.inn, summary
+        assert not any(b["type"] in ("company_card", "evidence_list")
+                       for b in payload["blocks"]), payload["blocks"]
         evidence = {item["id"] for item in payload["evidence"]}
         assert evidence
         for block in payload["blocks"]:
@@ -52,6 +62,7 @@ def main():
                     assert item["evidence_id"] in evidence
         print(json.dumps({"turn": index + 1, "conversation_id": conversation_id,
                           "metadata": meta, "blocks": [b["type"] for b in payload["blocks"]],
+                          "leading_artifact": (payload.get("leading_artifact") or {}).get("type"),
                           "evidence_count": len(evidence)}, ensure_ascii=False), flush=True)
     for path in ("/", "/report?inn=" + args.inn):
         with urlopen(args.base_url.rstrip("/") + path) as response:

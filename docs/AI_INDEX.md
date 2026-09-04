@@ -49,7 +49,7 @@ POST /api/v1/chat/messages
   -> LangChain StructuredTool adapter
   -> ToolRegistry: full_company_check | get_financial_data | get_legal_data
   -> run_check() | build_finance() | build_reliability()
-  -> compact ToolResult -> Master synthesis (выбор finding_ids)
+  -> compact ToolResult -> Master synthesis (выбор наблюдений и артефакта)
   -> backend hydration AssistantResponse
   -> InMemorySaver: bounded messages + active_company по conversation_id
   -> allowlisted UIBlock renderer
@@ -86,10 +86,10 @@ POST /api/v1/chat/messages
 - реализованы четыре блока фактов, итоговая сводка, grounding, guardrails,
   аудит и fallback без LLM;
 - реализованы agent-first чат, legacy-отчёт, диаграммы и паспорт полноты;
-- реализован первый agent-first vertical slice: сообщение с одним валидным ИНН,
+- реализован conversation-first full check: сообщение с одним валидным ИНН,
   LangChain `create_agent` + underlying LangGraph, `full_company_check`,
-  typed `ToolResult`, deterministic `AssistantResponse` и rich chat из шести
-  allowlisted блоков;
+  post-tool synthesis и backend hydration; компактный `company_summary`
+  перед основным сообщением, выборочные артефакты и свёрнутые источники;
 - отдельный React/Vinext-прототип содержит моковый интерфейс;
 - реализованы multi-turn context в InMemorySaver, одна active_company, targeted
   finance/legal без полного pipeline и второй шаг Master с выбором grounded findings;
@@ -160,7 +160,12 @@ npm run dev
 - `runtime.py`, `langchain_tools.py`, `prompt.py`: 2 model steps, 1 domain call,
   recursion limit 12; неверный routing использует очевидный deterministic fallback.
 - `response.py`: строгая связь evidence с фактами, hydration verified data,
-  обязательные findings и gaps независимо от выбора модели.
+  обязательные findings и gaps независимо от выбора модели; отдельный
+  `leading_artifact` только для full check, conversational `message` и
+  выборочные `blocks`. Узкие ответы не повторяют карточку компании.
+- `backend/app/agent/synthesis.py`: общий каталог grounded observations для
+  post-tool контекста и hydration; проверка evidence и ограниченный выбор
+  наблюдений/артефакта с безопасным fallback.
 - `tests/test_agent_multiturn.py`, `tests/test_agent_runtime.py`: routing, state,
   второй model step, budgets и fallback.
 - `tests/test_financial_capability.py`, `tests/test_legal_capability.py`,

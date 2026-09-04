@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI-аналитик контрагентов — Альфа-Банк</title>
 <meta name="description" content="Проверка контрагента по ИНН в диалоге с AI-аналитиком.">
-<link rel="stylesheet" href="/static/styles.css">
+<link rel="stylesheet" href="/static/styles.css?v=conversation-first-1">
 <link rel="icon" href="/static/favicon.svg">
 </head>
 <body class="chat-page">
@@ -23,7 +23,7 @@
       <div class="chat-topbar-actions">
         <span class="runtime-pill"><i aria-hidden="true"></i>Только проверенные данные</span>
         <a class="last-report-link" id="last-report-link" href="/report" hidden>
-          Открыть полный отчёт
+          Полный анализ
         </a>
       </div>
     </div>
@@ -36,17 +36,11 @@
     </div>
     <section class="chat-intro" id="chat-intro" aria-labelledby="chat-title">
       <span class="chat-kicker">AI-аналитик контрагентов</span>
-      <h1 id="chat-title">Начните с полной проверки по ИНН</h1>
+      <h1 id="chat-title">Что хотите узнать о контрагенте?</h1>
       <p>
-        Агент проверит профиль, правовые факты, финансы и опыт, а затем покажет
-        наблюдения и показатели рядом с источниками. Затем задавайте вопросы
-        о финансах и судах без повторного ИНН.
+        Укажите ИНН и задайте вопрос. Я помогу разобраться в финансах, судах
+        или проведу полную проверку. Обсуждение можно продолжить без повторного ИНН.
       </p>
-      <div class="scope-row" aria-label="Границы текущей версии">
-        <span>Один контрагент</span>
-        <span>Явный ИНН</span>
-        <span>Без скрытого скоринга</span>
-      </div>
       <div class="prompt-examples" aria-label="Примеры запросов">
         <button type="button" class="prompt-example" data-prompt="Проверь контрагента 6165169320">
           <span>Проверить демо-контрагента</span>
@@ -55,6 +49,10 @@
         <button type="button" class="prompt-example" data-prompt="Проверь контрагента ">
           <span>Проверить другой ИНН</span>
           <small>Введите 10 или 12 цифр</small>
+        </button>
+        <button type="button" class="prompt-example" data-prompt="Какая прибыль у контрагента 6165169320?">
+          <span>Разобраться в прибыли</span>
+          <small>Только финансовые данные</small>
         </button>
       </div>
     </section>
@@ -68,7 +66,7 @@
       <label class="sr-only" for="chat-input">Запрос о контрагенте</label>
       <div class="composer-control">
         <textarea id="chat-input" rows="1" maxlength="1000" autocomplete="off"
-                  placeholder="Например: Проверь контрагента 6165169320"></textarea>
+                  placeholder="Спросите о контрагенте или укажите ИНН" aria-describedby="composer-hint"></textarea>
         <button class="send-button" id="send-button" type="submit" aria-label="Отправить запрос">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -77,7 +75,7 @@
         </button>
       </div>
       <div class="composer-meta">
-        <span id="composer-hint">Выберите компанию по ИНН, затем задавайте вопросы о финансах и судах</span>
+        <span id="composer-hint">Ответы опираются на доступные данные о компании</span>
         <span>Enter — отправить · Shift+Enter — новая строка</span>
       </div>
     </form>
@@ -85,6 +83,6 @@
 </div>
 
 <noscript>Для работы чата включите JavaScript.</noscript>
-<script src="/static/landing.js"></script>
+<script src="/static/landing.js?v=conversation-first-1"></script>
 </body>
 </html>

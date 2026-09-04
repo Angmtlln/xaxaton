@@ -21,10 +21,11 @@ from app.config import Settings
 from app.llm.groq_client import GroqClient
 from .conversations import ConversationStore, ConversationState, UnknownConversation, ConversationCapacityError
 from .langchain_tools import LangChainToolExecution, build_langchain_tools
-from .models import CompanyRef, TextBlock, is_valid_inn
+from .models import CompanyRef, is_valid_inn
 from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
 from .tools import ToolContext, ToolRegistry, build_tool_registry
+from .synthesis import observation_findings
 
 log = logging.getLogger(__name__)
 MAX_MODEL_CALLS = 2
@@ -99,7 +100,7 @@ class MasterAgentRuntime:
             unknown = isinstance(exc, UnknownConversation)
             response.message = ("Диалог не найден или истёк. Начните новый диалог и укажите ИНН."
                                 if unknown else "Все диалоги сейчас заняты. Повторите запрос позже.")
-            response.blocks = [TextBlock(text=response.message)]
+            response.blocks = []
             response.metadata.error_code = "unknown_conversation" if unknown else "conversation_capacity"
             log.info("agent_run_finished run_id=%s conversation_id=%s status=%s "
                      "routing=deterministic_guard model_calls=0 tool_calls=0 latency_ms=%s",
@@ -201,6 +202,7 @@ class MasterAgentRuntime:
             execution.result, agent_run_id=run_id,
             routing="deterministic_fallback" if execution.used_fallback else "model",
             model=self.model_name, started=started, synthesis=synthesis,
+            question=message,
         )
         return response
 
@@ -216,7 +218,7 @@ def _model_policy(timeout_s, execution, expected_tool, input_model):
         overrides = {"tool_choice": "none" if after_tool else "required", "model_settings": settings}
         if after_tool:
             # This finite schema is built from backend findings, never model output.
-            findings = execution.result.data.get("findings", [])
+            findings = observation_findings(execution.result)
             allowed_ids = [item["id"] for item in findings if isinstance(item, dict) and isinstance(item.get("id"), str)][:10]
             schema = {
                 "type": "object", "additionalProperties": False,
@@ -225,7 +227,9 @@ def _model_policy(timeout_s, execution, expected_tool, input_model):
                     "type": "array", "uniqueItems": True,
                     "minItems": 1 if allowed_ids else 0, "maxItems": len(allowed_ids),
                     "items": {"type": "string", "enum": allowed_ids} if allowed_ids else {"type": "string"},
-                }},
+                }, "artifact": {"type": "string", "enum":
+                    ["none", "metrics", "chart", "findings"] if expected_tool == "full_company_check"
+                    else ["none", "metrics", "chart"]}},
             }
             base = request.system_message.content if request.system_message else ""
             overrides["system_message"] = SystemMessage(content=str(base) +

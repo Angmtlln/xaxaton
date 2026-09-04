@@ -46,9 +46,10 @@ def test_chat_api_runs_complete_vertical_slice_once(
     assert calls == [("6165169320", True)]
     assert body["metadata"]["tool_calls"] == 1
     assert body["metadata"]["routing"] == "deterministic_fallback"
-    assert [block["type"] for block in body["blocks"]] == [
-        "company_card", "text", "metric_grid", "line_chart", "finding_list", "evidence_list"
-    ]
+    assert body["leading_artifact"]["type"] == "company_summary"
+    assert body["blocks"] == []
+    assert body["evidence"]
+
 
 
 @pytest.mark.parametrize(
@@ -141,7 +142,9 @@ def test_multi_turn_api_uses_active_company_and_only_targeted_tools(
         assert body["conversation_id"] == conversation_id
         assert body["active_company"]["inn"] == "6165169320"
         assert body["metadata"]["tool_calls"] == 1
-        assert body["message"].startswith(label)
+        assert body["message"]
+        assert body["leading_artifact"] is None
+        assert len(body["blocks"]) <= 1
     assert calls == [("full", "6165169320"), ("snapshot", "6165169320"), ("snapshot", "6165169320")]
 
 

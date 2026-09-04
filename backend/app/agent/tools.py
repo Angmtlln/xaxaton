@@ -225,10 +225,10 @@ async def _execute_full_company_check(context: ToolContext, args: BaseModel) -> 
     data, evidence = _compact_check(check)
     warnings: List[str] = []
     if check.status == "PARTIAL":
-        warnings.append("Часть аналитических блоков использовала deterministic fallback.")
+        warnings.append("Некоторые разделы удалось оценить только по фактам исходной карточки.")
     if check.grounding.unverified:
         warnings.append(
-            "Неподтверждённые ссылки legacy-анализа исключены из evidence agent-ответа."
+            "Часть утверждений не удалось подтвердить по источникам; они не включены в ответ."
         )
     return ToolResult(
         status="partial" if check.status == "PARTIAL" else "success",

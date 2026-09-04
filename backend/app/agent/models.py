@@ -210,6 +210,19 @@ class TextBlock(StrictModel):
     evidence_ids: List[SafeText] = Field(default_factory=list)
 
 
+class CompanySummaryBlock(StrictModel):
+    """Compact deterministic identity, reserved for a completed full check."""
+    type: Literal["company_summary"] = "company_summary"
+    name: SafeText
+    inn: SafeText
+    status: Optional[SafeText] = None
+    years_from_registration: Optional[int] = None
+    bank_risk_level: Optional[SafeText] = None
+    zsk_risk_level: Optional[SafeText] = None
+    report_url: SafeText = Field(pattern=r"^/report\?inn=(?:\d{10}|\d{12})$")
+    evidence_ids: List[SafeText] = Field(default_factory=list)
+
+
 class MetricItem(StrictModel):
     id: SafeText
     label: SafeText
@@ -296,6 +309,7 @@ class AssistantMetadata(StrictModel):
 
 class AssistantResponse(StrictModel):
     message: SafeText
+    leading_artifact: Optional[CompanySummaryBlock] = None
     blocks: List[UIBlock] = Field(default_factory=list, max_length=10)
     evidence: List[Evidence] = Field(default_factory=list, max_length=60)
     suggested_actions: List[SafeText] = Field(default_factory=list, max_length=4)
@@ -310,6 +324,8 @@ class AssistantResponse(StrictModel):
             raise ValueError("Evidence.id должны быть уникальны")
         known = set(evidence_ids)
         referenced: List[str] = []
+        if self.leading_artifact is not None:
+            referenced.extend(self.leading_artifact.evidence_ids)
         for block in self.blocks:
             if isinstance(block, (CompanyCardBlock, TextBlock, FindingListBlock)):
                 if isinstance(block, FindingListBlock):

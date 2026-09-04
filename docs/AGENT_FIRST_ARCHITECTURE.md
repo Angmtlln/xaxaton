@@ -380,14 +380,18 @@ Frontend не должен получать произвольную LLM-раз�
 ```text
 AssistantResponse:
   message
+  leading_artifact?  # company_summary после full_company_check
   blocks[]
   evidence[]
   suggested_actions?
   metadata?
 ```
 
-`message` — основной текст.
-`blocks` — структурированные визуальные элементы.
+`message` — основной conversational ответ. `leading_artifact` — компактная
+детерминированная сводка компании перед текстом, только после full check.
+`blocks` — выборочные вспомогательные визуальные элементы после текста.
+Источники показываются компактно и свёрнуты по умолчанию. Узкие вопросы не
+повторяют сводку компании и не разворачивают страницу отчёта внутри чата.
 
 ---
 
@@ -871,6 +875,13 @@ PostgreSQL history. Один conversation_id хранит одну active_compan
 произвольный prose модели не публикуется. Backend сохраняет значения, evidence,
 графики, required findings и gaps. Такой ограниченный synthesis не является
 произвольной аналитической беседой или расчётом новых метрик.
+
+Полная проверка тоже использует post-tool synthesis по компактным наблюдениям.
+Backend автоматически ставит `company_summary` перед conversational текстом,
+затем добавляет только выбранные допустимые артефакты. Стоп-факторы и пробелы
+данных сохраняются независимо от выбора модели; malformed synthesis даёт
+grounded fallback в том же conversational формате. Отдельный `/report`
+открывается второстепенной ссылкой «Полный анализ».
 
 Targeted get_financial_data и get_legal_data используют существующие builders,
 не вызывая run_check. Полный анализ и /report сохранены.

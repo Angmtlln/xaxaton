@@ -25,6 +25,8 @@ function saveConversation() {
 
 function showActiveCompany() {
   activeCompanyBar.hidden = !conversationId && !conversationHistory.length;
+  input.placeholder = activeCompany ? 'Продолжите: а что с прибылью или судами?'
+    : 'Спросите о контрагенте или укажите ИНН';
   activeCompanyLabel.textContent = activeCompany
     ? `${activeCompany.name || 'Контрагент'} · ИНН ${activeCompany.inn}`
     : 'Компания ещё не выбрана';
@@ -103,6 +105,7 @@ function scrollToLatest() {
 
 function appendUserMessage(message) {
   const article = element('article', 'chat-message chat-message-user');
+  article.setAttribute('aria-label', 'Вы');
   const bubble = element('div', 'user-bubble', message);
   article.appendChild(bubble);
   thread.appendChild(article);
@@ -114,8 +117,8 @@ function appendLoading() {
   const avatar = element('div', 'assistant-avatar', 'A');
   avatar.setAttribute('aria-hidden', 'true');
   const body = element('div', 'assistant-content assistant-loading');
-  const title = element('strong', null, 'Запускаю полную проверку');
-  const note = element('span', null, 'Собираю факты, анализирую четыре блока и проверяю evidence');
+  const title = element('strong', null, 'Разбираюсь в вашем вопросе');
+  const note = element('span', null, 'Проверяю доступные данные и готовлю ответ');
   const dots = element('span', 'loading-dots');
   dots.setAttribute('aria-hidden', 'true');
   dots.append(element('i'), element('i'), element('i'));
@@ -147,6 +150,8 @@ function evidenceButton(context, evidenceId) {
     if (!target) return;
     const details = target.closest('details');
     if (details) details.open = true;
+    target.tabIndex = -1;
+    target.focus({ preventScroll: true });
     window.requestAnimationFrame(() => {
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       target.classList.add('evidence-highlight');
@@ -164,34 +169,47 @@ function appendEvidenceButtons(parent, context, ids) {
   parent.appendChild(row);
 }
 
-function renderCompanyCard(block, context) {
-  const card = element('section', 'rich-block company-card-block');
-  const top = element('div', 'company-card-top');
-  const identity = element('div', 'company-card-identity');
+function safeReportUrl(block) {
+  // Only local report navigation is allowed, including restored session data.
+  const url = String(block.report_url || '');
+  if (/^\/report\?inn=\d{10}(?:\d{2})?$/.test(url)) return url;
+  return /^\d{10}(?:\d{2})?$/.test(String(block.inn || ''))
+    ? `/report?inn=${block.inn}` : null;
+}
+
+// Fixed source-code labels only; bank and ZSK remain independent values.
+const COMPANY_STATUS_LABELS = { CURRENT: 'Действующая' };
+const BANK_LEVEL_LABELS = { LOW: 'Низкий', MEDIUM: 'Средний', HIGH: 'Высокий', UNKNOWN: 'Неизвестно' };
+const ZSK_LEVEL_LABELS = { GREEN: 'Зелёный', YELLOW: 'Жёлтый', RED: 'Красный', UNKNOWN: 'Неизвестно' };
+
+function sourceLabel(value, labels) {
+  if (value === null || value === undefined || value === '') return 'Нет данных';
+  return Object.hasOwn(labels, value) ? labels[value] : String(value);
+}
+
+function renderCompanySummary(block, context) {
+  const card = element('section', 'rich-block company-summary');
+  card.setAttribute('aria-label', 'Кратко о компании');
+  const identity = element('div', 'company-summary-identity');
   identity.append(
-    element('span', 'block-eyebrow', 'Контрагент'),
     element('h2', null, block.name || 'Контрагент'),
-    element('p', null, `ИНН ${block.inn || 'не указан'}${block.ogrn ? ` · ОГРН ${block.ogrn}` : ''}`),
+    element('span', 'company-summary-inn', `ИНН ${block.inn || 'не указан'}`),
   );
-  const reportLink = element('a', 'company-report-link', 'Полный отчёт →');
-  reportLink.href = block.report_url || `/report?inn=${encodeURIComponent(block.inn || '')}`;
-  top.append(identity, reportLink);
-
-  const details = element('dl', 'company-data-grid');
-  addDefinition(details, 'Статус', block.status || 'Нет данных');
-  addDefinition(details, 'Возраст', block.years_from_registration == null
-    ? 'Нет данных' : `${block.years_from_registration} лет`);
-  addDefinition(details, 'Оценка банка', block.bank_risk_level || 'Нет данных');
-  addDefinition(details, 'Светофор ЗСК', block.zsk_risk_level || 'Нет данных');
-  if (block.address) addDefinition(details, 'Адрес', block.address, true);
-  if (block.report_date) addDefinition(details, 'Дата карточки', block.report_date);
-
-  card.append(top, details);
-  appendEvidenceButtons(card, context, block.evidence_ids);
-  if (block.report_url) {
-    lastReportLink.href = block.report_url;
+  const reportUrl = safeReportUrl(block);
+  if (reportUrl) {
+    const link = element('a', 'company-report-link', 'Полный анализ ↗');
+    link.href = reportUrl;
+    identity.appendChild(link);
+    lastReportLink.href = reportUrl;
     lastReportLink.hidden = false;
   }
+  const facts = element('dl', 'company-summary-facts');
+  addDefinition(facts, 'Статус', sourceLabel(block.status, COMPANY_STATUS_LABELS));
+  addDefinition(facts, 'Возраст, лет', block.years_from_registration == null
+    ? 'Нет данных' : block.years_from_registration);
+  addDefinition(facts, 'Оценка банка', sourceLabel(block.bank_risk_level, BANK_LEVEL_LABELS));
+  addDefinition(facts, 'Светофор ЗСК', sourceLabel(block.zsk_risk_level, ZSK_LEVEL_LABELS));
+  card.append(identity, facts);
   return card;
 }
 
@@ -454,7 +472,7 @@ function evidenceWord(count) {
 }
 
 const BLOCK_RENDERERS = {
-  company_card: renderCompanyCard,
+  company_card: renderCompanySummary,
   text: renderTextBlock,
   metric_grid: renderMetricGrid,
   line_chart: renderLineChart,
@@ -465,8 +483,7 @@ const BLOCK_RENDERERS = {
 function renderUnsupportedBlock() {
   const fallback = element('section', 'rich-block unsupported-block');
   fallback.append(
-    element('h3', null, 'Блок не поддерживается'),
-    element('p', null, 'Этот формат ответа не входит в allowlist текущей версии.'),
+    element('p', null, 'Не удалось показать дополнительный материал. Основной ответ доступен выше.'),
   );
   return fallback;
 }
@@ -476,22 +493,38 @@ function appendAssistantMessage(payload) {
   const avatar = element('div', 'assistant-avatar', 'A');
   avatar.setAttribute('aria-hidden', 'true');
   const body = element('div', 'assistant-content');
-  const lead = element('div', 'assistant-lead');
+  article.setAttribute('aria-label', 'AI-аналитик');
   const metadata = payload && payload.metadata ? payload.metadata : {};
-  lead.append(statusBadge(metadata.status), element('p', null, payload.message || 'Ответ не сформирован.'));
-  body.appendChild(lead);
-
-  const prefix = String(metadata.agent_run_id || Date.now()).replace(/[^a-zA-Z0-9_-]/g, '');
+  const author = element('div', 'assistant-author', 'AI-аналитик');
+  body.appendChild(author);
+  const prefix = `${String(metadata.agent_run_id || Date.now()).replace(/[^a-zA-Z0-9_-]/g, '')}-${thread.children.length}`;
   const context = {
     prefix,
-    evidence: new Map(safeArray(payload.evidence).map((item) => [item.id, item])),
+    evidence: new Map(safeArray(payload.evidence).filter((item) => item && item.id)
+      .map((item) => [item.id, item])),
   };
-  const stack = element('div', 'rich-stack');
-  safeArray(payload.blocks).forEach((block) => {
-    const renderer = block && Object.hasOwn(BLOCK_RENDERERS, block.type) && BLOCK_RENDERERS[block.type];
-    stack.appendChild(renderer ? renderer(block, context) : renderUnsupportedBlock());
-  });
-  body.appendChild(stack);
+  if (payload.leading_artifact) {
+    body.appendChild(payload.leading_artifact.type === 'company_summary'
+      ? renderCompanySummary(payload.leading_artifact, context) : renderUnsupportedBlock());
+  }
+  const lead = element('div', 'assistant-lead');
+  if (metadata.status && metadata.status !== 'completed') lead.appendChild(statusBadge(metadata.status));
+  String(payload.message || 'Ответ не сформирован.').split(/\n\s*\n/).filter(Boolean)
+    .forEach((paragraph) => lead.appendChild(element('p', null, paragraph)));
+  body.appendChild(lead);
+
+  const blocks = safeArray(payload.blocks).filter((block) => !block || block.type !== 'evidence_list');
+  if (blocks.length) {
+    const stack = element('div', 'rich-stack');
+    blocks.forEach((block) => {
+      const renderer = block && Object.hasOwn(BLOCK_RENDERERS, block.type) && BLOCK_RENDERERS[block.type];
+      stack.appendChild(renderer ? renderer(block, context) : renderUnsupportedBlock());
+    });
+    body.appendChild(stack);
+  }
+  if (context.evidence.size) body.appendChild(renderEvidenceList({
+    title: 'Источники ответа', evidence_ids: [...context.evidence.keys()],
+  }, context));
 
   const actions = safeArray(payload.suggested_actions);
   if (actions.length) {
@@ -516,7 +549,7 @@ function appendAssistantMessage(payload) {
 function appendRequestError(message) {
   const payload = {
     message,
-    blocks: [{ type: 'text', title: 'Не удалось получить ответ', text: message }],
+    blocks: [],
     evidence: [],
     suggested_actions: [],
     metadata: { status: 'error', agent_run_id: `client-${Date.now()}` },
@@ -579,8 +612,9 @@ async function sendMessage(message) {
     appendRequestError('Не удалось связаться с сервисом. Проверьте соединение и повторите запрос.');
   } finally {
     setBusy(false);
-    input.focus();
-    scrollToLatest();
+    input.focus({ preventScroll: true });
+    const latest = thread.lastElementChild;
+    if (latest) latest.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
@@ -591,7 +625,7 @@ form.addEventListener('submit', (event) => {
 
 input.addEventListener('input', resizeInput);
 input.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
     form.requestSubmit();
   }

@@ -37,6 +37,10 @@ Agent-first PoC проверки контрагента. Основной пут
 Передайте `conversation_id` из ответа, чтобы продолжить диалог об активной компании.
 Состояние хранится в памяти одного процесса и теряется при перезапуске. Master Agent использует
 LangChain `create_agent`, а rich response гидратируется backend-кодом.
+Ответ чата начинается с компактного `leading_artifact` типа `company_summary`
+только после полной проверки. Основной текст находится в `message`, дополнительные
+артефакты — в `blocks`, источники — в `evidence`. Узкие вопросы не повторяют
+сводку компании. `/report` остаётся отдельным полным отчётом.
 
 Как устроен проход:
 
@@ -121,7 +125,7 @@ def groq_dep() -> GroqClient:
     "/api/v1/chat/messages",
     response_model=AssistantResponse,
     tags=["chat"],
-    summary="Проверить контрагента через Master Agent",
+    summary="Задать вопрос AI-аналитику о контрагенте",
 )
 async def create_chat_message(
     payload: ChatMessageRequest,

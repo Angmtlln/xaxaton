@@ -37,5 +37,6 @@ class TargetedData(StrictModel):
 
 
 class MasterSynthesis(StrictModel):
-    """Model selects grounded observations; it cannot author fact values or prose."""
+    """Model composes a grounded explanation using backend-owned observations."""
     finding_ids: List[SafeText] = Field(max_length=10)
+    artifact: Literal["none", "metrics", "chart", "findings"] = "none"

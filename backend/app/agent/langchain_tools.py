@@ -9,7 +9,8 @@ from typing import Dict, List, Optional
 
 from langchain_core.tools import StructuredTool
 
-from .models import ToolResult
+from .models import FullCompanyCheckData, ToolResult
+from .synthesis import observation_findings, verified_evidence
 from .tools import ToolContext, ToolRegistry
 
 log = logging.getLogger(__name__)
@@ -62,11 +63,15 @@ def build_langchain_tools(
 
 def _observation(result: ToolResult) -> tuple[str, Dict[str, object]]:
     payload = result.model_dump(mode="json")
-    # The large full-check is still hydrated by its established response adapter.
-    # Targeted capabilities already provide a compact, domain-only payload.
-    if result.metadata.tool == "full_company_check":
+    # Full-check observations omit legacy LLM prose, raw snapshot and chart rows.
+    # The artifact stays backend-owned and is not a proposed AssistantResponse.
+    if result.metadata.tool == "full_company_check" and result.status != "error":
+        data = FullCompanyCheckData.model_validate(result.data)
+        verified_evidence(data, result)
         observation = {"tool": result.metadata.tool, "status": result.status,
-                       "company": result.data.get("company"), "findings": [],
+                       "findings": observation_findings(result),
+                       "empty_sections": data.coverage.empty_blocks,
+                       "available_artifacts": ["none", "metrics", "chart", "findings"],
                        "warnings": result.warnings,
                        "error": payload.get("error")}
     else:

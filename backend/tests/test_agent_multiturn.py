@@ -156,7 +156,7 @@ async def test_unavailable_routing_fallback_stays_targeted(monkeypatch, domain, 
     assert calls == [expected, expected]
     assert second.metadata.routing == "deterministic_fallback"
     assert second.metadata.status == "partial"
-    assert "невозможно оценить" in second.message
+    assert "невозможно оценить" in second.message.lower()
 
 
 @pytest.mark.asyncio
