@@ -230,30 +230,113 @@ function courtChart() {
       `<span><i class="legend-key" style="background:${s.color}"></i>${s.label}</span>`).join('')}</div>`);
 }
 
+function sparkline(values, label, color = 'var(--series-ink)') {
+  const nums = values.map(Number).filter(Number.isFinite);
+  if (!nums.length) return `<span class="mini-viz-empty">Нет данных для динамики</span>`;
+
+  const width = 220, height = 54, pad = 4;
+  const min = Math.min(0, ...nums);
+  const max = Math.max(0, ...nums);
+  const span = (max - min) || 1;
+  const step = nums.length > 1 ? (width - pad * 2) / (nums.length - 1) : 0;
+  const y = (value) => pad + ((max - value) / span) * (height - pad * 2);
+  const points = nums.map((value, i) => `${pad + i * step},${y(value)}`).join(' ');
+  const zeroY = y(0);
+
+  return `<svg class="mini-sparkline" viewBox="0 0 ${width} ${height}" role="img"
+      aria-label="${esc(label)}">
+    <line x1="${pad}" y1="${zeroY}" x2="${width - pad}" y2="${zeroY}"
+      stroke="currentColor" stroke-opacity=".16"></line>
+    ${nums.length > 1
+      ? `<polyline points="${points}" fill="none" stroke="${color}" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round"></polyline>`
+      : `<circle cx="${width / 2}" cy="${y(nums[0])}" r="4" fill="${color}"></circle>`}
+    ${nums.map((value, i) => `<circle cx="${nums.length > 1 ? pad + i * step : width / 2}"
+      cy="${y(value)}" r="3" fill="${color}"></circle>`).join('')}
+  </svg>`;
+}
+
+function compactMetrics() {
+  const rows = Array.isArray(valueOf('fin.series')) ? valueOf('fin.series') : [];
+  const revenue = rows.filter((row) => row.proceeds !== null && row.proceeds !== undefined);
+  const profit = rows.filter((row) => row.profit !== null && row.profit !== undefined);
+  const defendant = Number(valueOf('court.defendant_count')) || 0;
+  const plaintiff = Number(valueOf('court.plaintiff_count')) || 0;
+  const courtRows = Array.isArray(valueOf('court.by_year')) ? valueOf('court.by_year') : [];
+  const maxCases = Math.max(1, defendant, plaintiff);
+  const change = valueOf('fin.proceeds_change_pct');
+
+  return `
+    <div class="summary-viz" aria-label="Ключевые показатели компании">
+      <article class="mini-viz-card">
+        <div><span>Выручка</span><strong>${esc(money(valueOf('fin.proceeds_last')))}</strong>
+          <small>${change === null || change === undefined ? 'Динамика не рассчитана'
+            : `${change > 0 ? '+' : ''}${String(change).replace('.', ',')} % год к году`}</small></div>
+        ${sparkline(revenue.map((row) => row.proceeds),
+          `Выручка по годам: ${revenue.map((row) => `${row.year} — ${money(row.proceeds)}`).join(', ')}`)}
+      </article>
+      <article class="mini-viz-card">
+        <div><span>Прибыль</span><strong>${esc(money(valueOf('fin.profit_last')))}</strong>
+          <small>${!profit.length ? 'Данных в карточке нет'
+            : (profit.some((row) => Number(row.profit) < 0) ? 'Есть убыточные годы' : 'По доступным годам')}</small></div>
+        ${sparkline(profit.map((row) => row.profit),
+          `Прибыль по годам: ${profit.map((row) => `${row.year} — ${money(row.profit)}`).join(', ')}`,
+          profit.some((row) => Number(row.profit) < 0) ? 'var(--series-red)' : 'var(--series-green)')}
+      </article>
+      <article class="mini-viz-card mini-court-card">
+        <div><span>Арбитраж в карточке</span><strong>${courtRows.length ? nf.format(defendant + plaintiff) : '0 записей'}</strong>
+          <small>${courtRows.length ? 'По ролям в доступных записях' : 'Не означает отсутствия судебных дел'}</small></div>
+        ${courtRows.length ? `<div class="mini-bars" role="img"
+          aria-label="Ответчик — ${defendant}, истец — ${plaintiff}">
+          <span><i style="height:${Math.max(3, defendant / maxCases * 44)}px"></i><b>${defendant}</b><small>ответчик</small></span>
+          <span><i style="height:${Math.max(3, plaintiff / maxCases * 44)}px"></i><b>${plaintiff}</b><small>истец</small></span>
+        </div>` : '<span class="mini-viz-empty">Записей о делах в карточке нет</span>'}
+      </article>
+    </div>`;
+}
+
+function narrativeBullets(text) {
+  const sentences = String(text || '')
+    .replace(/([.!?])\s+(?=[А-ЯЁ])/g, '$1\n')
+    .split('\n')
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+  if (!sentences.length) return '<li>Итоговое пояснение не сформировано.</li>';
+  return sentences.map((sentence) => `<li>${esc(sentence)}</li>`).join('');
+}
+
+function blockLabel(title) {
+  return ({
+    'Кто это': 'Профиль компании',
+    'Надёжность и правовые риски': 'Правовые риски',
+    'Финансовое состояние': 'Финансовые риски',
+    'Опыт и позитивные сигналы': 'Опыт и репутация',
+  })[title] || title;
+}
+
+function signalWord(count) {
+  const mod10 = count % 10, mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'сигнал';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'сигнала';
+  return 'сигналов';
+}
+
+function gapWord(count) {
+  const mod10 = count % 10, mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'пробел';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'пробела';
+  return 'пробелов';
+}
+
 /* ------------------------------ секции ----------------------------- */
 
 function companyHead(data) {
   const c = data.company;
-  const active = c.status === 'CURRENT';
   return `
     <section class="company-heading" aria-labelledby="company-name">
-      <div>
-        <span class="eyebrow">Отчёт о контрагенте</span>
-        <h1 id="company-name">${esc(c.short_name || 'Контрагент')}</h1>
-        <p>${esc(c.full_name || '')}</p>
-      </div>
-      <div class="company-status">
-        <span>${icon('check')}${active ? 'Действующая организация' : esc(c.status || 'Статус не указан')}</span>
-        <small>Данные отчёта на ${esc((c.report_date || '').slice(0, 10))}</small>
-      </div>
-    </section>
-
-    <dl class="company-meta">
-      <div><dt>ИНН</dt><dd>${esc(c.inn)}</dd></div>
-      <div><dt>ОГРН</dt><dd>${esc(c.ogrn || '—')}</dd></div>
-      <div><dt>Лет с регистрации</dt><dd>${esc(c.years_from_registration ?? '—')}</dd></div>
-      <div><dt>Фактов в контексте</dt><dd>${Object.keys(factIndex).length}</dd></div>
-    </dl>`;
+      <span class="eyebrow">Отчёт о контрагенте</span>
+      <h1 id="company-name">${esc(c.short_name || 'Контрагент')}</h1>
+    </section>`;
 }
 
 function summaryPanel(data) {
@@ -263,25 +346,19 @@ function summaryPanel(data) {
   const risk = (c.risk_level || 'UNKNOWN').toLowerCase();
   const zsk = (c.zsk_risk_level || 'UNKNOWN').toLowerCase();
 
-  // Название и ИНН уже стоят в шапке отчёта, в сводку идут цифры.
-  const skip = new Set(['company.name', 'company.full_name', 'company.inn',
-    'company.ogrn', 'company.status', 'bank.risk_level', 'bank.zsk_level']);
-  const items = (s.key_numbers && s.key_numbers.length
-    ? s.key_numbers
-    : data.key_facts.map((f) => ({ label: f.label, value: f.value, fact_id: f.fact_id })))
-    .filter((item) => !skip.has(item.fact_id))
-    .slice(0, 3)
-    .map((item, i) => {
-      const fact = factOf(item.fact_id);
-      const value = fact ? factText(fact) : plain(item.value);
-      return `<article class="summary-fact">
-        <span class="summary-fact-number" aria-hidden="true">0${i + 1}</span>
-        <div>
-          <small>${esc(item.label || (fact ? fact.label : ''))}</small>
-          <strong>${esc(value)}</strong>
-          <p>${esc(fact ? fact.field_ref : 'источник не указан')}</p>
-        </div></article>`;
-    }).join('');
+  const blockLinks = (data.blocks || []).map((block, index) => {
+    const meta = SIGNAL[block.signal] || SIGNAL.NO_DATA;
+    const count = (block.findings || []).filter((finding) =>
+      finding.grounded !== false && (finding.severity === 'high' || finding.severity === 'medium')).length;
+    const gaps = (block.cannot_assess || []).length;
+    const countText = block.signal === 'NO_DATA' ? 'нет данных'
+      : (count === 0 && gaps ? `${gaps} ${gapWord(gaps)}` : `${count} ${signalWord(count)}`);
+    return `<a class="block-pill state-${meta.state}" href="#block-${index + 1}">
+      <span>${esc(blockLabel(block.title))}</span>
+      <strong>${esc(countText)}</strong>
+      ${icon('chevronDown')}
+    </a>`;
+  }).join('');
 
   const notes = (data.guardrail_notes || []).join('; ');
   return `
@@ -295,16 +372,22 @@ function summaryPanel(data) {
             <h2>${esc(s.headline)}</h2>
           </div>
         </div>
-        <div class="bank-risks" aria-label="Оценки банка">
-          <div><span>Риск-уровень банка</span>
-            <b class="risk-level risk-${esc(risk)}">${esc(c.risk_level || '—')}</b></div>
-          <div><span>ЗСК</span>
-            <b class="zsk-level zsk-${esc(zsk)}">${esc(c.zsk_risk_level || '—')}</b></div>
-          <small>Оценки банка приводятся без изменений и не пересчитываются</small>
-        </div>
+        <aside class="summary-side">
+          <div class="bank-risks" aria-label="Оценки банка без пересчёта"
+            title="Оценки банка приводятся без изменений и не пересчитываются">
+            <span class="bank-risks-label">Оценки банка</span>
+            <span>Банк <b class="risk-level risk-${esc(risk)}">${esc(c.risk_level || '—')}</b></span>
+            <span>ЗСК <b class="zsk-level zsk-${esc(zsk)}">${esc(c.zsk_risk_level || '—')}</b></span>
+          </div>
+          <nav class="block-pills" aria-label="Перейти к подробному разбору">${blockLinks}</nav>
+        </aside>
       </div>
-      <div class="summary-facts" aria-label="Главные цифры отчёта">${items}</div>
-      <p class="summary-note">${esc(s.narrative)}${notes ? ' Защитный слой: ' + esc(notes) + '.' : ''}</p>
+      ${compactMetrics()}
+      <div class="summary-note">
+        <span class="eyebrow">Почему такой вывод</span>
+        <ul>${narrativeBullets(s.narrative)}</ul>
+        ${notes ? `<p>Защитный слой: ${esc(notes)}.</p>` : ''}
+      </div>
     </section>`;
 }
 
@@ -332,7 +415,7 @@ function attentionSection(data) {
     </section>`;
 }
 
-function blockCard(block) {
+function blockCard(block, index) {
   const s = SIGNAL[block.signal] || SIGNAL.NO_DATA;
   const cited = new Set();
   const rows = (block.findings || []).map((f) => {
@@ -367,7 +450,8 @@ function blockCard(block) {
     </details>` : '';
 
   return `
-    <details class="risk-card state-${s.state}" ${block.signal === 'RISK' ? 'open' : ''}>
+    <details id="block-${index + 1}" class="risk-card state-${s.state}"
+      ${block.signal === 'RISK' ? 'open' : ''}>
       <summary>
         <span class="risk-card-icon">${icon(s.icon)}</span>
         <span class="risk-card-copy">
@@ -521,7 +605,17 @@ function render(data) {
     + 'Ответ строится только по данным отчёта банка.';
 
   bindTooltips();
+  bindBlockLinks();
   bindScrollSpy();
+}
+
+function bindBlockLinks() {
+  document.querySelectorAll('.block-pill').forEach((link) => {
+    link.addEventListener('click', () => {
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target instanceof HTMLDetailsElement) target.open = true;
+    });
+  });
 }
 
 function bindTooltips() {
