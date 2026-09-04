@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = "Контрагент-агент. PoC"
-    app_version: str = "0.1.0"
+    app_version: str = "0.2.0"
 
     # --- Postgres ---
     database_url: str = Field(
@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     groq_block_model: str = "openai/gpt-oss-20b"
     # Модель summary: вызов один, собирает 4 блока в вывод на экран.
     groq_summary_model: str = "openai/gpt-oss-120b"
+    # Master Agent первого vertical slice только маршрутизирует один JSON-action.
+    groq_master_model: str = "openai/gpt-oss-20b"
     # Лимит бесплатного тарифа Groq (TPM) считается ОТДЕЛЬНО ПО КАЖДОЙ
     # МОДЕЛИ, а четыре агента идут параллельно и вместе весят около 8 тыс.
     # токенов. Поэтому блоки разведены по разным моделям: так проход
@@ -42,6 +44,11 @@ class Settings(BaseSettings):
     block_temperature: float = 0.1
     summary_temperature: float = 0.2
     max_output_tokens: int = 2000
+    agent_router_max_tokens: int = 256
+    agent_model_timeout_s: float = 20.0
+    agent_tool_timeout_s: float = 150.0
+    agent_run_timeout_s: float = 175.0
+    agent_tool_result_max_chars: int = 120_000
     # gpt-oss тратит часть ответа на рассуждения. На "low" ответ короче в
     # четыре раза, влезает в лимит токенов и не обрывается на середине JSON.
     groq_reasoning_effort: str = "low"

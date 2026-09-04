@@ -1,7 +1,19 @@
 """Модели запросов и ответов API. Они же формируют схему Swagger."""
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class ChatMessageRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    message: str = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="Сообщение пользователя с запросом полной проверки и явным ИНН",
+        json_schema_extra={"example": "Проверь контрагента 6165169320"},
+    )
 
 
 class CheckRequest(BaseModel):

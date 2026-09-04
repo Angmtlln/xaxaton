@@ -3,69 +3,83 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Проверка контрагентов — Альфа-Банк</title>
-<meta name="description" content="Факты о компании, банковские оценки и объяснение каждого сигнала — в одном отчёте.">
+<title>AI-аналитик контрагентов — Альфа-Банк</title>
+<meta name="description" content="Проверка контрагента по ИНН в диалоге с AI-аналитиком.">
 <link rel="stylesheet" href="/static/styles.css">
 <link rel="icon" href="/static/favicon.svg">
 </head>
-<body>
+<body class="chat-page">
 
-<main class="landing-shell">
-  <header class="landing-header" aria-label="Шапка сервиса">
-    <a class="brand" href="/" aria-label="Альфа-Банк — на главную">
-      <span class="brand-mark" aria-hidden="true">A</span>
-      <span>
-        <b>Альфа-Банк</b>
-        <small>Бизнес</small>
-      </span>
-    </a>
-    <span class="prototype-pill">AI-прототип</span>
+<div class="chat-app">
+  <header class="chat-topbar" aria-label="Шапка сервиса">
+    <div class="chat-topbar-inner">
+      <a class="brand brand-dark" href="/" aria-label="Альфа-Банк — новый диалог">
+        <span class="brand-mark brand-mark-red" aria-hidden="true">A</span>
+        <span>
+          <b>Альфа-Банк</b>
+          <small>AI-аналитик</small>
+        </span>
+      </a>
+      <div class="chat-topbar-actions">
+        <span class="runtime-pill"><i aria-hidden="true"></i>Только проверенные данные</span>
+        <a class="last-report-link" id="last-report-link" href="/report" hidden>
+          Открыть полный отчёт
+        </a>
+      </div>
+    </div>
   </header>
 
-  <section class="search-stage" aria-labelledby="landing-title">
-    <div class="landing-kicker">Проверка контрагентов</div>
-    <h1 id="landing-title">Узнайте, с кем ведёте бизнес</h1>
-    <p>
-      Факты о компании, банковские оценки и объяснение каждого сигнала —
-      в одном отчёте.
-    </p>
+  <main class="chat-main" id="chat-main">
+    <section class="chat-intro" id="chat-intro" aria-labelledby="chat-title">
+      <span class="chat-kicker">AI-аналитик контрагентов</span>
+      <h1 id="chat-title">Начните с полной проверки по ИНН</h1>
+      <p>
+        Агент проверит профиль, правовые факты, финансы и опыт, а затем покажет
+        наблюдения и показатели рядом с источниками.
+      </p>
+      <div class="scope-row" aria-label="Границы текущей версии">
+        <span>Один контрагент</span>
+        <span>Явный ИНН</span>
+        <span>Без скрытого скоринга</span>
+      </div>
+      <div class="prompt-examples" aria-label="Примеры запросов">
+        <button type="button" class="prompt-example" data-prompt="Проверь контрагента 6165169320">
+          <span>Проверить демо-контрагента</span>
+          <small>ИНН 6165169320</small>
+        </button>
+        <button type="button" class="prompt-example" data-prompt="Проверь контрагента ">
+          <span>Проверить другой ИНН</span>
+          <small>Введите 10 или 12 цифр</small>
+        </button>
+      </div>
+    </section>
 
-    <form class="search-form" id="search-form" action="/report" method="get" aria-label="Поиск контрагента">
-      <div class="hero-search">
-        <label class="sr-only" for="company-search">ИНН юридического лица</label>
-        <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
-        </svg>
-        <input id="company-search" name="inn" class="hero-search-input" inputmode="numeric"
-               maxlength="12" autocomplete="off" placeholder="ИНН юридического лица, 10 цифр">
-        <button class="pbtn pbtn-primary pbtn-56 hero-search-submit" type="submit"
-                aria-label="Проверить компанию">Проверить →</button>
+    <section class="chat-thread" id="chat-thread" aria-label="Диалог с AI-аналитиком"
+             aria-live="polite" hidden></section>
+  </main>
+
+  <footer class="chat-composer-shell">
+    <form class="chat-composer" id="chat-form" aria-label="Сообщение AI-аналитику">
+      <label class="sr-only" for="chat-input">Запрос о контрагенте</label>
+      <div class="composer-control">
+        <textarea id="chat-input" rows="1" maxlength="1000" autocomplete="off"
+                  placeholder="Например: Проверь контрагента 6165169320"></textarea>
+        <button class="send-button" id="send-button" type="submit" aria-label="Отправить запрос">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="composer-meta">
+        <span id="composer-hint">Доступна полная проверка одного контрагента по явному ИНН</span>
+        <span>Enter — отправить · Shift+Enter — новая строка</span>
       </div>
     </form>
-
-    <div class="landing-error" id="error" hidden>
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>
-      </svg>
-      <span id="error-text"></span>
-    </div>
-
-    <div class="demo-chips" id="chips">
-      <span>Примеры из выгрузки</span>
-    </div>
-  </section>
-
-  <footer class="landing-footer">
-    <span>Только данные из отчёта банка</span>
-    <span>•</span>
-    <span>Каждый вывод со ссылкой на поле</span>
-    <span>•</span>
-    <span>Оценки банка не пересчитываем</span>
   </footer>
-</main>
+</div>
 
+<noscript>Для работы чата включите JavaScript.</noscript>
 <script src="/static/landing.js"></script>
 </body>
 </html>

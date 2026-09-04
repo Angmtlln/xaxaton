@@ -1,8 +1,20 @@
-# Контрагент-агент. PoC
+# Контрагент-агент. Agent-first PoC
 
-Один ИНН — один проход проверки. Реализованы три части задачи: дизайн БД под
-выгрузку `contractors_audit.snapshot.json`, API со Swagger и конвейер из
-четырёх доменных агентов Groq с общей Summary-LLM поверх них.
+Основной интерфейс начинается с сообщения «Проверь контрагента &lt;ИНН&gt;».
+Первый vertical slice использует существующий аналитический pipeline как один
+ограниченный tool и не переписывает его:
+
+```text
+POST /api/v1/chat/messages
+  → Master Agent (JSON action)
+  → Tool Registry: full_company_check
+  → существующий run_check()
+  → ToolResult
+  → deterministic AssistantResponse
+  → rich chat в backend/static
+```
+
+Legacy-проход по-прежнему доступен отдельно:
 
 ```
 POST /api/v1/checks {"inn": "..."}
@@ -53,6 +65,19 @@ curl -X POST http://localhost:8000/api/v1/checks \
      -d '{"inn":"6165169320"}' | jq .summary
 ```
 
+Тот же проход через Master Agent и chat API:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/chat/messages \
+     -H 'Content-Type: application/json' \
+     -d '{"message":"Проверь контрагента 6165169320"}' | jq .
+```
+
+Для первого среза runtime принимает только широкий запрос с одним явно
+указанным ИНН, проверяет его контрольные цифры и допускает максимум один tool
+call. Без ключа Groq router переходит на deterministic fallback; сам
+`run_check()` продолжает работать в своём штатном mock-режиме.
+
 Без базы и без ключа Groq — тот же конвейер прямо по файлу выгрузки:
 
 ```bash
@@ -61,12 +86,14 @@ LLM_MOCK=true python scripts/demo_offline.py --inn 6165169320
 
 ## Модели
 
-Проход делает пять вызовов: четыре блочных агента параллельно и один
-Summary-LLM поверх их ответов. Модели заданы в `.env`, код к конкретной
-модели не привязан.
+Сам `run_check()` делает пять вызовов: четыре блочных агента параллельно и один
+Summary-LLM поверх их ответов. Chat flow добавляет перед ними один короткий
+router-вызов, если Groq доступен; в mock-режиме routing детерминированный.
+Модели заданы в `.env`, код к конкретной модели не привязан.
 
 | Роль | Модель | Почему |
 |---|---|---|
+| Master router | `openai/gpt-oss-20b` | возвращает только один компактный JSON-action |
 | Блок «Кто это» | `openai/gpt-oss-20b` | короткий блок, младшей модели достаточно |
 | Блок «Надёжность и правовые риски» | `openai/gpt-oss-120b` | самый ответственный блок, отдаём сильнейшей модели |
 | Блок «Финансовое состояние» | `qwen/qwen3.8-27b` | устойчиво держит JSON-схему на числовых данных |
@@ -108,8 +135,14 @@ curl -s https://api.groq.com/openai/v1/models \
 
 Две страницы, обе раздаёт тот же сервис:
 
-* `/` — лендинг с поиском по ИНН;
+* `/` — agent-first чат с allowlisted rich blocks;
 * `/report?inn=...` — отчёт по контрагенту, ссылка воспроизводимая.
+
+Chat renderer поддерживает только `company_card`, `text`, `metric_grid`,
+`line_chart`, `finding_list` и `evidence_list`. Числа, series и evidence
+собираются backend-кодом из фактов `run_check()`; router LLM не получает
+результат tool и не генерирует HTML/SVG или данные графика. Неизвестный тип
+блока отображается безопасным fallback.
 
 Базовый визуальный язык взят из
 [alfa-counterparty-prototype](../alfa-counterparty-prototype), но рабочий
@@ -144,6 +177,7 @@ Summary-агент возвращает `narrative_points`: 2–3 тезиса �
 
 | Метод | Путь | Что делает |
 |---|---|---|
+| POST | `/api/v1/chat/messages` | один явный ИНН → один `full_company_check` → rich response |
 | POST | `/api/v1/checks` | полный проход по ИНН |
 | GET | `/api/v1/checks` | история проходов |
 | GET | `/api/v1/checks/{run_id}` | сохранённый результат прохода |
@@ -186,6 +220,12 @@ Summary-агент возвращает `narrative_points`: 2–3 тезиса �
 ```
 backend/
   app/
+    agent/models.py       строгие ToolResult, AssistantResponse и UIBlock schemas
+    agent/llm.py          нейтральный LLMClient и adapter текущего GroqClient
+    agent/prompt.py       versioned master-router prompt
+    agent/tools.py        registry и wrapper full_company_check → run_check()
+    agent/runtime.py      один model turn, один tool call, timeout и fallback
+    agent/response.py     deterministic ToolResult → rich UI adapter
     main.py              FastAPI и Swagger
     pipeline.py          один проход: факты → 4 агента → summary → запись
     config.py            настройки из окружения
@@ -202,10 +242,26 @@ backend/
   docs/db_design.md      пояснение к дизайну БД
   scripts/load_snapshot.py  загрузка выгрузки в базу
   scripts/demo_offline.py   проход по файлу без базы
-  tests/                 контрольный прогон по всем 100 карточкам
+  tests/                 pipeline regression и agent-first routing/API/UI contracts
 ```
 
 ## Тесты
+
+```bash
+PYTHONPATH=. python -m pytest -q tests/test_agent_runtime.py tests/test_agent_response.py tests/test_chat_api.py
+PYTHONPATH=. python -m pytest -q
+node --check static/landing.js
+node --check static/report.js
+```
+
+Из корня репозитория JS-проверки эквивалентны:
+
+```bash
+node --check backend/static/landing.js
+node --check backend/static/report.js
+```
+
+Legacy-команда также остаётся рабочей:
 
 ```bash
 pytest -q
@@ -230,7 +286,7 @@ pytest -q
 | Пустой финансовый блок | 33 карточки получили сигнал `NO_DATA` и явное «невозможно оценить» — совпадает с фактом «финотчётности нет у 33 из 100» |
 | `audit.v_okved_contradictions` | 46 карточек, ровно та цифра, что зафиксирована в гипотезе H4 |
 | `audit.v_green_with_negatives` | 40 карточек, из них 8 с блокировкой счетов ФНС при зелёном светофоре и LOW |
-| Тесты | 21 тест, включая контрольный прогон фактов по всем 100 карточкам |
+| Тесты | Полный backend regression плюс agent-first routing/API/UI contracts |
 
 Проход на живых моделях проверен на трёх контрагентах: все четыре блочных
 агента и summary отвечают, статус `SUCCEEDED`, заземление от 88 до 100 %.
@@ -242,6 +298,6 @@ pytest -q
 
 - Проход синхронный: один ИНН, ответ в том же запросе. Очередь и фоновые
   задачи не нужны при 5 вызовах модели на проход.
-- Диалог с доуточнениями (S3) и сравнение нескольких ИНН (S4) в этот PoC не
-  входят, но слой фактов и таблицы прогонов рассчитаны на них.
+- В первом agent-first срезе нет follow-up context, targeted tools, сравнения,
+  persistence истории и SSE. Эти сценарии не имитируются пустыми wrappers.
 - Веб-поиск (S9) и граф связей (S10) сознательно не реализованы.

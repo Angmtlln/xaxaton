@@ -13,8 +13,11 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import repository
-from app.api.schemas import (CheckRequest, CheckResponse, CompanyListItem, CoverageOut,
-                             ErrorOut, FactsResponse, HealthOut, RunListItem)
+from app.agent.models import AssistantResponse
+from app.agent.runtime import build_master_runtime
+from app.api.schemas import (ChatMessageRequest, CheckRequest, CheckResponse,
+                             CompanyListItem, CoverageOut, ErrorOut, FactsResponse,
+                             HealthOut, RunListItem)
 from app.config import Settings, get_settings
 from app.db import close_pool, healthcheck, init_pool
 from app.domain import facts as facts_mod
@@ -26,7 +29,9 @@ logging.basicConfig(level=logging.INFO,
 log = logging.getLogger("contractor-agent")
 
 DESCRIPTION = """
-PoC агента проверки контрагента: **один ИНН — один проход**.
+Agent-first PoC проверки контрагента. Основной путь начинается с сообщения
+`Проверь контрагента <ИНН>` в chat API, а существующий полный проход сохранён
+как единственный allowlisted tool `full_company_check`.
 
 Как устроен проход:
 
@@ -47,6 +52,7 @@ PoC агента проверки контрагента: **один ИНН — 
 """
 
 TAGS = [
+    {"name": "chat", "description": "Agent-first сообщения и rich AssistantResponse"},
     {"name": "checks", "description": "Проход проверки по одному ИНН"},
     {"name": "companies", "description": "Карточки и детерминированные факты без вызова LLM"},
     {"name": "service", "description": "Здоровье сервиса"},
@@ -79,8 +85,7 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
-# Веб-интерфейс PoC. Оформление перенесено из прототипа фронтендера
-# (alfa-counterparty-prototype/app/globals.css).
+# Рабочий agent-first чат и legacy-отчёт раздаются одним FastAPI-сервисом.
 STATIC_DIR = FilePath(__file__).resolve().parent.parent / "static"
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -88,7 +93,7 @@ if STATIC_DIR.exists():
 
 @app.get("/", include_in_schema=False)
 async def index() -> FileResponse:
-    """Лендинг с поиском по ИНН."""
+    """Agent-first чат для полной проверки по явному ИНН."""
     return FileResponse(str(STATIC_DIR / "index.html"))
 
 
@@ -104,6 +109,22 @@ def settings_dep() -> Settings:
 
 def groq_dep() -> GroqClient:
     return app.state.groq
+
+
+@app.post(
+    "/api/v1/chat/messages",
+    response_model=AssistantResponse,
+    tags=["chat"],
+    summary="Проверить контрагента через Master Agent",
+)
+async def create_chat_message(
+    payload: ChatMessageRequest,
+    settings: Settings = Depends(settings_dep),
+    client: GroqClient = Depends(groq_dep),
+) -> AssistantResponse:
+    """Первый vertical slice: один явный ИНН → один full_company_check."""
+    runtime = build_master_runtime(settings, client, persist=True)
+    return await runtime.run(payload.message)
 
 
 @app.get("/health", response_model=HealthOut, tags=["service"], summary="Здоровье сервиса")

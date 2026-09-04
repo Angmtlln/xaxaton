@@ -8,7 +8,7 @@
 
 | Если задача про… | Сначала прочитать | Основные файлы |
 |---|---|---|
-| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `AGENTS.md`, будущие agent runtime и chat entrypoints после их появления |
+| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/main.py`, `backend/static/landing.js` |
 | продукт, скоуп, критерии успеха | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md), [`product_materials.md`](../product_materials.md) | `project_description.md`, `hypotheses.md` |
 | продуктовые гипотезы и приоритеты | [`hypotheses.md`](../hypotheses.md) | `product_materials.md` |
 | состав четырёх блоков анализа | [`blocks_summary_design.md`](../blocks_summary_design.md) | `backend/app/domain/facts.py`, `backend/app/llm/prompts.py` |
@@ -42,6 +42,15 @@
 ## Архитектурный путь данных
 
 ```text
+POST /api/v1/chat/messages
+  -> MasterAgentRuntime
+  -> JSON action + локальная validation
+  -> ToolRegistry.full_company_check
+  -> существующий run_check()
+  -> ToolResult
+  -> deterministic AssistantResponse adapter
+  -> allowlisted UIBlock renderer
+
 ИНН
   -> последний снимок карточки в PostgreSQL
   -> нормализация Mongo Extended JSON
@@ -69,9 +78,13 @@
 - реализован анализ одного ИНН;
 - реализованы четыре блока фактов, итоговая сводка, grounding, guardrails,
   аудит и fallback без LLM;
-- реализованы лендинг, отчёт, диаграммы и паспорт полноты;
+- реализованы agent-first чат, legacy-отчёт, диаграммы и паспорт полноты;
+- реализован первый agent-first vertical slice: сообщение с одним валидным ИНН,
+  один `full_company_check`, typed `ToolResult`, deterministic `AssistantResponse`
+  и rich chat из шести allowlisted блоков;
 - отдельный React/Vinext-прототип содержит моковый интерфейс;
-- диалог с уточняющими вопросами по рабочему API ещё нужно реализовать;
+- follow-up context, targeted tools, persistence диалога и streaming пока не
+  реализованы;
 - сравнение нескольких контрагентов, банковские интеграции и большая база не
   относятся к готовому текущему проходу.
 
@@ -102,6 +115,14 @@ LLM_MOCK=true python scripts/demo_offline.py --inn 6165169320
 ```bash
 cd backend
 uvicorn app.main:app --reload --port 8000
+```
+
+Agent-first chat:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/chat/messages \
+     -H 'Content-Type: application/json' \
+     -d '{"message":"Проверь контрагента 6165169320"}'
 ```
 
 UI-прототип:
