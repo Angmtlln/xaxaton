@@ -31,7 +31,8 @@ log = logging.getLogger("contractor-agent")
 DESCRIPTION = """
 Agent-first PoC проверки контрагента. Основной путь начинается с сообщения
 `Проверь контрагента <ИНН>` в chat API, а существующий полный проход сохранён
-как единственный allowlisted tool `full_company_check`.
+как единственный allowlisted tool `full_company_check`. Master Agent использует
+LangChain `create_agent`, а rich response гидратируется backend-кодом.
 
 Как устроен проход:
 

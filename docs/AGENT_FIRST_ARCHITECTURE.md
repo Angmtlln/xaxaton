@@ -54,9 +54,13 @@ Frontend
    ↓
 Chat API / Streaming
    ↓
-Master Agent Runtime
+LangChain create_agent
    ↓
-Tool Registry
+LangGraph execution runtime (под капотом LangChain)
+   ↓
+LangChain tool adapter
+   ↓
+Domain Tool Registry
    ↓
 Domain Capabilities
    ↓
@@ -181,6 +185,10 @@ ConversationStore
 
 Все tools должны иметь единый контракт.
 
+Domain contracts остаются framework-agnostic: LangChain adapter экспортирует
+их модели, но `ToolResult`, `Evidence` и executors не наследуются от LangChain
+и не зависят от состояния LangGraph.
+
 ```text
 Tool:
   name
@@ -227,23 +235,16 @@ Evidence:
 Finding:
   id
   domain
-  severity
   title
   explanation
   evidence_ids[]
 ```
 
-Для MVP severity:
-
-```text
-info
-low
-medium
-high
-critical
-```
-
-Не использовать красивые числовые risk scores вроде `8.7/10`, пока нет формализованной методологии. Это создаёт псевдоточность.
+В новых agent-first контрактах не добавлять `severity`, domain risk level или
+скрытую классификацию риска. Приоритет и смысл находки объясняются через
+проверенные факты, детерминированные стоп-факторы и явную интерпретацию. Также
+не использовать красивые числовые risk scores вроде `8.7/10`: это создаёт
+псевдоточность и нарушает границу между фактами и AI-интерпретацией.
 
 ---
 
@@ -299,56 +300,52 @@ evidence[]
 
 ## 12. Agent runtime
 
-Для MVP не нужен LangGraph/CrewAI/AutoGen без конкретной причины.
-
-Достаточно собственного tool-calling loop:
+Master Agent harness строится на high-level `langchain.agents.create_agent`.
+Он отвечает за native tool-calling loop, а LangGraph используется как
+underlying execution/state runtime, который создаёт сам LangChain:
 
 ```text
-messages = conversation
-
-for iteration in range(MAX_ITERATIONS):
-    response = llm(messages, tools)
-
-    if tool_calls:
-        validate
-        execute tools
-        append results
-        continue
-
-    validate AssistantResponse
-    return
+create_agent
+  → ChatGroq model node
+  → allowlisted LangChain tool adapter
+  → собственный domain Tool Registry
+  → ToolResult artifact
 ```
 
-Обязательно:
+Application boundary вокруг `create_agent` сохраняет:
 
-- MAX_ITERATIONS;
-- MAX_TOOL_CALLS;
+- deterministic preflight до model/tool execution;
+- model-call, tool-call и recursion budgets;
 - tool timeout;
-- schema validation;
+- локальную schema validation;
 - structured errors;
-- защита от бесконечных loops.
+- общий deadline и deterministic fallback;
+- backend-controlled hydration `AssistantResponse`.
 
-Независимые read-only tools можно выполнять параллельно.
+Raw `StateGraph`, собственные nodes и отдельный параллельный tool loop не нужны.
+Их можно вводить только если позже появится действительно сложный
+deterministic/stateful workflow, который нельзя выразить `create_agent` и
+middleware. Независимые read-only tools можно выполнять параллельно только
+когда это даёт измеримую пользу и не нарушает execution limits.
+LangSmith не является обязательным runtime-сервисом: текущий срез не требует
+его API key, tracing-конфигурации или checkpointer.
 
 ---
 
-## 13. LLM abstraction
+## 13. LLM integration
 
 Есть ограничение на модели: Qwen / GPT-OSS.
 
-Нельзя размазывать provider-specific код по проекту.
+Master Agent использует официальный `langchain-groq` / `ChatGroq` и native
+tool calling внутри `create_agent`. Provider-specific настройки остаются в
+runtime integration boundary. Текущие доменные LLM-вызовы и summary продолжают
+использовать существующий `GroqClient.complete_json()`; migration Master Agent
+не является причиной переписывать аналитический pipeline.
 
-Сделать интерфейс:
-
-```text
-LLMClient
-  chat(messages, tools?, response_schema?) -> ModelResponse
-```
-
-И адаптеры для конкретных моделей/providers.
-
-Если native tool calling работает стабильно — использовать его.
-Если нет — fallback через строгий JSON action schema + validation.
+Если native tool calling недоступен, нарушает schema или не вызывает ожидаемый
+tool для очевидного full-check запроса, application boundary выполняет
+детерминированный fallback с уже проверенным ИНН. Модель не определяет verified
+числа, evidence, URL или chart series.
 
 ---
 
@@ -410,12 +407,13 @@ comparison_table
 evidence_list
 ```
 
-LLM выбирает тип блока и данные.
-Frontend полностью контролирует визуальный рендеринг.
+Master Agent может предложить только allowlisted тип блока. Все verified числа,
+evidence, URL и chart series гидратируются backend из `ToolResult` и повторно
+валидируются. Frontend полностью контролирует визуальный рендеринг.
 
 Никакого arbitrary HTML/CSS/JS от модели.
 
-Для графиков модель передаёт только данные, например:
+Для графиков backend передаёт проверенные данные, например:
 
 ```text
 LineChartBlock:
@@ -575,6 +573,7 @@ External content считать untrusted.
 backend/
   agent/
     runtime
+    langchain_tools
     master_prompt
     models
     context
@@ -617,7 +616,7 @@ frontend/
 
 Не добавлять без конкретной необходимости:
 
-- LangGraph;
+- raw LangGraph `StateGraph` и custom graph nodes;
 - CrewAI;
 - AutoGen;
 - vector DB;
@@ -630,7 +629,9 @@ frontend/
 - dynamic React generation;
 - arbitrary code execution.
 
-Если новый framework предлагается, сначала должна быть сформулирована конкретная проблема, которую он решает.
+LangChain `create_agent` уже является выбранным Master Agent harness. Если
+предлагается другой или дополнительный framework, сначала должна быть
+сформулирована конкретная проблема, которую он решает.
 
 ---
 
@@ -639,7 +640,7 @@ frontend/
 Обязательно:
 
 1. Master Agent runtime.
-2. LLM abstraction для Qwen/GPT-OSS.
+2. LangChain `create_agent` + `ChatGroq` для Qwen/GPT-OSS.
 3. Tool Registry.
 4. Wrappers над существующими capabilities.
 5. Company conversation context.
@@ -758,7 +759,7 @@ Integration tests с mock LLM:
 4. Обернуть существующие сервисы в capabilities/tools.
 5. Проверить tools независимо от LLM.
 6. Добавить Tool Registry.
-7. Добавить Master Agent runtime.
+7. Добавить Master Agent runtime через LangChain `create_agent`.
 8. Добавить company/conversation context.
 9. Подключить chat API.
 10. Сделать один end-to-end сценарий.
@@ -782,7 +783,7 @@ Integration tests с mock LLM:
 - один Master Agent;
 - 10–15 tools;
 - существующие subagents как implementation detail;
-- простой tool loop;
+- LangChain `create_agent` без raw graph;
 - structured responses;
 - chat;
 - evidence;
@@ -807,7 +808,7 @@ Integration tests с mock LLM:
 - swarm агентов;
 - planner + executor + critic + judge;
 - self-reflection;
-- сложные workflow frameworks;
+- raw/custom graph и дополнительные workflow frameworks;
 - микросервисы;
 - event-driven architecture;
 - vector DB без конкретного retrieval use case.
@@ -829,9 +830,9 @@ Integration tests с mock LLM:
 - UI строится из structured blocks;
 - charts не генерируются произвольным кодом модели;
 - падение одного tool не ломает весь run;
-- модель заменяема через adapter;
+- модель заменяема через LangChain chat-model integration;
 - Qwen/GPT-OSS не зашиты в application logic;
-- нет ненужного agent framework;
+- нет самописного дублирующего tool loop или raw LangGraph без необходимости;
 - основные сценарии покрыты тестами.
 
 ---

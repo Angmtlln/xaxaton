@@ -1,27 +1,58 @@
-"""Routing, budgets и typed tool errors первого agent-first vertical slice."""
+"""Observable guarantees LangChain Master Agent первого vertical slice."""
 import asyncio
-import json
 
-import httpx
 import pytest
+from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
+from langchain_core.messages import AIMessage
+from pydantic import PrivateAttr
 
-from app.agent.llm import GroqLLMAdapter, LLMMessage, ModelResponse
 from app.agent.models import is_valid_inn
-from app.agent.runtime import MasterAgentRuntime, inspect_request, is_full_check_request
+from app.agent.runtime import (MasterAgentRuntime, build_master_model,
+                               inspect_request, is_full_check_request)
 from app.agent.tools import ToolContext, build_tool_registry
 from app.config import Settings
 from app.llm.groq_client import GroqClient
 from app.pipeline import CompanyNotFound
 
 
-class FakeLLM:
-    def __init__(self, payload):
-        self.payload = payload
-        self.calls = 0
+class FakeToolCallingModel(FakeMessagesListChatModel):
+    _bound_tools = PrivateAttr(default_factory=list)
+    _bind_kwargs = PrivateAttr(default_factory=dict)
+    _calls = PrivateAttr(default=0)
 
-    async def chat(self, messages, *, tools, response_schema):
-        self.calls += 1
-        return ModelResponse(payload=self.payload, model="fake-router")
+    def bind_tools(self, tools, **kwargs):
+        self._bound_tools = list(tools)
+        self._bind_kwargs = dict(kwargs)
+        return self
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        self._calls += 1
+        return super()._generate(
+            messages, stop=stop, run_manager=run_manager, **kwargs
+        )
+
+    @property
+    def calls(self):
+        return self._calls
+
+
+class FailingToolCallingModel(FakeToolCallingModel):
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        self._calls += 1
+        raise RuntimeError("provider unavailable")
+
+
+def _tool_call(name="full_company_check", args=None, call_id="call-1"):
+    return {
+        "name": name,
+        "args": args or {"inn": "6165169320"},
+        "id": call_id,
+        "type": "tool_call",
+    }
+
+
+def _model(*responses):
+    return FakeToolCallingModel(responses=list(responses))
 
 
 def _settings(**overrides):
@@ -33,11 +64,12 @@ def _settings(**overrides):
     )
 
 
-def _runtime(llm, settings=None):
+def _runtime(model, settings=None):
     settings = settings or _settings()
     client = GroqClient(settings)
     return MasterAgentRuntime(
-        llm=llm,
+        model=model,
+        model_name="fake-router" if model is not None else None,
         registry=build_tool_registry(settings),
         tool_context=ToolContext(settings=settings, client=client, persist=False),
         model_timeout_s=1,
@@ -46,7 +78,9 @@ def _runtime(llm, settings=None):
 
 
 @pytest.mark.asyncio
-async def test_broad_request_routes_to_single_full_check(monkeypatch, check_payload):
+async def test_broad_request_routes_through_create_agent_to_single_full_check(
+    monkeypatch, check_payload
+):
     calls = []
 
     async def fake_run_check(inn, settings, client, persist):
@@ -54,22 +88,43 @@ async def test_broad_request_routes_to_single_full_check(monkeypatch, check_payl
         return check_payload
 
     monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
-    llm = FakeLLM({
-        "type": "tool_call",
-        "tool": "full_company_check",
-        "arguments": {"inn": "6165169320"},
-    })
+    model = _model(AIMessage(content="", tool_calls=[_tool_call()]))
 
-    response = await _runtime(llm).run("Проверь контрагента 6165169320")
+    response = await _runtime(model).run("Проверь контрагента 6165169320")
 
     assert calls == [{"inn": "6165169320", "persist": False}]
-    assert llm.calls == 1
+    assert model.calls == 1
+    assert [tool.name for tool in model._bound_tools] == ["full_company_check"]
+    assert model._bind_kwargs["tool_choice"] == "required"
+    assert model._bind_kwargs["parallel_tool_calls"] is False
     assert response.metadata.tool_calls == 1
     assert response.metadata.routing == "model"
     assert response.metadata.status == "completed"
     assert [block.type for block in response.blocks] == [
-        "company_card", "text", "metric_grid", "line_chart", "finding_list", "evidence_list"
+        "company_card", "text", "metric_grid", "line_chart", "finding_list",
+        "evidence_list",
     ]
+
+
+@pytest.mark.asyncio
+async def test_router_model_text_is_never_used_for_rich_response(
+    monkeypatch, check_payload
+):
+    async def fake_run_check(*args, **kwargs):
+        return check_payload
+
+    monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
+    model = _model(AIMessage(
+        content="MODEL_TEXT_MUST_NOT_APPEAR 987654321123 <script>alert(1)</script>",
+        tool_calls=[_tool_call()],
+    ))
+
+    response = await _runtime(model).run("Проверь контрагента 6165169320")
+    rendered = response.model_dump_json()
+
+    assert "MODEL_TEXT_MUST_NOT_APPEAR" not in rendered
+    assert "987654321123" not in rendered
+    assert "<script>" not in rendered
 
 
 @pytest.mark.asyncio
@@ -82,28 +137,30 @@ async def test_broad_request_routes_to_single_full_check(monkeypatch, check_payl
         ("Проверь 6165169320 и 0278949271", "ambiguous_inn"),
     ],
 )
-async def test_invalid_or_out_of_scope_request_never_calls_tool(
+async def test_invalid_or_out_of_scope_request_never_calls_model_or_tool(
     monkeypatch, message, expected
 ):
     async def forbidden_run_check(*args, **kwargs):
         raise AssertionError("run_check не должен вызываться")
 
     monkeypatch.setattr("app.agent.tools.run_check", forbidden_run_check)
-    llm = FakeLLM({"type": "final", "reason": "unsupported_request"})
+    model = _model(AIMessage(content="unused"))
 
-    response = await _runtime(llm).run(message)
+    response = await _runtime(model).run(message)
 
     assert response.metadata.tool_calls == 0
     assert response.metadata.status == "needs_input"
     assert response.metadata.routing == "deterministic_guard"
-    assert llm.calls == 0
+    assert model.calls == 0
     reason, _ = inspect_request(message)
     if expected != "unsupported_request":
         assert reason == expected
 
 
 @pytest.mark.asyncio
-async def test_malformed_model_action_uses_deterministic_fallback(monkeypatch, check_payload):
+async def test_unavailable_model_uses_deterministic_fallback_once(
+    monkeypatch, check_payload
+):
     calls = 0
 
     async def fake_run_check(*args, **kwargs):
@@ -112,9 +169,7 @@ async def test_malformed_model_action_uses_deterministic_fallback(monkeypatch, c
         return check_payload
 
     monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
-    response = await _runtime(FakeLLM({"unexpected": True})).run(
-        "Проверь контрагента 6165169320"
-    )
+    response = await _runtime(None).run("Проверь контрагента 6165169320")
 
     assert calls == 1
     assert response.metadata.tool_calls == 1
@@ -122,53 +177,102 @@ async def test_malformed_model_action_uses_deterministic_fallback(monkeypatch, c
 
 
 @pytest.mark.asyncio
-async def test_unknown_tool_becomes_typed_error_without_run_check(monkeypatch):
-    async def forbidden_run_check(*args, **kwargs):
-        raise AssertionError("unknown tool не должен запускать run_check")
+async def test_provider_error_uses_deterministic_fallback_once(
+    monkeypatch, check_payload
+):
+    calls = 0
 
-    monkeypatch.setattr("app.agent.tools.run_check", forbidden_run_check)
-    llm = FakeLLM({
-        "type": "tool_call",
-        "tool": "execute_anything",
-        "arguments": {"inn": "6165169320"},
-    })
-    response = await _runtime(llm).run("Проверь контрагента 6165169320")
+    async def fake_run_check(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return check_payload
 
-    assert response.metadata.status == "error"
-    assert response.metadata.error_code == "unknown_tool"
+    monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
+    model = FailingToolCallingModel(responses=[AIMessage(content="unused")])
+
+    response = await _runtime(model).run("Проверь контрагента 6165169320")
+
+    assert model.calls == 1
+    assert calls == 1
+    assert response.metadata.tool_calls == 1
+    assert response.metadata.routing == "deterministic_fallback"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "ai_message",
+    [
+        AIMessage(content="Не буду вызывать tool"),
+        AIMessage(content="", tool_calls=[_tool_call("execute_anything")]),
+        AIMessage(
+            content="",
+            tool_calls=[
+                _tool_call(call_id="call-1"),
+                _tool_call(call_id="call-2"),
+            ],
+        ),
+        AIMessage(
+            content="",
+            tool_calls=[_tool_call(args={"inn": "6165169320", "unexpected": True})],
+        ),
+    ],
+)
+async def test_incorrect_native_tool_call_falls_back_to_one_allowlisted_execution(
+    monkeypatch, check_payload, ai_message
+):
+    calls = []
+
+    async def fake_run_check(inn, *args, **kwargs):
+        calls.append(inn)
+        return check_payload
+
+    monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
+    model = _model(ai_message)
+
+    response = await _runtime(model).run("Проверь контрагента 6165169320")
+
+    assert calls == ["6165169320"]
+    assert model.calls == 1
+    assert response.metadata.tool_calls == 1
+    assert response.metadata.routing == "deterministic_fallback"
+    assert response.metadata.status == "completed"
+
+
+@pytest.mark.asyncio
+async def test_model_cannot_replace_explicit_inn(monkeypatch, check_payload):
+    calls = []
+
+    async def fake_run_check(inn, *args, **kwargs):
+        calls.append(inn)
+        return check_payload
+
+    monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
+    model = _model(AIMessage(
+        content="",
+        tool_calls=[_tool_call(args={"inn": "0278949271"})],
+    ))
+
+    response = await _runtime(model).run("Проверь контрагента 6165169320")
+
+    assert calls == ["6165169320"]
+    assert response.metadata.routing == "deterministic_fallback"
     assert response.metadata.tool_calls == 1
 
 
 @pytest.mark.asyncio
-async def test_model_cannot_replace_explicit_inn(monkeypatch):
-    async def forbidden_run_check(*args, **kwargs):
-        raise AssertionError("подменённый ИНН не должен попасть в run_check")
+async def test_company_not_found_is_typed_and_not_retried(monkeypatch):
+    calls = 0
 
-    monkeypatch.setattr("app.agent.tools.run_check", forbidden_run_check)
-    llm = FakeLLM({
-        "type": "tool_call",
-        "tool": "full_company_check",
-        "arguments": {"inn": "0278949271"},
-    })
-    response = await _runtime(llm).run("Проверь контрагента 6165169320")
-
-    assert response.metadata.status == "error"
-    assert response.metadata.error_code == "invalid_arguments"
-
-
-@pytest.mark.asyncio
-async def test_company_not_found_is_typed_tool_result(monkeypatch):
     async def missing(*args, **kwargs):
+        nonlocal calls
+        calls += 1
         raise CompanyNotFound("6165169320")
 
     monkeypatch.setattr("app.agent.tools.run_check", missing)
-    llm = FakeLLM({
-        "type": "tool_call",
-        "tool": "full_company_check",
-        "arguments": {"inn": "6165169320"},
-    })
-    response = await _runtime(llm).run("Проверь контрагента 6165169320")
+    model = _model(AIMessage(content="", tool_calls=[_tool_call()]))
+    response = await _runtime(model).run("Проверь контрагента 6165169320")
 
+    assert calls == 1
     assert response.metadata.status == "error"
     assert response.metadata.error_code == "not_found"
     assert "не найдена" in response.message
@@ -185,18 +289,35 @@ async def test_tool_timeout_is_typed_and_not_retried(monkeypatch):
 
     monkeypatch.setattr("app.agent.tools.run_check", slow)
     settings = _settings(agent_tool_timeout_s=0.01)
-    llm = FakeLLM({
-        "type": "tool_call",
-        "tool": "full_company_check",
-        "arguments": {"inn": "6165169320"},
-    })
-    response = await _runtime(llm, settings=settings).run(
+    model = _model(AIMessage(content="", tool_calls=[_tool_call()]))
+    response = await _runtime(model, settings=settings).run(
         "Проверь контрагента 6165169320"
     )
 
     assert calls == 1
     assert response.metadata.error_code == "timeout"
     assert response.metadata.tool_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_model_timeout_falls_back_before_tool_execution(monkeypatch, check_payload):
+    calls = 0
+
+    async def fake_run_check(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return check_payload
+
+    monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
+    model = _model(AIMessage(content="", tool_calls=[_tool_call()]))
+    model.sleep = 0.05
+    runtime = _runtime(model)
+    runtime.model_timeout_s = 0.01
+
+    response = await runtime.run("Проверь контрагента 6165169320")
+
+    assert calls == 1
+    assert response.metadata.routing == "deterministic_fallback"
 
 
 def test_inn_and_intent_checks_are_deterministic():
@@ -250,40 +371,25 @@ async def test_registry_enforces_result_size_limit(monkeypatch, check_payload):
     assert result.error.code == "result_too_large"
 
 
-@pytest.mark.asyncio
-async def test_groq_adapter_wraps_current_complete_json_contract():
-    captured = {}
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        captured.update(json.loads(request.content))
-        return httpx.Response(200, json={
-            "model": "openai/gpt-oss-20b",
-            "choices": [{"message": {"content": json.dumps({
-                "type": "tool_call",
-                "tool": "full_company_check",
-                "arguments": {"inn": "6165169320"},
-            })}}],
-            "usage": {"prompt_tokens": 10, "completion_tokens": 5},
-        })
-
+def test_chat_groq_factory_preserves_master_settings_without_network_call():
     settings = Settings(
         llm_mock=False,
         groq_api_key="test-key",
+        groq_base_url="https://api.groq.com/openai/v1",
+        groq_master_model="openai/gpt-oss-20b",
+        groq_reasoning_effort="low",
+        agent_router_max_tokens=321,
+        agent_model_timeout_s=7,
         database_url="postgresql://localhost/none",
     )
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http_client:
-        adapter = GroqLLMAdapter(GroqClient(settings, client=http_client), settings)
-        response = await adapter.chat(
-            [
-                LLMMessage(role="system", content="system"),
-                LLMMessage(role="user", content="Проверь контрагента 6165169320"),
-            ],
-            tools=[{"name": "full_company_check"}],
-            response_schema={"type": "object"},
-        )
 
-    sent = json.loads(captured["messages"][1]["content"])
-    assert sent["available_tools"] == [{"name": "full_company_check"}]
-    assert sent["response_schema"] == {"type": "object"}
-    assert response.payload["tool"] == "full_company_check"
-    assert response.prompt_tokens == 10
+    model = build_master_model(settings)
+
+    assert model.model_name == "openai/gpt-oss-20b"
+    assert str(model.groq_api_base) == "https://api.groq.com"
+    assert model.max_tokens == 321
+    assert model.request_timeout == 7
+    assert model.max_retries == 0
+    assert model.reasoning_format == "hidden"
+    assert model.reasoning_effort == "low"
+    assert model.model_kwargs["parallel_tool_calls"] is False

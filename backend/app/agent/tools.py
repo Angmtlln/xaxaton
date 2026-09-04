@@ -82,16 +82,6 @@ class ToolDefinition:
             "retry_policy": self.retry_policy,
         }
 
-    def model_contract(self) -> Dict[str, object]:
-        return {
-            "name": self.name,
-            "description": self.description,
-            "input_schema": self.input_model.model_json_schema(),
-            "risk_class": self.risk_class,
-            "side_effects": self.side_effects,
-        }
-
-
 class ToolRegistry:
     def __init__(self, definitions: List[ToolDefinition]):
         self._definitions = {definition.name: definition for definition in definitions}
@@ -101,8 +91,8 @@ class ToolRegistry:
     def visible_contracts(self) -> List[Dict[str, object]]:
         return [self._definitions[name].public_contract() for name in sorted(self._definitions)]
 
-    def visible_tools(self) -> List[Dict[str, object]]:
-        return [self._definitions[name].model_contract() for name in sorted(self._definitions)]
+    def get_definition(self, name: str) -> Optional[ToolDefinition]:
+        return self._definitions.get(name)
 
     async def execute(self, name: str, arguments: Dict[str, object], context: ToolContext) -> ToolResult:
         started = time.perf_counter()

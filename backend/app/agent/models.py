@@ -5,7 +5,7 @@ import re
 from typing import Annotated, Dict, List, Literal, Optional, Union
 
 from pydantic import (AfterValidator, BaseModel, ConfigDict, Field, JsonValue,
-                      TypeAdapter, field_validator, model_validator)
+                      field_validator, model_validator)
 
 
 UNSAFE_MARKUP_RE = re.compile(
@@ -62,21 +62,6 @@ class FullCompanyCheckArgs(StrictModel):
         if not is_valid_inn(value):
             raise ValueError("Некорректные контрольные цифры ИНН")
         return value
-
-
-class ToolCallAction(StrictModel):
-    type: Literal["tool_call"]
-    tool: str = Field(min_length=1, max_length=80)
-    arguments: Dict[str, JsonValue]
-
-
-class FinalAction(StrictModel):
-    type: Literal["final"]
-    reason: Literal["missing_inn", "invalid_inn", "ambiguous_inn", "unsupported_request"]
-
-
-MasterAction = Annotated[Union[ToolCallAction, FinalAction], Field(discriminator="type")]
-MASTER_ACTION_ADAPTER = TypeAdapter(MasterAction)
 
 
 class Evidence(StrictModel):

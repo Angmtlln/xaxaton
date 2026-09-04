@@ -6,8 +6,9 @@
 
 ```text
 POST /api/v1/chat/messages
-  → Master Agent (JSON action)
-  → Tool Registry: full_company_check
+  → LangChain create_agent (LangGraph runtime)
+  → StructuredTool adapter: full_company_check
+  → domain Tool Registry
   → существующий run_check()
   → ToolResult
   → deterministic AssistantResponse
@@ -75,8 +76,11 @@ curl -X POST http://localhost:8000/api/v1/chat/messages \
 
 Для первого среза runtime принимает только широкий запрос с одним явно
 указанным ИНН, проверяет его контрольные цифры и допускает максимум один tool
-call. Без ключа Groq router переходит на deterministic fallback; сам
-`run_check()` продолжает работать в своём штатном mock-режиме.
+call. Master Agent использует официальный `ChatGroq`; без ключа или при ошибке
+native tool calling runtime переходит на deterministic fallback. Сам
+`run_check()` и его доменные LLM-вызовы не переписаны.
+LangGraph устанавливается транзитивно через LangChain; LangSmith tracing и API
+key для запуска не требуются.
 
 Без базы и без ключа Groq — тот же конвейер прямо по файлу выгрузки:
 
@@ -221,10 +225,10 @@ Summary-агент возвращает `narrative_points`: 2–3 тезиса �
 backend/
   app/
     agent/models.py       строгие ToolResult, AssistantResponse и UIBlock schemas
-    agent/llm.py          нейтральный LLMClient и adapter текущего GroqClient
-    agent/prompt.py       versioned master-router prompt
+    agent/langchain_tools.py  LangChain adapter над domain Tool Registry
+    agent/prompt.py       versioned prompt native tool calling
     agent/tools.py        registry и wrapper full_company_check → run_check()
-    agent/runtime.py      один model turn, один tool call, timeout и fallback
+    agent/runtime.py      create_agent, ChatGroq, budgets, timeout и fallback
     agent/response.py     deterministic ToolResult → rich UI adapter
     main.py              FastAPI и Swagger
     pipeline.py          один проход: факты → 4 агента → summary → запись

@@ -8,7 +8,7 @@
 
 | Если задача про… | Сначала прочитать | Основные файлы |
 |---|---|---|
-| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/main.py`, `backend/static/landing.js` |
+| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/langchain_tools.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/main.py`, `backend/static/landing.js` |
 | продукт, скоуп, критерии успеха | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md), [`product_materials.md`](../product_materials.md) | `project_description.md`, `hypotheses.md` |
 | продуктовые гипотезы и приоритеты | [`hypotheses.md`](../hypotheses.md) | `product_materials.md` |
 | состав четырёх блоков анализа | [`blocks_summary_design.md`](../blocks_summary_design.md) | `backend/app/domain/facts.py`, `backend/app/llm/prompts.py` |
@@ -44,7 +44,9 @@
 ```text
 POST /api/v1/chat/messages
   -> MasterAgentRuntime
-  -> JSON action + локальная validation
+  -> LangChain create_agent / LangGraph runtime
+  -> ChatGroq native tool call
+  -> LangChain StructuredTool adapter
   -> ToolRegistry.full_company_check
   -> существующий run_check()
   -> ToolResult
@@ -65,6 +67,10 @@ POST /api/v1/chat/messages
 Границы компонентов:
 
 - `facts.py` отвечает за вычисляемую истину;
+- `agent/runtime.py` отвечает за LangChain harness, budgets и deterministic
+  fallback;
+- `agent/langchain_tools.py` экспортирует framework-agnostic domain tool в
+  LangChain и сохраняет проверенный `ToolResult` artifact;
 - `prompts.py` отвечает за правила интерпретации и формат ответа модели;
 - `agents.py` отвечает за вызовы, валидацию, fallback, grounding и guardrails;
 - `pipeline.py` отвечает за порядок прохода и сохранение результатов;
@@ -80,8 +86,9 @@ POST /api/v1/chat/messages
   аудит и fallback без LLM;
 - реализованы agent-first чат, legacy-отчёт, диаграммы и паспорт полноты;
 - реализован первый agent-first vertical slice: сообщение с одним валидным ИНН,
-  один `full_company_check`, typed `ToolResult`, deterministic `AssistantResponse`
-  и rich chat из шести allowlisted блоков;
+  LangChain `create_agent` + underlying LangGraph, один `full_company_check`,
+  typed `ToolResult`, deterministic `AssistantResponse` и rich chat из шести
+  allowlisted блоков;
 - отдельный React/Vinext-прототип содержит моковый интерфейс;
 - follow-up context, targeted tools, persistence диалога и streaming пока не
   реализованы;

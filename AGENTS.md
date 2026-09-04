@@ -47,7 +47,8 @@
 User
   -> Chat UI
   -> Chat API
-  -> Master Agent Runtime
+  -> LangChain create_agent
+  -> LangGraph runtime (под капотом LangChain)
   -> Tool Registry
   -> Domain Capability
   -> Existing services / facts / full-check pipeline
@@ -73,14 +74,14 @@ User
 - детерминированные факты и паспорт полноты;
 - четыре параллельных доменных LLM-блока и итоговая сводка;
 - grounding, guardrails, audit и deterministic fallback;
+- первый agent-first vertical slice через LangChain `create_agent`, один
+  allowlisted `full_company_check`, typed `ToolResult` и rich chat;
 - статический рабочий интерфейс `/` + `/report?inn=...`;
 - отдельный моковый React/Vinext-прототип.
 
 Пока не реализовано, если код явно не говорит обратное:
 
-- Master Agent с tool-calling loop;
-- Tool Registry и единый `ToolResult`;
-- chat API и conversation state;
+- persistent conversation state;
 - follow-up по active company;
 - targeted finance/legal/procurement tools;
 - comparison и deal-risk capabilities;
@@ -143,22 +144,30 @@ Master Agent не отвечает за:
 - генерацию HTML, CSS, JavaScript, React или SVG;
 - подтверждение собственного tool-call или обход guardrails.
 
+Master Agent harness построен на high-level `langchain.agents.create_agent`.
+LangGraph выполняет model/tool loop и хранит состояние одного запуска под
+капотом LangChain. Не создавай raw `StateGraph`, собственные graph nodes или
+второй параллельный orchestration loop без конкретной необходимости сложного
+детерминированного/stateful workflow, которую нельзя выразить через
+`create_agent` и middleware.
+
 Harness обязан:
 
 1. собрать доверенные инструкции и релевантный контекст;
-2. получить от модели structured tool proposal или final response;
+2. получить от модели native tool proposal через LangChain;
 3. проверить имя tool и аргументы локальной schema;
 4. применить permission policy, лимиты и timeout;
 5. выполнить capability;
-6. всегда вернуть модели структурированный результат, включая denial, invalid
-   arguments, not found, timeout и internal error;
+6. нормализовать tool result, включая denial, invalid arguments, not found,
+   timeout и internal error;
 7. проверить финальный `AssistantResponse`, evidence и UI allowlist;
 8. записать operational trace без chain-of-thought и секретов;
 9. остановить run по бюджету или после валидного ответа.
 
-Для MVP используй простой собственный loop. Не добавляй LangGraph, CrewAI,
-AutoGen или другой orchestration framework без конкретного измеримого провала
-простого runtime.
+LangChain не владеет domain truth: grounding, evidence validation,
+deterministic guardrails и hydration `AssistantResponse` остаются backend-кодом
+и не могут обходиться prompt-ом, model output или framework artifact без
+повторной локальной валидации.
 
 ## Tools и domain capabilities
 
@@ -192,6 +201,9 @@ metadata?: {tool, run_id, latency_ms, calculator_version}
 Правила tools:
 
 - только allowlist и строгие входные schema; неизвестные поля отклоняются;
+- domain contracts и executors остаются framework-agnostic; новый tool сначала
+  добавляется в текущий domain layer, затем экспортируется через LangChain tool
+  interface;
 - предпочитай domain operations, а не `execute_anything`, arbitrary SQL или
   generic HTTP;
 - не вызывай собственный HTTP endpoint из tool, если можно вызвать внутренний
@@ -294,19 +306,17 @@ Streaming добавляй через SSE, когда обычный request/res
 latency действительно требует промежуточных статусов. Не вводи WebSocket только
 ради архитектурной моды и не показывай скрытые рассуждения.
 
-## LLM abstraction и prompts
+## LLM integration и prompts
 
 Provider-specific код не должен распространяться по domain/application слоям.
-Целевая граница:
+Master Agent использует официальный `langchain-groq` / `ChatGroq` внутри
+`create_agent`. Его native tool schema строится LangChain-адаптером над нашим
+domain registry. Существующие четыре доменных агента и summary продолжают
+использовать текущий `GroqClient.complete_json()` и не мигрируют автоматически.
 
-```text
-LLMClient.chat(messages, tools?, response_schema?) -> ModelResponse
-```
-
-Для Qwen/GPT-OSS сначала допустим строгий JSON action protocol поверх текущего
-Groq transport. Native tool calling используй только после проверки его
-стабильности на разрешённых моделях. Старый `complete_json()` для четырёх
-доменных агентов не ломай ради нового Master Agent.
+Provider-specific параметры Master Agent держи в его integration boundary. Не
+переноси LangChain-типы в `ToolResult`, `Evidence`, `AssistantResponse`,
+`UIBlock` или domain capability signatures.
 
 Master prompt:
 
@@ -344,7 +354,8 @@ guardrails и fallback.
 - пользователь явно указывает ИНН;
 - в registry один реальный tool `full_company_check`;
 - wrapper вызывает `run_check()` напрямую и не переписывает pipeline;
-- `MAX_ITERATIONS`, `MAX_TOOL_CALLS = 1`, общий deadline и tool timeout;
+- один model call, `MAX_TOOL_CALLS = 1`, ограниченный LangGraph recursion limit,
+  общий deadline и tool timeout;
 - chat API добавляется рядом с `/api/v1/checks`, не заменяя его;
 - `CheckResponse` преобразуется в `AssistantResponse` на backend;
 - UI поддерживает только необходимые для этого flow blocks;
@@ -355,8 +366,9 @@ Acceptance criteria первого этапа:
 
 - сообщение проходит весь путь от chat input до rich response;
 - Master вызывает только `full_company_check` и не более одного раза;
-- invalid INN, unknown tool, timeout и `CompanyNotFound` становятся typed error
-  result, а не необработанным exception;
+- invalid INN, unknown/invalid tool proposal, timeout и `CompanyNotFound` не
+  становятся необработанным exception; очевидный валидный full-check сохраняет
+  deterministic fallback;
 - `SUCCEEDED` и `PARTIAL` корректно отражаются в ответе и UI;
 - все показанные факты и числа происходят из tool result;
 - выдуманный `fact_id` не проходит как подтверждённый evidence;
@@ -372,7 +384,8 @@ Acceptance criteria первого этапа:
 
 Не добавляй без конкретной измеримой необходимости:
 
-- LangGraph, CrewAI, AutoGen и другие orchestration frameworks;
+- raw LangGraph `StateGraph`/custom nodes, CrewAI, AutoGen и другие
+  параллельные orchestration frameworks;
 - vector DB или RAG framework без retrieval use case;
 - planner/critic/judge agents, self-reflection loops или agent swarm;
 - dynamic React/HTML generation;
@@ -440,6 +453,9 @@ entrypoints runtime, tools, contracts, chat API и тестов. Не добав
 ## Правила изменений
 
 - Делай минимальный локальный diff и не затрагивай unrelated flows.
+- Для крупных задач используй субагентов для независимого анализа, реализации
+  непересекающихся частей и regression review; заранее разделяй ownership и не
+  позволяй им одновременно менять одну архитектурную границу без координации.
 - Сохраняй границу: модель предлагает и объясняет; код получает данные,
   вычисляет, валидирует, исполняет, ограничивает и записывает.
 - Новая capability должна иметь typed schema, timeout, output limit, error

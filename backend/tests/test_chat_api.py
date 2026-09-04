@@ -99,3 +99,13 @@ def test_legacy_checks_api_contract_is_unchanged(api_client, monkeypatch, check_
     assert body["status"] == "SUCCEEDED"
     assert len(body["blocks"]) == 4
     assert "summary" in body and "grounding" in body and "llm" in body
+
+
+def test_legacy_report_and_landing_routes_are_unchanged(api_client):
+    landing = api_client.get("/")
+    report = api_client.get("/report?inn=6165169320")
+
+    assert landing.status_code == 200
+    assert "AI-аналитик" in landing.text
+    assert report.status_code == 200
+    assert "Отчёт" in report.text
