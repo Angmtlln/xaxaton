@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Отчёт о контрагенте — Альфа-Банк</title>
+<link rel="stylesheet" href="/static/styles.css">
+<link rel="icon" href="/static/favicon.svg">
+</head>
+<body>
+
+<main class="report-shell">
+  <header class="report-header">
+    <div class="report-header-inner">
+      <a class="brand brand-dark" href="/" aria-label="Альфа-Банк — поиск контрагентов">
+        <span class="brand-mark brand-mark-red" aria-hidden="true">A</span>
+        <span>
+          <b>Альфа-Банк</b>
+          <small>Проверка контрагентов</small>
+        </span>
+      </a>
+
+      <nav class="report-actions" aria-label="Действия с отчётом">
+        <a class="new-search-link" href="/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+          </svg>
+          Новый поиск
+        </a>
+        <a class="pbtn pbtn-secondary" href="/docs" target="_blank" rel="noopener">API и Swagger</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="report-layout">
+    <aside class="report-sidebar" aria-label="Разделы отчёта">
+      <a class="back-link" href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path>
+        </svg>
+        К поиску
+      </a>
+      <p class="sidebar-label">В отчёте</p>
+      <nav id="sidebar-nav">
+        <a class="active" href="#summary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>Сводка</a>
+        <a href="#signals">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+            <path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
+          </svg>Факты и сигналы</a>
+        <a href="#finance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M7 16v-5"></path>
+            <path d="M12 16V8"></path><path d="M17 16v-3"></path>
+          </svg>Цифры и динамика</a>
+        <a href="#coverage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path>
+          </svg>Полнота данных</a>
+      </nav>
+      <div class="sidebar-note">
+        <span id="mode-badge">PoC</span>
+        <p id="mode-note">Ответ строится только по данным отчёта банка. Отсутствие записей
+          не означает отсутствия факта.</p>
+      </div>
+    </aside>
+
+    <div class="report-content" id="report-content">
+      <section class="loading-stage" id="loading">
+        <span class="eyebrow">Отчёт о контрагенте</span>
+        <h1 style="margin:0;font-size:clamp(30px,3.6vw,46px);letter-spacing:-0.035em"
+            id="loading-title">Собираем отчёт</h1>
+        <div class="loading-steps">
+          <div class="loading-step" data-step="facts">
+            <span class="step-spin"></span><span>Считаем факты из карточки отчёта</span></div>
+          <div class="loading-step" data-step="agents">
+            <span class="step-spin"></span><span>Четыре агента разбирают свои блоки</span></div>
+          <div class="loading-step" data-step="summary">
+            <span class="step-spin"></span><span>Сводим блоки в один вывод</span></div>
+        </div>
+        <div class="skeleton-block"></div>
+        <div class="skeleton-block"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script src="/static/report.js"></script>
+</body>
+</html>

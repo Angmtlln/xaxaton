@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка контрагентов — Альфа-Банк</title>
+<meta name="description" content="Факты о компании, банковские оценки и объяснение каждого сигнала — в одном отчёте.">
+<link rel="stylesheet" href="/static/styles.css">
+<link rel="icon" href="/static/favicon.svg">
+</head>
+<body>
+
+<main class="landing-shell">
+  <header class="landing-header" aria-label="Шапка сервиса">
+    <a class="brand" href="/" aria-label="Альфа-Банк — на главную">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <span>
+        <b>Альфа-Банк</b>
+        <small>Бизнес</small>
+      </span>
+    </a>
+    <span class="prototype-pill">AI-прототип</span>
+  </header>
+
+  <section class="search-stage" aria-labelledby="landing-title">
+    <div class="landing-kicker">Проверка контрагентов</div>
+    <h1 id="landing-title">Узнайте, с кем ведёте бизнес</h1>
+    <p>
+      Факты о компании, банковские оценки и объяснение каждого сигнала —
+      в одном отчёте.
+    </p>
+
+    <form class="search-form" id="search-form" action="/report" method="get" aria-label="Поиск контрагента">
+      <div class="hero-search">
+        <label class="sr-only" for="company-search">ИНН юридического лица</label>
+        <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input id="company-search" name="inn" class="hero-search-input" inputmode="numeric"
+               maxlength="12" autocomplete="off" placeholder="ИНН юридического лица, 10 цифр">
+        <button class="pbtn pbtn-primary pbtn-56 hero-search-submit" type="submit"
+                aria-label="Проверить компанию">Проверить →</button>
+      </div>
+    </form>
+
+    <div class="landing-error" id="error" hidden>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>
+      </svg>
+      <span id="error-text"></span>
+    </div>
+
+    <div class="demo-chips" id="chips">
+      <span>Примеры из выгрузки</span>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <span>Только данные из отчёта банка</span>
+    <span>•</span>
+    <span>Каждый вывод со ссылкой на поле</span>
+    <span>•</span>
+    <span>Оценки банка не пересчитываем</span>
+  </footer>
+</main>
+
+<script src="/static/landing.js"></script>
+</body>
+</html>
