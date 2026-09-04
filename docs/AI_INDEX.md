@@ -8,6 +8,7 @@
 
 | Если задача про… | Сначала прочитать | Основные файлы |
 |---|---|---|
+| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `AGENTS.md`, будущие agent runtime и chat entrypoints после их появления |
 | продукт, скоуп, критерии успеха | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md), [`product_materials.md`](../product_materials.md) | `project_description.md`, `hypotheses.md` |
 | продуктовые гипотезы и приоритеты | [`hypotheses.md`](../hypotheses.md) | `product_materials.md` |
 | состав четырёх блоков анализа | [`blocks_summary_design.md`](../blocks_summary_design.md) | `backend/app/domain/facts.py`, `backend/app/llm/prompts.py` |
@@ -23,13 +24,16 @@
 ## Источники истины и свежесть
 
 1. `AGENTS.md` — обязательные рабочие правила и AI-инварианты.
-2. `docs/PROJECT_CONTEXT.md` — стабильная постановка кейса, MVP и критерии
+2. `docs/AGENT_FIRST_ARCHITECTURE.md` — целевая agent-first архитектура и
+   порядок развития продукта; она не доказывает, что перечисленные компоненты
+   уже реализованы.
+3. `docs/PROJECT_CONTEXT.md` — стабильная постановка кейса, MVP и критерии
    успеха.
-3. Исполняемый код и тесты — источник истины о текущей реализации.
-4. `backend/README.md` — операционные команды и обзор backend.
-5. `project_description.md` — подробный промежуточный снимок состояния на
+4. Исполняемый код и тесты — источник истины о текущей реализации.
+5. `backend/README.md` — операционные команды и обзор backend.
+6. `project_description.md` — подробный промежуточный снимок состояния на
    03.09.2026; числовые результаты и план в нём могут устаревать.
-6. `product_materials.md`, `hypotheses.md`, `blocks_summary_design.md` —
+7. `product_materials.md`, `hypotheses.md`, `blocks_summary_design.md` —
    обоснование продуктовых решений; это не runtime-документация.
 
 При расхождении документа с кодом не молча выбирай одну версию: проверь тесты,
