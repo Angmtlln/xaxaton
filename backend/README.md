@@ -35,7 +35,7 @@ POST /api/v1/checks {"inn": "..."}
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # положите GROQ_API_KEY
+cp .env.example .env          # положите POLZA_API_KEY и GROQ_API_KEY
 
 docker compose up -d db                                  # PostgreSQL 16
 python scripts/load_snapshot.py --create-schema \
@@ -76,13 +76,18 @@ curl -X POST http://localhost:8000/api/v1/chat/messages \
 
 Runtime принимает полную проверку и узкие финансовые/юридические вопросы.
 Передайте `conversation_id` из предыдущего ответа, чтобы использовать активную
-компанию без повторного ИНН. На turn допускаются два model steps и один domain tool call. Master Agent использует официальный `ChatGroq`; без ключа или при ошибке
-native tool calling runtime переходит на deterministic fallback. Сам
-`run_check()` и его доменные LLM-вызовы не переписаны.
+компанию без повторного ИНН. На turn допускаются два model steps и один domain
+tool call. По умолчанию Master использует стандартный `ChatOpenAI` с
+OpenAI-compatible API Polza и моделью `z-ai/glm-5.3-flash`;
+`MASTER_PROVIDER=groq` оставляет прежний `ChatGroq` как альтернативу. Выбор
+provider/model фиксируется при создании conversation и не меняется внутри
+process-local thread. Без ключа выбранного Master provider или при ошибке native
+tool calling runtime переходит на deterministic fallback. Сам `run_check()` и
+его доменные Groq-вызовы не переписаны.
 LangGraph устанавливается транзитивно через LangChain; LangSmith tracing и API
 key для запуска не требуются.
 
-Без базы и без ключа Groq — тот же конвейер прямо по файлу выгрузки:
+Без базы и без LLM-ключей — тот же конвейер прямо по файлу выгрузки:
 
 ```bash
 LLM_MOCK=true python scripts/demo_offline.py --inn 6165169320
@@ -91,7 +96,8 @@ LLM_MOCK=true python scripts/demo_offline.py --inn 6165169320
 ## Модели
 
 Сам `run_check()` делает пять вызовов: четыре блочных агента параллельно и один
-Summary-LLM поверх их ответов. Chat flow добавляет выбор tool и финальный шаг Master, если Groq доступен;
+Summary-LLM поверх их ответов. Chat flow добавляет выбор tool и финальный шаг
+Master, если доступен выбранный Master provider;
 в mock-режиме routing детерминированный. Targeted finance/legal читают только
 snapshot и нужный builder, не вызывая полный pipeline и доменные LLM.
 Подробнее: [multi-turn chat](../docs/MULTI_TURN_CHAT.md).
@@ -99,7 +105,7 @@ snapshot и нужный builder, не вызывая полный pipeline и �
 
 | Роль | Модель | Почему |
 |---|---|---|
-| Master | `openai/gpt-oss-20b` | native tool call, затем grounded выбор findings |
+| Master | `z-ai/glm-5.3-flash` через Polza | native tool call, затем grounded выбор findings |
 | Блок «Кто это» | `openai/gpt-oss-20b` | короткий блок, младшей модели достаточно |
 | Блок «Надёжность и правовые риски» | `openai/gpt-oss-120b` | самый ответственный блок, отдаём сильнейшей модели |
 | Блок «Финансовое состояние» | `qwen/qwen3.8-27b` | устойчиво держит JSON-схему на числовых данных |
@@ -121,7 +127,18 @@ snapshot и нужный builder, не вызывая полный pipeline и �
   и только когда все модели в лимите — клиент выдерживает паузу, которую
   назвал сам Groq (`Please try again in 25.1775s`).
 
-Ключ берётся на <https://console.groq.com> и кладётся в `.env`:
+Master настраивается отдельно от доменных агентов:
+
+```dotenv
+MASTER_PROVIDER=polza
+MASTER_MODEL=z-ai/glm-5.3-flash
+POLZA_API_KEY=...
+POLZA_BASE_URL=https://polza.ai/api/v1
+```
+
+Для Master через Groq задайте `MASTER_PROVIDER=groq` и
+`MASTER_MODEL=openai/gpt-oss-20b`. `GROQ_API_KEY` по-прежнему используется
+четырьмя доменными агентами и summary:
 
 ```
 GROQ_API_KEY=gsk_...
@@ -231,7 +248,8 @@ backend/
     agent/langchain_tools.py  LangChain adapter над domain Tool Registry
     agent/prompt.py       versioned prompt native tool calling
     agent/tools.py        registry и wrapper full_company_check → run_check()
-    agent/runtime.py      create_agent, ChatGroq, budgets, timeout и fallback
+    agent/runtime.py      provider-neutral create_agent, budgets, timeout и fallback
+    agent/master_model.py фабрика ChatOpenAI/ChatGroq только для Master
     agent/response.py     deterministic ToolResult → rich UI adapter
     main.py              FastAPI и Swagger
     pipeline.py          один проход: факты → 4 агента → summary → запись

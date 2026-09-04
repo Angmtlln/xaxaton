@@ -45,7 +45,7 @@
 POST /api/v1/chat/messages
   -> MasterAgentRuntime
   -> LangChain create_agent / LangGraph runtime
-  -> ChatGroq native tool call
+  -> configured Master adapter (Polza/ChatOpenAI or Groq/ChatGroq)
   -> LangChain StructuredTool adapter
   -> ToolRegistry: full_company_check | get_financial_data | get_legal_data
   -> run_check() | build_finance() | build_reliability()
@@ -157,8 +157,10 @@ npm run dev
   lifecycle сессий (30 минут бездействия, 100 диалогов, последние 6 turns).
 - `backend/app/agent/finance.py`, `legal.py`: targeted snapshot adapters;
   `targeted_models.py`: framework-agnostic контракты и MasterSynthesis.
-- `runtime.py`, `langchain_tools.py`, `prompt.py`: 2 model steps, 1 domain call,
-  recursion limit 12; неверный routing использует очевидный deterministic fallback.
+- `runtime.py`, `master_model.py`, `langchain_tools.py`, `prompt.py`: provider-neutral
+  `create_agent`, выбранный при создании conversation Master provider/model,
+  2 model steps, 1 domain call, recursion limit 12; неверный routing использует
+  очевидный deterministic fallback.
 - `response.py`: строгая связь evidence с фактами, hydration verified data,
   обязательные findings и gaps независимо от выбора модели; отдельный
   `leading_artifact` только для full check, conversational `message` и

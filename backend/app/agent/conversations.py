@@ -6,7 +6,7 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 from langchain.agents import AgentState
 from langgraph.checkpoint.memory import InMemorySaver
@@ -32,7 +32,7 @@ class _Lease:
 
 
 class ConversationStore:
-    """Only leases live here; messages/company are held by InMemorySaver."""
+    """Leases and immutable per-thread model bindings around InMemorySaver."""
 
     def __init__(self, *, ttl_s: float = 1800, max_conversations: int = 100,
                  max_turns: int = 6):
@@ -43,7 +43,12 @@ class ConversationStore:
         self.max_turns = max_turns
         self.checkpointer = InMemorySaver()
         self._leases: dict[str, _Lease] = {}
+        self._master_models: dict[str, Any] = {}
         self._lock = asyncio.Lock()
+
+    def pin_master_model(self, conversation_id: str, binding: Any) -> Any:
+        """Keep the model/provider chosen for the first turn for this thread."""
+        return self._master_models.setdefault(conversation_id, binding)
 
     @asynccontextmanager
     async def session(self, conversation_id: Optional[str] = None):
@@ -54,6 +59,7 @@ class ConversationStore:
             for key in expired:
                 await self.checkpointer.adelete_thread(key)
                 del self._leases[key]
+                self._master_models.pop(key, None)
             if conversation_id is not None:
                 lease = self._leases.get(conversation_id)
                 if lease is None:
@@ -67,6 +73,7 @@ class ConversationStore:
                     _, evicted = min(idle)
                     await self.checkpointer.adelete_thread(evicted)
                     del self._leases[evicted]
+                    self._master_models.pop(evicted, None)
                 conversation_id = str(uuid.uuid4())
                 lease = _Lease(touched=now)
                 self._leases[conversation_id] = lease

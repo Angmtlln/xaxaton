@@ -15,12 +15,12 @@ from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitM
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.outputs import ChatResult
-from langchain_groq import ChatGroq
 
 from app.config import Settings
 from app.llm.groq_client import GroqClient
 from .conversations import ConversationStore, ConversationState, UnknownConversation, ConversationCapacityError
 from .langchain_tools import LangChainToolExecution, build_langchain_tools
+from .master_model import build_master_model
 from .models import CompanyRef, is_valid_inn
 from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
@@ -55,7 +55,8 @@ class MasterAgentRuntime:
     def __init__(self, *, model: Optional[BaseChatModel], model_name: Optional[str],
                  registry: ToolRegistry, tool_context: ToolContext,
                  model_timeout_s: float, run_timeout_s: float,
-                 conversation_store: Optional[ConversationStore] = None):
+                 conversation_store: Optional[ConversationStore] = None,
+                 model_provider: Optional[str] = None):
         self.model = model
         self.model_name = model_name
         self.registry = registry
@@ -63,6 +64,7 @@ class MasterAgentRuntime:
         self.model_timeout_s = model_timeout_s
         self.run_timeout_s = run_timeout_s
         self.conversation_store = conversation_store or ConversationStore()
+        self.model_provider = model_provider or ("local" if model is None else "custom")
 
     async def run(self, message: str, conversation_id: Optional[str] = None):
         run_id, started = str(uuid.uuid4()), time.perf_counter()
@@ -70,7 +72,7 @@ class MasterAgentRuntime:
         log.info("agent_run_queued run_id=%s conversation_id=%s model=%s provider=%s "
                  "prompt_version=%s tool_bundle_version=%s model_limit=%s tool_limit=%s "
                  "recursion_limit=%s timeout_s=%s", run_id, conversation_id, self.model_name,
-                 "groq" if isinstance(self.model, ChatGroq) else "local",
+                 self.model_provider,
                  MASTER_PROMPT_VERSION, TOOL_BUNDLE_VERSION, MAX_MODEL_CALLS,
                  MAX_TOOL_CALLS, GRAPH_RECURSION_LIMIT, self.run_timeout_s)
         try:
@@ -80,7 +82,12 @@ class MasterAgentRuntime:
                     stack.enter_async_context(self.conversation_store.session(conversation_id)),
                     timeout=max(0, deadline - time.monotonic()),
                 )
-                return await self._run_conversation(message, cid, run_id, started, deadline)
+                binding = self.conversation_store.pin_master_model(
+                    cid, (self.model, self.model_name, self.model_provider)
+                )
+                return await self._run_conversation(
+                    message, cid, run_id, started, deadline, binding
+                )
         except asyncio.TimeoutError:
             # Admission timed out: do not create a turn or overwrite the active run.
             response = runtime_timeout_response(run_id, started, tool_calls=0)
@@ -108,11 +115,12 @@ class MasterAgentRuntime:
                      int((time.perf_counter() - started) * 1000))
             return response
 
-    async def _run_conversation(self, message, cid, run_id, started, deadline):
+    async def _run_conversation(self, message, cid, run_id, started, deadline, binding):
+        model, model_name, model_provider = binding
         execution = LangChainToolExecution()
         config = {"configurable": {"thread_id": cid}, "recursion_limit": GRAPH_RECURSION_LIMIT}
         # Same create_agent state schema/checkpointer for online and offline paths.
-        state_agent = create_agent(model=self.model or _OfflineStateModel(), tools=[],
+        state_agent = create_agent(model=model or _OfflineStateModel(), tools=[],
                                    state_schema=ConversationState,
                                    checkpointer=self.conversation_store.checkpointer)
         previous = (await state_agent.aget_state(config)).values
@@ -123,8 +131,8 @@ class MasterAgentRuntime:
         target = requested_tool(message)
         log.info("agent_run_started run_id=%s conversation_id=%s model=%s provider=%s "
                  "prompt_version=%s tool_bundle_version=%s tools_visible=%s inn=%s "
-                 "model_limit=%s tool_limit=%s remaining_ms=%s", run_id, cid, self.model_name,
-                 "groq" if isinstance(self.model, ChatGroq) else "local",
+                 "model_limit=%s tool_limit=%s remaining_ms=%s", run_id, cid, model_name,
+                 model_provider,
                  MASTER_PROMPT_VERSION, TOOL_BUNDLE_VERSION, [target] if target else [], inn,
                  MAX_MODEL_CALLS, MAX_TOOL_CALLS, max(0, int((deadline - time.monotonic()) * 1000)))
         response, result = None, None
@@ -133,7 +141,8 @@ class MasterAgentRuntime:
         else:
             try:
                 response = await asyncio.wait_for(
-                    self._execute(message, inn, target, run_id, started, execution, config),
+                    self._execute(message, inn, target, run_id, started, execution, config,
+                                  model, model_name),
                     timeout=max(0, deadline - time.monotonic()),
                 )
             except asyncio.TimeoutError:
@@ -162,11 +171,12 @@ class MasterAgentRuntime:
                  int((time.perf_counter() - started) * 1000), execution.input_tokens, execution.output_tokens)
         return response
 
-    async def _execute(self, message, inn, target, run_id, started, execution, config):
+    async def _execute(self, message, inn, target, run_id, started, execution, config,
+                       model, model_name):
         synthesis = None
-        if self.model is not None:
+        if model is not None:
             agent = create_agent(
-                model=self.model,
+                model=model,
                 tools=build_langchain_tools(self.registry, self.tool_context,
                     agent_run_id=run_id, expected_inn=inn, execution=execution, expected_tool=target),
                 system_prompt=MASTER_SYSTEM_PROMPT + "\nДоверенный контекст текущего запроса: ИНН " + inn,
@@ -201,7 +211,7 @@ class MasterAgentRuntime:
         response = tool_result_to_assistant(
             execution.result, agent_run_id=run_id,
             routing="deterministic_fallback" if execution.used_fallback else "model",
-            model=self.model_name, started=started, synthesis=synthesis,
+            model=model_name, started=started, synthesis=synthesis,
             question=message,
         )
         return response
@@ -278,39 +288,12 @@ def requested_tool(message: str) -> Optional[str]:
 
 def build_master_runtime(settings: Settings, client: GroqClient, *, persist: bool = True,
                          conversation_store: Optional[ConversationStore] = None) -> MasterAgentRuntime:
-    model = build_master_model(settings) if client.enabled else None
-    return MasterAgentRuntime(model=model, model_name=settings.groq_master_model if model else None,
+    model = build_master_model(settings)
+    return MasterAgentRuntime(model=model, model_name=settings.master_model_name() if model else None,
         registry=build_tool_registry(settings), tool_context=ToolContext(settings=settings, client=client, persist=persist),
         model_timeout_s=settings.agent_model_timeout_s, run_timeout_s=settings.agent_run_timeout_s,
-        conversation_store=conversation_store)
-
-
-def build_master_model(settings: Settings) -> Optional[BaseChatModel]:
-    if settings.llm_mock or not settings.groq_api_key:
-        return None
-    reasoning = {}
-    if "gpt-oss" in settings.groq_master_model:
-        reasoning["reasoning_format"] = "hidden"
-        if settings.groq_reasoning_effort:
-            reasoning["reasoning_effort"] = settings.groq_reasoning_effort
-    return ChatGroq(
-        model=settings.groq_master_model,
-        api_key=settings.groq_api_key,
-        base_url=_groq_sdk_base_url(settings.groq_base_url),
-        temperature=0.0,
-        max_tokens=settings.agent_router_max_tokens,
-        timeout=settings.agent_model_timeout_s,
-        max_retries=0,
-        model_kwargs={"parallel_tool_calls": False},
-        **reasoning,
-    )
-
-
-def _groq_sdk_base_url(value: str) -> str:
-    """Groq SDK сам добавляет /openai/v1 к корневому base URL."""
-    normalized = value.rstrip("/")
-    suffix = "/openai/v1"
-    return normalized[:-len(suffix)] if normalized.endswith(suffix) else normalized
+        conversation_store=conversation_store,
+        model_provider=settings.master_provider if model else "local")
 
 
 def inspect_request(message: str) -> Tuple[Optional[str], Optional[str]]:

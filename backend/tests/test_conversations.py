@@ -9,9 +9,11 @@ from app.agent.conversations import ConversationStore, UnknownConversation, Conv
 async def test_ttl_expiration_and_capacity_eviction():
     store = ConversationStore(ttl_s=.01, max_conversations=1)
     async with store.session() as (first, _):
-        pass
+        store.pin_master_model(first, "first-model")
     async with store.session() as (second, _):
-        pass
+        store.pin_master_model(second, "second-model")
+    assert first not in store._master_models
+    assert store._master_models[second] == "second-model"
     with pytest.raises(UnknownConversation):
         async with store.session(first):
             pass
@@ -19,6 +21,7 @@ async def test_ttl_expiration_and_capacity_eviction():
     with pytest.raises(UnknownConversation):
         async with store.session(second):
             pass
+    assert second not in store._master_models
 
 
 @pytest.mark.asyncio

@@ -146,6 +146,7 @@ cd backend
 node --check static/landing.js
 node --check static/report.js
 .venv/bin/python scripts/smoke_multiturn.py --base-url http://localhost:8000 --pause-seconds 60
+.venv/bin/python scripts/smoke_polza_master.py --base-url http://localhost:8000
 ```
 
 Live smoke требует PostgreSQL и настоящий ChatGroq. Проверяет одну active company,
@@ -154,6 +155,13 @@ Live smoke требует PostgreSQL и настоящий ChatGroq. Прове�
 общем TPM-лимите провайдера; runtime не добавляет автоматических повторов.
 `PARTIAL` при неполной карточке допустим. Provider `429` сохраняет факты через
 fallback, но строгий live smoke в таком случае завершится ошибкой.
+
+`smoke_polza_master.py` отдельно проверяет text completion и JSON Schema
+structured output напрямую через Polza, затем пять conversation turns из
+acceptance-сценария. Tool turns 1, 2 и 5 считаются provider-pass только при
+`routing=model`, двух model steps и одном tool call. Turns 3–4 выводятся отдельно:
+baseline `cf29da6` ещё не умеет свободные no-tool объяснения, и этот provider-only
+этап намеренно не меняет synthesis/conversation architecture.
 
 Основные тесты: `test_agent_runtime.py`, `test_agent_multiturn.py`,
 `test_conversations.py`, `test_financial_capability.py`, `test_legal_capability.py`,

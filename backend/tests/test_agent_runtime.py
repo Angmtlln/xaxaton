@@ -412,9 +412,10 @@ async def test_registry_enforces_result_size_limit(monkeypatch, check_payload):
 def test_chat_groq_factory_preserves_master_settings_without_network_call():
     settings = Settings(
         llm_mock=False,
+        master_provider="groq",
+        master_model="openai/gpt-oss-20b",
         groq_api_key="test-key",
         groq_base_url="https://api.groq.com/openai/v1",
-        groq_master_model="openai/gpt-oss-20b",
         groq_reasoning_effort="low",
         agent_router_max_tokens=321,
         agent_model_timeout_s=7,
