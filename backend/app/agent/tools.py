@@ -16,34 +16,52 @@ from app.llm.groq_client import GroqClient
 from app.pipeline import CompanyNotFound, run_check
 
 from .models import (Evidence, FullCheckCompany, FullCheckCoverage,
-                     FullCheckGrounding, FullCheckSummary, FullCompanyCheckArgs,
-                     FullCompanyCheckData, ToolError, ToolFact, ToolFreshness,
-                     ToolResult, ToolResultMetadata, contains_unsafe_markup)
+                     FullCompanyCheckArgs, FullCompanyCheckData, PolicySignal,
+                     ToolError, ToolFact, ToolFreshness, ToolResult,
+                     ToolResultMetadata)
 
 log = logging.getLogger(__name__)
 
 
-PRESENTATION_FACT_IDS = (
-    "company.name",
-    "company.inn",
-    "company.status",
-    "company.age_years",
-    "bank.risk_level",
-    "bank.zsk_level",
-    "flags.hard_stop_codes",
-    "flags.attention_codes",
+FULL_CHECK_METRIC_IDS = (
     "execproc.active_count",
     "execproc.active_amount",
     "court.defendant_count",
     "court.defendant_amount",
-    "fin.series",
+    "court.plaintiff_count",
+    "court.plaintiff_amount",
+    "inspections.violations_count",
     "fin.proceeds_last",
     "fin.profit_last",
     "fin.proceeds_change_pct",
+    "fin.capitals_last",
+    "fin.capital_share_pct",
+    "fin.payables_to_proceeds_pct",
     "fin.negative_capitals",
     "procurement.contracts_signed",
     "positive.count",
 )
+
+FULL_CHECK_SERIES_IDS = ("fin.series",)
+FULL_CHECK_EVENT_IDS = ("court.by_year", "execproc.recent_active")
+FULL_CHECK_STATUS_IDS = ("company.status", "bank.risk_level", "bank.zsk_level")
+FULL_CHECK_POLICY_IDS = (
+    "flags.hard_stop_codes",
+    "flags.attention_codes",
+    "bank.risk_level",
+    "bank.zsk_level",
+)
+
+PRESENTATION_FACT_IDS = tuple(dict.fromkeys((
+    "company.name",
+    "company.inn",
+    "company.age_years",
+    *FULL_CHECK_METRIC_IDS,
+    *FULL_CHECK_SERIES_IDS,
+    *FULL_CHECK_EVENT_IDS,
+    *FULL_CHECK_STATUS_IDS,
+    *FULL_CHECK_POLICY_IDS,
+)))
 
 
 @dataclass(frozen=True)
@@ -279,26 +297,35 @@ def _compact_check(check: CheckResponse) -> tuple[FullCompanyCheckData, List[Evi
     }
     company_payload["years_from_registration"] = check.company.years_from_registration
 
-    summary_points = [
-        text for text in (_safe_model_text(item, 500) for item in check.summary.narrative_points)
-        if text
-    ][:3]
-    summary = FullCheckSummary(
-        verdict_group=check.summary.verdict_group,
-        headline=_safe_model_text(check.summary.headline, 300),
-        narrative_points=summary_points,
-        data_gaps=[
-            _clean_text(item, 500) for item in check.summary.data_gaps
-            if item and not contains_unsafe_markup(item)
-        ][:8],
-        questions_to_ask=[
-            _clean_text(item, 500) for item in check.summary.questions_to_ask
-            if item and not contains_unsafe_markup(item)
-        ][:8],
-    )
+    policy_kinds = {
+        "flags.hard_stop_codes": "official_hard_stop",
+        "flags.attention_codes": "source_attention",
+        "bank.risk_level": "bank_risk_status",
+        "bank.zsk_level": "zsk_status",
+    }
+    policy_signals = []
+    for fact_id in FULL_CHECK_POLICY_IDS:
+        fact = facts.get(fact_id)
+        if fact is None or fact.value in (None, "", [], {}):
+            continue
+        policy_signals.append(PolicySignal(
+            id=fact.id,
+            kind=policy_kinds[fact.id],
+            label=fact.label,
+            value=fact.value,
+            evidence_ids=[fact.id],
+        ))
+
+    if check.coverage.filled_blocks == 0:
+        availability = "NO_DATA"
+    elif check.status == "PARTIAL" or check.coverage.empty_blocks:
+        availability = "PARTIAL"
+    else:
+        availability = "DATA"
     data = FullCompanyCheckData(
         check_run_id=check.run_id,
         pipeline_status=check.status,
+        availability=availability,
         inn=check.inn,
         company=FullCheckCompany.model_validate(company_payload),
         coverage=FullCheckCoverage(
@@ -307,10 +334,12 @@ def _compact_check(check: CheckResponse) -> tuple[FullCompanyCheckData, List[Evi
             coverage_pct=check.coverage.coverage_pct,
             empty_blocks=[_clean_text(item, 240) for item in check.coverage.empty_blocks],
         ),
-        summary=summary,
         facts=facts,
-        grounding=FullCheckGrounding.model_validate(check.grounding.model_dump()),
-        llm_mode=_clean_text(check.llm.mode, 80),
+        metric_ids=[fact_id for fact_id in FULL_CHECK_METRIC_IDS if fact_id in facts],
+        series_ids=[fact_id for fact_id in FULL_CHECK_SERIES_IDS if fact_id in facts],
+        event_ids=[fact_id for fact_id in FULL_CHECK_EVENT_IDS if fact_id in facts],
+        status_ids=[fact_id for fact_id in FULL_CHECK_STATUS_IDS if fact_id in facts],
+        policy_signals=policy_signals,
         calculator_version=_clean_text(check.llm.calculator_version, 120),
     )
     return data, evidence
@@ -365,19 +394,6 @@ def _evidence_from_fact(fact: ToolFact) -> Evidence:
         display_value=display_fact_value(fact),
         unit=fact.unit,
     )
-
-
-def _safe_model_text(value: Optional[str], limit: int) -> str:
-    """В rich UI допускается интерпретация модели, но не сгенерированные числа/markup."""
-    forbidden_markers = ("report.", "field_ref", "fact_id", "```", "{", "}")
-    if (
-        not value
-        or contains_unsafe_markup(value)
-        or any(char.isdigit() for char in value)
-        or any(marker in value.lower() for marker in forbidden_markers)
-    ):
-        return ""
-    return _clean_text(value.strip(), limit)
 
 
 def _clean_optional(value: object, limit: int) -> Optional[str]:

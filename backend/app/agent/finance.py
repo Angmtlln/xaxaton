@@ -11,8 +11,8 @@ from app.pipeline import CompanyNotFound
 
 from .models import (FullCheckCompany, FullCompanyCheckArgs, ToolFact,
                      ToolFreshness, ToolResult, ToolResultMetadata)
-from .targeted_models import TargetedData, TargetedFinding
-from .tools import ToolContext, _clean_text, _evidence_from_fact, display_fact_value
+from .targeted_models import TargetedData
+from .tools import ToolContext, _clean_text, _evidence_from_fact
 
 
 FIELDS = {
@@ -111,7 +111,6 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
         field_ref="report.finReports[]", source="computed", unit="руб",
     )
     metrics = []
-    findings = []
     if series:
         last = series[-1]
         for key, (label, _) in FIELDS.items():
@@ -119,13 +118,6 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
             metrics.append(fact_id)
             if last[key] is None:
                 gaps.append("%s за последний доступный год отсутствует в карточке." % label)
-        present = [facts[fid] for fid in metrics if facts[fid].value is not None]
-        if present:
-            findings.append(TargetedFinding(
-                id="finance.latest", title="Последняя доступная отчётность",
-                text="; ".join("%s: %s" % (fact.label, display_fact_value(fact)) for fact in present) + ".",
-                evidence_ids=[fact.id for fact in present],
-            ))
         if any(row["proceeds"] is None or row["profit"] is None for row in series):
             gaps.append("В финансовом ряду есть пропуски выручки или прибыли; они не заменены нулями.")
         if len(series) >= 2 and series[-2]["year"] + 1 == last["year"]:
@@ -141,33 +133,12 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
                         unit="%", source="computed",
                     )
                     metrics.append(fact_id)
-                    findings.append(TargetedFinding(
-                        id="finance.revenue_trend", title="Динамика выручки",
-                        text="Изменение выручки между %s и %s годами: %s. Динамика сама по себе не определяет условия сделки."
-                             % (prev["year"], last["year"], display_fact_value(facts[fact_id])),
-                        evidence_ids=[fact_id] + refs,
-                        required=change < 0,
-                    ))
                 else:
                     gaps.append("Динамика выручки не рассчитана: значения выходят за поддерживаемый диапазон.")
             else:
                 gaps.append("Динамика выручки не рассчитана: отсутствует значение или базовая выручка равна нулю.")
         else:
             gaps.append("Для годовой динамики нужны два последовательных года отчётности.")
-        losses = [row for row in series if row["profit"] is not None and row["profit"] < 0]
-        if losses:
-            findings.append(TargetedFinding(
-                id="finance.loss", title="Убыточные годы",
-                text="В доступной отчётности есть убыток за годы: %s. Причины убытка требуют уточнения."
-                     % ", ".join(str(row["year"]) for row in losses),
-                evidence_ids=["fin.profit.%s" % row["year"] for row in losses], required=True,
-            ))
-        if last["capitals"] is not None and last["capitals"] < 0:
-            findings.append(TargetedFinding(
-                id="finance.negative_capital", title="Отрицательный собственный капитал",
-                text="Собственный капитал в последнем доступном году отрицателен. Нужны пояснения и актуальная отчётность.",
-                evidence_ids=["fin.capitals.%s" % last["year"]], required=True,
-            ))
     has_values = any(row[key] is not None for row in series for key in FIELDS)
     if not has_values:
         gaps.insert(0, "NO_DATA: невозможно оценить финансовое состояние по доступным данным.")
@@ -180,5 +151,6 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
     return TargetedData(
         domain="finance", company=FullCheckCompany(inn=inn, **company_values),
         availability="NO_DATA" if not has_values else ("PARTIAL" if gaps else "DATA"),
-        facts=facts, metric_ids=metrics, findings=findings, gaps=gaps,
+        facts=facts, metric_ids=metrics,
+        series_ids=["fin.series"] if series else [], gaps=gaps,
     )

@@ -11,10 +11,10 @@ from app.domain.facts import CALCULATOR_VERSION, build_reliability
 from app.mongo import as_float, parse_date
 from app.pipeline import CompanyNotFound, _company_card
 
-from .models import (FullCheckCompany, FullCompanyCheckArgs, ToolFact,
-                     ToolFreshness, ToolResult, ToolResultMetadata)
-from .targeted_models import TargetedData, TargetedFinding
-from .tools import ToolContext, _clean_text, _evidence_from_fact, display_fact_value
+from .models import (FullCheckCompany, FullCompanyCheckArgs, PolicySignal,
+                     ToolFact, ToolFreshness, ToolResult, ToolResultMetadata)
+from .targeted_models import TargetedData
+from .tools import ToolContext, _clean_text, _evidence_from_fact
 
 
 METRIC_IDS = (
@@ -232,30 +232,14 @@ async def execute_legal_data(context: ToolContext, args: BaseModel) -> ToolResul
         if index[fact_id].value:
             keep(fact_id)
 
-    findings: list[TargetedFinding] = []
-    for fact_id, title in (("flags.hard_stop_codes", "Стоп-факторы источника"),
-                           ("flags.attention_codes", "Метки источника для уточнения")):
+    policy_signals: list[PolicySignal] = []
+    for fact_id, kind in (("flags.hard_stop_codes", "official_hard_stop"),
+                          ("flags.attention_codes", "source_attention")):
         fact = facts.get(fact_id)
         if fact is not None:
-            meanings = "; ".join(item["meaning"] for item in fact.value)
-            findings.append(TargetedFinding(
-                id=fact_id, title=title,
-                text="Источник содержит метки: %s. Их актуальность необходимо проверить до сделки." % meanings,
-                evidence_ids=[fact_id], required=fact_id == "flags.hard_stop_codes",
-            ))
-    for fact_id, title in (
-        ("court.defendant_count", "Участие в судах в роли ответчика"),
-        ("court.plaintiff_count", "Участие в судах в роли истца"),
-        ("court.common_count", "Судебная сводка источника"),
-        ("execproc.active_count", "Действующие исполнительные производства"),
-        ("inspections.violations_count", "Результаты надзорных проверок"),
-    ):
-        fact = facts.get(fact_id)
-        if fact is not None:
-            findings.append(TargetedFinding(
-                id=fact_id, title=title,
-                text="%s: %s. Показатель относится только к доступной карточке." % (fact.label, display_fact_value(fact)),
-                evidence_ids=[fact_id],
+            policy_signals.append(PolicySignal(
+                id=fact.id, kind=kind, label=fact.label, value=fact.value,
+                evidence_ids=[fact.id],
             ))
 
     availability = "NO_DATA" if not facts else ("PARTIAL" if gaps else "DATA")
@@ -269,7 +253,7 @@ async def execute_legal_data(context: ToolContext, args: BaseModel) -> ToolResul
     data = TargetedData(
         domain="legal", company=company, availability=availability, facts=facts,
         metric_ids=[item for item in METRIC_IDS if item in facts][:8],
-        findings=findings, gaps=gaps[:10],
+        policy_signals=policy_signals, gaps=gaps[:10],
     )
     return ToolResult(
         status="success" if availability == "DATA" else "partial",

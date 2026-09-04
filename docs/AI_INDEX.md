@@ -49,9 +49,11 @@ POST /api/v1/chat/messages
   -> LangChain StructuredTool adapter
   -> ToolRegistry: full_company_check | get_financial_data | get_legal_data
   -> run_check() | build_finance() | build_reliability()
-  -> compact ToolResult -> Master synthesis (выбор наблюдений и артефакта)
+  -> normalized ToolResult: metrics / series / events / statuses / policy / evidence
+  -> естественный ответ Master + необязательный allowlisted artifact
+  -> bounded grounding verifier -> одна repair-попытка -> conservative fallback
   -> backend hydration AssistantResponse
-  -> InMemorySaver: bounded messages + active_company по conversation_id
+  -> InMemorySaver: bounded messages + отдельный trusted_context по conversation_id
   -> allowlisted UIBlock renderer
 
 ИНН
@@ -88,11 +90,13 @@ POST /api/v1/chat/messages
 - реализованы agent-first чат, legacy-отчёт, диаграммы и паспорт полноты;
 - реализован conversation-first full check: сообщение с одним валидным ИНН,
   LangChain `create_agent` + underlying LangGraph, `full_company_check`,
-  post-tool synthesis и backend hydration; компактный `company_summary`
+  естественный post-tool ответ Master, bounded grounding verifier и backend
+  hydration; компактный `company_summary`
   перед основным сообщением, выборочные артефакты и свёрнутые источники;
 - отдельный React/Vinext-прототип содержит моковый интерфейс;
 - реализованы multi-turn context в InMemorySaver, одна active_company, targeted
-  finance/legal без полного pipeline и второй шаг Master с выбором grounded findings;
+  finance/legal без полного pipeline, отдельный trusted context и контекстные
+  follow-up без повторного tool call;
 - persistent history в БД, name resolution, comparison, deal risk и streaming не реализованы;
 - сравнение нескольких контрагентов, банковские интеграции и большая база не
   относятся к готовому текущему проходу.
@@ -154,22 +158,26 @@ npm run dev
 ## Multi-turn entrypoints и проверки
 
 - `backend/app/agent/conversations.py`: LangChain AgentState, InMemorySaver и
-  lifecycle сессий (30 минут бездействия, 100 диалогов, последние 6 turns).
+  lifecycle сессий (30 минут бездействия, 100 диалогов, последние 6 turns),
+  отдельно bounded messages, trusted tool context и условия сделки.
 - `backend/app/agent/finance.py`, `legal.py`: targeted snapshot adapters;
-  `targeted_models.py`: framework-agnostic контракты и MasterSynthesis.
+  `targeted_models.py`: framework-agnostic контракты нормализованных данных.
 - `runtime.py`, `master_model.py`, `langchain_tools.py`, `prompt.py`: provider-neutral
   `create_agent`, выбранный при создании conversation Master provider/model,
-  2 model steps, 1 domain call, recursion limit 12; неверный routing использует
-  очевидный deterministic fallback.
+  до 5 model calls, 1 domain call, recursion limit 12; неверный routing использует
+  ограниченный deterministic fallback.
 - `response.py`: строгая связь evidence с фактами, hydration verified data,
-  обязательные findings и gaps независимо от выбора модели; отдельный
-  `leading_artifact` только для full check, conversational `message` и
-  выборочные `blocks`. Узкие ответы не повторяют карточку компании.
-- `backend/app/agent/synthesis.py`: общий каталог grounded observations для
-  post-tool контекста и hydration; проверка evidence и ограниченный выбор
-  наблюдений/артефакта с безопасным fallback.
+  deterministic policy-блоки, отдельный `leading_artifact` только для full
+  check, conversational `message` Master и выборочные `blocks`. Узкие ответы
+  не повторяют карточку компании.
+- `backend/app/agent/synthesis.py`: нормализация metrics, series, events,
+  statuses, coverage, policy и evidence для Master и trusted context.
+- `backend/app/agent/grounding.py`: узкая проверка company-specific утверждений,
+  точные URL/ИНН/ОГРН и максимум одна repair-попытка.
 - `tests/test_agent_multiturn.py`, `tests/test_agent_runtime.py`: routing, state,
-  второй model step, budgets и fallback.
+  tool/result turns, budgets и fallback.
+- `tests/test_grounding_behavior.py`: естественное рассуждение, подмена факта в
+  истории, неизвестные URL/идентификаторы, repair/fallback и rewrite fast path.
 - `tests/test_financial_capability.py`, `tests/test_legal_capability.py`,
   `tests/test_targeted_response.py`, `tests/test_chat_api.py`: данные, grounding и API.
 - Клиент `backend/static/landing.js` передаёт conversation_id и сохраняет текущий

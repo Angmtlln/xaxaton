@@ -9,8 +9,8 @@ from typing import Dict, List, Optional
 
 from langchain_core.tools import StructuredTool
 
-from .models import FullCompanyCheckData, ToolResult
-from .synthesis import observation_findings, verified_evidence
+from .models import ToolResult
+from .synthesis import normalized_tool_context
 from .tools import ToolContext, ToolRegistry
 
 log = logging.getLogger(__name__)
@@ -63,17 +63,11 @@ def build_langchain_tools(
 
 def _observation(result: ToolResult) -> tuple[str, Dict[str, object]]:
     payload = result.model_dump(mode="json")
-    # Full-check observations omit legacy LLM prose, raw snapshot and chart rows.
-    # The artifact stays backend-owned and is not a proposed AssistantResponse.
-    if result.metadata.tool == "full_company_check" and result.status != "error":
-        data = FullCompanyCheckData.model_validate(result.data)
-        verified_evidence(data, result)
-        observation = {"tool": result.metadata.tool, "status": result.status,
-                       "findings": observation_findings(result),
-                       "empty_sections": data.coverage.empty_blocks,
-                       "available_artifacts": ["none", "metrics", "chart", "findings"],
-                       "warnings": result.warnings,
-                       "error": payload.get("error")}
-    else:
-        observation = payload
+    # The model sees normalized verified data. The full ToolResult remains a
+    # backend-owned artifact for hydration and never becomes model-authored UI.
+    observation = (
+        normalized_tool_context(result)
+        if result.status != "error"
+        else {"tool": result.metadata.tool, "status": "error", "error": payload.get("error")}
+    )
     return json.dumps(observation, ensure_ascii=False, separators=(",", ":")), payload

@@ -1,16 +1,20 @@
 # Multi-turn чат с активной компанией
 
-Сценарий работает через `/api/v1/chat/messages`:
+Основной сценарий работает через `POST /api/v1/chat/messages`:
 
-1. «Проверь контрагента 6165169320» → `full_company_check` → active company.
-2. «А что у них с финансами?» → `get_financial_data` для той же компании.
-3. «А что у них с судами?» → `get_legal_data` для той же компании.
+1. «Проверь контрагента 6165169320» → `full_company_check`.
+2. «Что с финансами?» → `get_financial_data` для активной компании.
+3. «Почему это плохо?» → ответ из уже сохранённого доверенного контекста.
+4. «Объясни проще» → переформулировка последнего подтверждённого ответа.
+5. «Насколько это критично для сделки с отсрочкой?» → интерпретация с учётом
+   пользовательского контекста сделки.
+6. «А что с судами?» → `get_legal_data` для активной компании.
+7. «Что здесь самое плохое?» → сопоставление уже полученных финансовых и
+   юридических данных без повторного полного прогона.
 
-Узкий вопрос можно задать и первым сообщением с явным ИНН. Новый явный ИНН
-меняет активную компанию только после успешного/частичного результата tool.
-Comparison, поиск по названию, deal risk, SSE и persistent history не входят
-в этот срез. Произвольные аналитические follow-up вне поддерживаемых доменов
-могут потребовать уточнения.
+Узкий вопрос можно задать первым сообщением с явным ИНН. Новый явный ИНН
+становится активным только после успешного или частичного результата tool.
+Comparison, поиск по названию, SSE и persistent history не входят в этот срез.
 
 ## API и состояние
 
@@ -20,122 +24,144 @@ Comparison, поиск по названию, deal risk, SSE и persistent histo
 {"message":"Проверь контрагента 6165169320"}
 ```
 
-Ответ дополняет существующий `AssistantResponse`:
+Сокращённый пример ответа:
 
 ```json
 {
-  "conversation_id":"<UUID из ответа>",
-  "active_company":{"inn":"6165169320","name":"<название из snapshot>"},
-  "message":"<подтверждённый ответ>",
-  "leading_artifact":null,
-  "blocks":[],
-  "evidence":[],
-  "metadata":{"model_calls":2,"tool_calls":1,"synthesis":"deterministic"}
+  "conversation_id": "<UUID>",
+  "active_company": {"inn": "6165169320", "name": "<название>"},
+  "message": "<естественный вывод Master>",
+  "leading_artifact": {"type": "company_summary", "data": {}},
+  "blocks": [],
+  "evidence": [],
+  "metadata": {
+    "model_calls": 3,
+    "tool_calls": 1,
+    "grounding_status": "verified",
+    "repair_attempts": 0
+  }
 }
 ```
 
-Продолжение:
+Продолжение передаёт полученный `conversation_id`:
 
 ```json
-{"conversation_id":"<UUID из ответа>","message":"А что у них с финансами?"}
+{
+  "conversation_id": "<UUID>",
+  "message": "Что с финансами?"
+}
 ```
 
-`ConversationState` расширяет штатный LangChain `AgentState`. Сообщения и
-`active_company` сохраняются в `InMemorySaver` по `thread_id=conversation_id`.
-`ConversationStore` управляет только временем жизни и блокировками, а не
-создаёт отдельную систему памяти: 30 минут бездействия, максимум 100 диалогов,
-последние 6 завершённых turns. Старые checkpoints удаляются после сохранения
-текущего проверенного состояния. Запросы одного диалога выполняются последовательно;
-ожидание очереди входит в общий deadline.
+`ConversationState` расширяет штатный LangChain `AgentState`. В checkpoint
+раздельно хранятся:
 
-Неизвестный/истёкший ID возвращает HTTP 200 с
+- bounded message history — только для разговорной связности;
+- `active_company`;
+- `trusted_context` — последние нормализованные результаты domain tools;
+- `user_context` — условия сделки, названные пользователем;
+- `last_topic` и статус заземления предыдущего ответа.
+
+Текст прошлых сообщений не является доверенной фактической базой. Предыдущая
+фраза модели не попадает в `trusted_context` и сама по себе не становится
+истиной.
+
+`ConversationStore` управляет TTL и блокировками: 30 минут бездействия,
+максимум 100 диалогов, последние 6 завершённых turns. Запросы одного диалога
+выполняются последовательно; ожидание входит в общий deadline. История
+process-local: перезапуск процесса её удаляет, SQL-таблиц и миграций для чата нет.
+
+Неизвестный или истёкший ID возвращает HTTP 200 с
 `metadata.error_code=unknown_conversation`, `status=needs_input`, без tools.
-Невалидный формат UUID возвращает HTTP 422. Отсутствие ID создаёт новый диалог.
-Перезапуск процесса удаляет серверные диалоги; для этого MVP нужен один worker.
-Никаких таблиц чата, SQL-изменений или миграций нет. Targeted tools только читают
-snapshot; full-check сохраняет прежний operational audit.
-
-В рабочем UI видно активную компанию. История текущего диалога (до 24 последних
-сообщений, включая сетевые ошибки) сохраняется в `sessionStorage` вкладки.
-«Новый диалог» сбрасывает клиентский контекст. Источники прошлых ответов остаются
-привязаны к соответствующему сообщению.
+Невалидный UUID возвращает HTTP 422. В UI текущий диалог сохраняется в
+`sessionStorage`; «Новый диалог» очищает клиентский контекст.
 
 ## Runtime и граница данных
 
 ```text
 message + conversation_id
   → LangChain create_agent + checkpoint
-  → Master tool proposal
+  → Master выбирает domain tool либо отвечает из trusted context
   → schema / allowlist / canonical INN / deadline
   → domain ToolResult
-  → второй model step: выбор и порядок finding_ids
-  → backend hydration AssistantResponse
+  → backend нормализует metrics / series / events / statuses / coverage
+  → Master формирует естественный ответ + необязательный allowlisted artifact
+  → отдельная LLM-проверка company-specific утверждений
+  → при ошибке: одна repair-попытка, затем conservative fallback
+  → backend гидратирует identifiers / числа / evidence / UI
   → trusted state checkpoint
 ```
 
-Лимиты на turn: 2 model calls, 1 domain tool call, recursion limit 12;
-model/tool/run timeouts остаются в `Settings`. Routing неподдерживаемого tool,
-невалидных аргументов или недоступной модели для очевидного запроса переходит
-на один deterministic call ожидаемого tool. Уже начатая capability не повторяется.
+На turn разрешён один domain tool call и не более пяти model calls. Обычный
+tool-turn использует три: routing/tool call, ответ Master и verifier. Repair
+добавляет один вызов. Контекстный follow-up обычно использует два вызова —
+ответ и verifier. Простая переформулировка последнего уже проверенного ответа
+может пропустить verifier, но строгая проверка неизвестных URL и подписанных
+ИНН/ОГРН остаётся.
 
-Synthesis намеренно ограничен: Master выбирает и упорядочивает существующие
-наблюдения из текущего `ToolResult`. Он не публикует свободный текст с новыми
-утверждениями. Backend гидратирует формулировки, company identifiers, числа,
-series, evidence и ссылки. Выдуманные IDs, дополнительные поля, markup или
-пустой выбор при наличии findings дают fallback. Required findings и data gaps
-показываются независимо от выбора Master.
+Неверный routing, невалидные аргументы, timeout или недоступная модель приводят
+к ограниченному deterministic fallback. Уже полученная capability не
+запрашивается повторно, если текущий вопрос можно закрыть из `trusted_context`.
 
-## Conversation-first ответ
+## Verified data и свободное рассуждение
 
-Полная проверка возвращает `leading_artifact` типа `company_summary`: название,
-ИНН, статус, возраст и два независимых показателя банка из проверенных фактов,
-а также локальную ссылку «Полный анализ». Backend добавляет этот блок всегда
-для успешного/частичного full check; модель не может убрать его или подставить URL.
-Схема доступна в Swagger `/docs` и `/openapi.json`.
+Domain tools не передают Master каталог готовых выводов. Их компактный контракт
+содержит проверяемые данные:
 
-Следом UI показывает основной `message`: прямой вывод, выбранные наблюдения
-с объяснением значения для проверки и предложение продолжить разговор.
-Full-check ToolResult больше не используется как готовая страница отчёта:
-второй вызов Master получает компактные структурированные наблюдения и выбирает
-их порядок и необязательный вспомогательный артефакт. Backend собирает текст
-из проверенных наблюдений; свободная генерация новых фактических утверждений
-в этом срезе по-прежнему не разрешена.
+- `metrics` — значения и единицы измерения;
+- `series` — временные ряды;
+- `events` — нормализованные события;
+- `statuses` и `coverage`;
+- `policy_signals` — только детерминированные флаги предметной области;
+- `evidence` и provenance;
+- `availability=DATA|PARTIAL|NO_DATA` и gaps.
 
-`blocks` содержат только вспомогательные артефакты, `evidence` — источники.
-Источники свёрнуты по умолчанию и относятся к конкретному ответу. На узкий
-вопрос «А что с прибылью?» возвращается `leading_artifact=null`, текст и при
-необходимости один график или блок показателей. Такой вопрос начинается со
-значения последней доступной прибыли либо явного отсутствия данных о ней;
-артефакт показывает прибыль. Смешанный вопрос о выручке или кредиторской
-задолженности вместе с прибылью сохраняет оба показателя. Старый набор из шести блоков
-не добавляется автоматически. `/report?inn=6165169320` остаётся отдельным
-подробным режимом.
+Backend владеет идентификаторами компании, значениями, ссылками, evidence,
+allowlisted UI и состояниями неполноты. Master сам выбирает существенное,
+сопоставляет наблюдения, объясняет смысл, учитывает контекст сделки и пишет
+естественный основной `message`. Его речь не ограничивается словарём готовых
+русских предложений или `finding_ids`.
 
-Изменена только схема HTTP-ответа и представление, модели хранения и SQL
-не затронуты; DB impact отсутствует, миграция не требуется.
+Детерминированными остаются только действительно предметные правила:
+официальные hard-stop/attention flags, независимые банковские `riskLevel` и
+`zskRiskLevel`, а также строгая схема/ИНН/evidence/UI-валидация. Финансовые
+коэффициенты и динамика передаются как данные, а не как backend-owned выводы.
 
-Evidence проверяется не только по существованию ID: `fact_id`, `field_ref`,
-source, display value и прочие поля должны совпасть с evidence, построенным из
-того же backend fact. UI читает результат текущего execution, не старый artifact
-из checkpoint. В trace записываются model/provider, версии prompt/tools, calls,
-безопасные аргументы, статусы, latency и доступная token usage, без reasoning.
+Grounding verifier получает черновик ответа и нормализованный контекст. Он
+проверяет только substantive company-specific утверждения: есть ли опора в
+данных и нет ли противоречия. Стиль, степень упрощения и осторожная бизнес-
+интерпретация разрешены. После одной неуспешной repair-попытки пользователь
+получает conservative fallback на проверенных данных.
+
+## Conversation-first ответ и UI
+
+Полная проверка может предварять ответ детерминированным компактным
+`company_summary`: название, ИНН, статус, возраст, два независимых банковских
+индикатора и локальная ссылка «Полный анализ». Это вторичный артефакт; основной
+контент turn — `message` Master.
+
+`blocks` содержат только allowlisted вспомогательные артефакты. Метрики,
+series, policy items и evidence гидратирует backend из текущего ToolResult.
+Модель не генерирует HTML, SVG, произвольный JS, URL источников или значения
+графиков. `/report?inn=6165169320` остаётся отдельным подробным режимом.
+
+Evidence проверяется по точному совпадению `fact_id`, `field_ref`, source и
+display value с backend registry. UI читает результат текущего execution, а не
+старый artifact из checkpoint. Trace сохраняет model/provider, версии prompt и
+tools, calls, безопасные аргументы, статусы, latency и доступную token usage —
+без скрытого reasoning.
 
 ## Targeted capabilities
 
-- `get_financial_data`: `get_latest_snapshot` → `build_finance`. До пяти лет
-  выручки, прибыли, капитала и кредиторской задолженности; точные пути полей
-  каждой строки. Годовая динамика только для последовательных лет и ненулевой
-  базы. Неизвестные значения не заменяются нулями; дробные и дублирующиеся годы
-  исключаются. Наблюдения убытков, отрицательного капитала и падения выручки
-  нельзя скрыть выбором модели.
-- `get_legal_data`: `get_latest_snapshot` → `build_reliability`. Судебные
-  количества/суммы, исполнительные производства, надзорные проверки и метки
-  источника. Неполные агрегаты не публикуются как полные; повреждение одной
-  секции даёт gaps/PARTIAL, сохраняя доступные факты остальных секций.
+- `get_financial_data`: читает snapshot и возвращает до пяти лет выручки,
+  прибыли, капитала и кредиторской задолженности, производные метрики и точные
+  пути источников. Неизвестное не превращается в ноль.
+- `get_legal_data`: возвращает арбитраж, исполнительные производства,
+  надзорные проверки и метки источника. Только официальные hard-stop/attention
+  flags становятся `policy_signals`; остальные данные интерпретирует Master.
 
-Оба tools возвращают framework-agnostic `ToolResult` и `TargetedData` с
-`availability=DATA|PARTIAL|NO_DATA`. Они не вызывают `run_check`, четыре доменных
-LLM или summary. Старый full-check pipeline и `/report` не переписаны.
+Обе capabilities возвращают framework-agnostic `ToolResult` и не вызывают
+`run_check`, четыре доменных LLM или summary. Старый full-check pipeline,
+`/api/v1/checks` и `/report` сохранены.
 
 ## Проверки и запуск
 
@@ -149,106 +175,55 @@ node --check static/report.js
 .venv/bin/python scripts/smoke_polza_master.py --base-url http://localhost:8000
 ```
 
-Live smoke требует PostgreSQL и настоящий ChatGroq. Проверяет одну active company,
-один conversation_id, по два model steps на turn, model routing и model synthesis
-для finance/legal, а также HTTP 200 для `/` и `/report`. Пауза нужна только при
-общем TPM-лимите провайдера; runtime не добавляет автоматических повторов.
-`PARTIAL` при неполной карточке допустим. Provider `429` сохраняет факты через
-fallback, но строгий live smoke в таком случае завершится ошибкой.
+Live smoke использует одну active company и один `conversation_id`, проходит
+семь реплик acceptance-сценария и требует tools только на turns 1, 2 и 6.
+Он проверяет связность, отсутствие лишних tool calls, grounding metadata,
+evidence и доступность `/` и `/report`. PostgreSQL и реальный Master provider
+должны быть настроены заранее; `PARTIAL` допустим для неполной карточки.
 
-`smoke_polza_master.py` отдельно проверяет text completion и JSON Schema
-structured output напрямую через Polza, затем пять conversation turns из
-acceptance-сценария. Tool turns 1, 2 и 5 считаются provider-pass только при
-`routing=model`, двух model steps и одном tool call. Turns 3–4 выводятся отдельно:
-baseline `cf29da6` ещё не умеет свободные no-tool объяснения, и этот provider-only
-этап намеренно не меняет synthesis/conversation architecture.
+Основные тесты:
 
-Основные тесты: `test_agent_runtime.py`, `test_agent_multiturn.py`,
-`test_conversations.py`, `test_financial_capability.py`, `test_legal_capability.py`,
-`test_targeted_response.py`, `test_chat_api.py`. Существующие pipeline/facts/
-grounding tests проверяют legacy-регрессию.
+- `test_agent_runtime.py`, `test_agent_multiturn.py`, `test_conversations.py`;
+- `test_grounding_behavior.py` — выдуманный факт, URL/идентификатор,
+  противоречие, repair/fallback и простая переформулировка;
+- `test_financial_capability.py`, `test_legal_capability.py`;
+- `test_agent_response.py`, `test_targeted_response.py`, `test_chat_api.py`.
 
-Ручной smoke: пройти три сообщения выше, перезагрузить вкладку, открыть
-источники, проверить «Новый диалог» и `/report?inn=6165169320`.
-Дополнительно проверить ширину 390 px и отправку Enter/перенос Shift+Enter.
+Ручной browser smoke: пройти семь реплик, открыть источники и «Полный анализ»,
+перезагрузить вкладку, проверить «Новый диалог», Enter / Shift+Enter и ширину
+390 px.
 
-## Карта изменения
+## Проверка 05.09.2026
+
+- Полный backend regression: `162 passed`, одно прежнее предупреждение
+  Starlette/AnyIO. `compileall`, оба `node --check` и `git diff --check` прошли.
+- Точный семирепличный сценарий прошёл behavioral-тест с одним
+  `conversation_id`: tools вызваны только на turns 1, 2 и 6; turn 4 использовал
+  rewrite fast path, остальные содержательные ответы прошли verifier.
+- Browser smoke на текущем checkout: чат, компактная сводка, policy-сигналы,
+  раскрытие 25 источников и переход в legacy `/report` работают. В консоли нет
+  ошибок; при viewport 390 × 844 `scrollWidth=clientWidth=390`.
+- Строгий live smoke со всеми семью ответами внешней модели не завершён.
+  Groq `openai/gpt-oss-20b` получил 429 после full-check, отдельная
+  `qwen/qwen3.6-27b` успешно вызвала native tool, но post-tool запрос получил
+  413; прямой Polza probe завершился `APIConnectionError`. Во всех API-прогонах
+  сработал conservative fallback, факты/evidence/UI сохранились. Повторить
+  provider-проверку можно командами выше после восстановления доступности и
+  лимитов.
+
+## DB impact
+
+Модели хранения, SQL и legacy audit не менялись. Новые trusted-context и
+grounding поля живут в process-local LangGraph checkpoint и HTTP metadata.
+Миграция БД не требуется.
+
+## Карта реализации
 
 | Область | Файлы |
 |---|---|
-| Runtime и состояние | `backend/app/agent/runtime.py`, `conversations.py`, `langchain_tools.py`, `prompt.py` |
-| Domain tools | `backend/app/agent/tools.py`, `finance.py`, `legal.py`, `targeted_models.py` |
-| Контракты и hydration | `backend/app/agent/models.py`, `response.py`, `backend/app/api/schemas.py`, `backend/app/main.py` |
-| Рабочий чат | `backend/static/index.html`, `landing.js`, `styles.css` |
-| Проверки | Семь профильных test-файлов выше и `backend/scripts/smoke_multiturn.py` |
-| Сборка | `backend/.dockerignore` исключает локальные секреты и virtualenv из Docker context |
-| Документация | `AGENTS.md`, `docs/AI_INDEX.md`, `docs/AGENT_FIRST_ARCHITECTURE.md`, этот файл, `backend/README.md` |
-
-## Предыдущая проверка multi-turn 04.09.2026 (до conversation-first)
-
-- Полный backend regression: **137 passed** (одно предупреждение внешнего
-  Starlette/AnyIO о deprecated alias); compileall, оба JS syntax checks и
-  `git diff --check` успешны.
-- Независимый regression review: все найденные дефекты исправлены; отдельно
-  выполнены 74 профильных теста, блокирующих замечаний нет.
-- Playwright: ID следующего turn, восстановление истории, активная компания,
-  loading/partial/NO_DATA, HTTP/network errors после reload, escaping HTML,
-  unknown/prototype block fallback, reset/focus, desktop и 390 px — успешно.
-- Live PostgreSQL + ChatGroq: full → finance → legal, один conversation_id,
-  одна компания, по два model calls и одному tool call. Full completed за
-  4,8 с; finance partial за 1,8 с; legal partial за 1,5 с. У обоих targeted
-  ответов `routing=model`, `synthesis=model`; partial отражает пропуски данных.
-  Между turns в smoke использовалась пауза 60 с из-за общего TPM-лимита Groq.
-- Первый live-прогон подтвердил безопасный fallback при provider 429.
-
-Проверенная локальная версия запущена на `http://localhost:8001` в контейнере
-`contractors-multiturn-smoke`, с текущими app/static, подключёнными как read-only
-volumes, и установленными зависимостями из requirements.txt. Основной сервис
-на 8000 остаётся отдельным. Обычная пересборка Docker-образа была прервана
-timeout Docker Hub при получении `python:3.11-slim`; новый образ не опубликован.
-Для обычного запуска после восстановления Docker Hub:
-
-```bash
-cd backend
-docker compose build api
-docker compose up -d api
-```
-
-## Проверка conversation-first 04.09.2026
-
-- Полный backend regression: **164 passed**, одно прежнее предупреждение
-  Starlette/AnyIO. `compileall`, оба `node --check` и `git diff --check` успешны.
-- Browser smoke на desktop 1366 × 900 и mobile 390 × 844: компактная сводка
-  перед ответом, отсутствие автоматического dashboard, продолжение без ИНН,
-  один график прибыли, свёрнутые источники и переход к `field_ref`, Enter /
-  Shift+Enter, восстановление истории и reset/focus — успешно.
-- Управляемые ответы API в браузере: `NO_DATA`, HTTP 404, network error,
-  восстановление ошибок после reload, неизвестный/prototype UIBlock,
-  HTML-подобные строки, недопустимый URL и длинные названия — успешно.
-- Реальный browser → API → PostgreSQL/Groq full check завершился и отобразился
-  в новом формате. Legacy `/report?inn=6165169320` загрузил все четыре блока
-  без горизонтального переполнения на desktop и mobile.
-- Live API подтвердил `model_calls=2`, `tool_calls=1`, `synthesis=model`
-  у full check и finance. Самостоятельный legal-запрос также дал model synthesis.
-  Однако два строгих прогона full → finance → legal завершились ошибкой smoke
-  на последнем требовании `synthesis=model`: legal использовал безопасный
-  fallback. В отдельном browser full check fallback тоже сработал. Данные,
-  сводка и источники сохранились. Поэтому стабильный model synthesis на каждом
-  live turn не заявляется; malformed synthesis проверен unit-тестами.
-
-Актуальный локальный UI доступен на `http://localhost:8001`, контейнер
-`contractors-multiturn-smoke` перезапущен с текущими app/static. Сервис на 8000
-не обновлялся. Для ручной приёмки: полный запрос → «А что с прибылью?» →
-источники → «Полный анализ», затем новый диалог. Строгий live smoke можно
-повторить командой выше, оставив паузу 60 секунд при ограничениях Groq.
-
-Файлы conversation-first изменения:
-
-| Область | Изменённые файлы |
-|---|---|
-| Контракт и синтез | `backend/app/agent/models.py`, `targeted_models.py`, `response.py`, новый `synthesis.py` |
-| Runtime и tool context | `backend/app/agent/runtime.py`, `langchain_tools.py`, `prompt.py`, `tools.py` |
-| API и live smoke | `backend/app/main.py`, `backend/scripts/smoke_multiturn.py` |
-| Интерфейс | `backend/static/index.html`, `landing.js`, `styles.css` |
-| Регрессии | `backend/tests/test_agent_response.py`, `test_targeted_response.py`, `test_agent_runtime.py`, `test_agent_multiturn.py`, `test_chat_api.py` |
-| Документация | `backend/README.md`, `docs/AI_INDEX.md`, `docs/AGENT_FIRST_ARCHITECTURE.md`, `docs/MULTI_TURN_CHAT.md` |
+| Runtime и trusted state | `backend/app/agent/runtime.py`, `conversations.py`, `langchain_tools.py`, `prompt.py` |
+| Grounding | `backend/app/agent/grounding.py`, `synthesis.py` |
+| Domain data | `backend/app/agent/tools.py`, `finance.py`, `legal.py`, `targeted_models.py` |
+| Контракты и hydration | `backend/app/agent/models.py`, `response.py` |
+| Live smoke | `backend/scripts/smoke_multiturn.py`, `smoke_polza_master.py` |
+| Регрессии | профильные тесты в `backend/tests/` |

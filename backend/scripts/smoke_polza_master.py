@@ -1,4 +1,4 @@
-"""Live Polza probes plus the five-turn counterparty conversation smoke."""
+"""Live Polza probes plus the seven-turn grounded conversation smoke."""
 from __future__ import annotations
 
 import argparse
@@ -56,7 +56,9 @@ def probe_conversation(base_url: str, inn: str) -> list[dict]:
         "А что у них с финансами?",
         "Почему это вообще плохо?",
         "Объясни проще",
+        "Насколько это критично для сделки с отсрочкой?",
         "А что с судами?",
+        "Что здесь самое неприятное?",
     ]
     for index, message in enumerate(messages, start=1):
         request = Request(
@@ -70,20 +72,27 @@ def probe_conversation(base_url: str, inn: str) -> list[dict]:
         elapsed_ms = round((time.perf_counter() - started) * 1000)
         conversation_id = payload["conversation_id"]
         metadata = payload["metadata"]
-        tool_turn = index in (1, 2, 5)
+        tool_turn = index in (1, 2, 6)
+        expected_tools = 1 if tool_turn else 0
         provider_ok = (
             metadata["model"] == "z-ai/glm-5.3-flash"
             and metadata["routing"] == "model"
-            and metadata["model_calls"] == 2
-            and metadata["tool_calls"] == 1
-        ) if tool_turn else metadata["model_calls"] > 0
+            and metadata["tool_calls"] == expected_tools
+            and 1 <= metadata["model_calls"] <= 5
+            and metadata["grounding_status"] in (
+                ("skipped_rewrite",) if index == 4 else ("verified", "repaired")
+            )
+        )
         results.append({
             "turn": index,
             "message": message,
+            "answer": payload["message"],
             "status": metadata["status"],
             "provider_ok": provider_ok,
             "routing": metadata["routing"],
             "synthesis": metadata["synthesis"],
+            "grounding_status": metadata["grounding_status"],
+            "repair_attempts": metadata["repair_attempts"],
             "model_calls": metadata["model_calls"],
             "tool_calls": metadata["tool_calls"],
             "latency_ms": metadata.get("latency_ms", elapsed_ms),
@@ -105,9 +114,8 @@ def main():
     print(json.dumps(output, ensure_ascii=False, indent=2), flush=True)
 
     failed_provider = [item for item in provider if not item["ok"]]
-    failed_tool_turns = [item for item in conversation
-                         if item["turn"] in (1, 2, 5) and not item["provider_ok"]]
-    if failed_provider or failed_tool_turns:
+    failed_turns = [item for item in conversation if not item["provider_ok"]]
+    if failed_provider or failed_turns:
         raise SystemExit(1)
 
 

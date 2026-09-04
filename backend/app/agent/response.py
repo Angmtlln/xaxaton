@@ -1,25 +1,28 @@
-"""Детерминированное преобразование ToolResult в allowlisted rich response."""
+"""Backend hydration for Master-authored prose and verified UI artifacts."""
 from __future__ import annotations
 
 import time
-import re
 from typing import Dict, List, Optional
 
 from .models import (AssistantMetadata, AssistantResponse, ChartPoint, ChartSeries,
-                     CompanySummaryBlock, Evidence, FindingItem,
-                     FindingListBlock, FullCompanyCheckData, LineChartBlock,
+                     CompanySummaryBlock, Evidence, FindingItem, FindingListBlock,
+                     FullCompanyCheckData, LineChartBlock, MasterAnswer,
                      MetricGridBlock, MetricItem, ToolResult)
 from .prompt import MASTER_PROMPT_VERSION
-from .tools import display_fact_value
+from .synthesis import normalized_tool_context, verified_evidence
 from .targeted_models import TargetedData
-from .synthesis import full_check_findings, select_synthesis, verified_evidence
+from .tools import display_fact_value
 
 
 METRIC_FACT_IDS = (
     "fin.proceeds_last",
     "fin.profit_last",
+    "fin.capitals_last",
+    "fin.payables_to_proceeds_pct",
     "court.defendant_count",
+    "court.defendant_amount",
     "execproc.active_count",
+    "execproc.active_amount",
 )
 
 COMPANY_EVIDENCE_IDS = (
@@ -30,16 +33,6 @@ COMPANY_EVIDENCE_IDS = (
     "bank.risk_level",
     "bank.zsk_level",
 )
-
-VERDICT_MESSAGES = {
-    "STOP": "В карточке есть стоп-факторы — проверьте их до сделки.",
-    "ENHANCED_CHECK": "В доступных данных есть факты, которые стоит уточнить до сделки.",
-    "CONDITIONALLY_OK": (
-        "Стоп-факторы в доступных данных не выявлены, "
-        "но это не означает отсутствия рисков."
-    ),
-    "NO_DATA": "По доступной карточке невозможно сделать содержательный вывод: данных недостаточно.",
-}
 
 GUARD_MESSAGES = {
     "missing_inn": "Укажите ИНН контрагента. После выбора компании можно задавать вопросы без повторного ИНН.",
@@ -54,9 +47,8 @@ GUARD_MESSAGES = {
 
 
 def guard_response(reason: str, agent_run_id: str, started: float) -> AssistantResponse:
-    message = GUARD_MESSAGES.get(reason, GUARD_MESSAGES["unsupported_request"])
     return AssistantResponse(
-        message=message,
+        message=GUARD_MESSAGES.get(reason, GUARD_MESSAGES["unsupported_request"]),
         suggested_actions=["Проверь контрагента 6165169320"],
         metadata=AssistantMetadata(
             agent_run_id=agent_run_id,
@@ -70,28 +62,27 @@ def guard_response(reason: str, agent_run_id: str, started: float) -> AssistantR
 
 
 def tool_result_to_assistant(
-    result: ToolResult,
+    result: Optional[ToolResult],
     *,
+    trusted_context: Optional[dict],
+    master_answer: Optional[MasterAnswer],
     agent_run_id: str,
     routing: str,
     model: Optional[str],
     started: float,
-    synthesis: object = None,
-    question: str = "",
+    contextual: bool = False,
+    grounding_status: str = "not_required",
+    repair_attempts: int = 0,
 ) -> AssistantResponse:
-    if result.status == "error":
-        message = (
-            result.error.user_safe_message
-            if result.error is not None
-            else "Не удалось выполнить проверку."
-        )
+    if result is not None and result.status == "error":
+        message = result.error.user_safe_message if result.error else "Не удалось выполнить проверку."
         return AssistantResponse(
             message=message,
             suggested_actions=["Проверь контрагента 6165169320"],
             metadata=AssistantMetadata(
                 agent_run_id=agent_run_id,
                 status="error",
-                tool_calls=1,
+                tool_calls=0 if contextual else 1,
                 routing=routing,
                 model=model,
                 prompt_version=MASTER_PROMPT_VERSION,
@@ -100,140 +91,153 @@ def tool_result_to_assistant(
             ),
         )
 
-    if result.metadata.tool in ("get_financial_data", "get_legal_data"):
-        return _targeted_response(
-            result, agent_run_id=agent_run_id, routing=routing,
-            model=model, started=started, synthesis=synthesis, question=question,
-        )
+    context = trusted_context or (normalized_tool_context(result) if result is not None else None)
+    if context is None:
+        raise ValueError("Verified context is required for an analytical response")
+    data = _result_data(result) if result is not None else None
+    evidence_by_id = (
+        verified_evidence(data, result)
+        if data is not None and result is not None
+        else {item.id: item for item in map(Evidence.model_validate, context.get("evidence", []))}
+    )
+    message = master_answer.message if master_answer is not None else _fallback_message(context)
+    artifact = master_answer.artifact if master_answer is not None else "none"
 
-    data = FullCompanyCheckData.model_validate(result.data)
-    evidence_by_id = verified_evidence(data, result)
-    selected, artifact, synthesis_status = select_synthesis(full_check_findings(data), synthesis)
-    paragraphs = ["Я проверил компанию. " + VERDICT_MESSAGES[data.summary.verdict_group]]
-    paragraphs.extend(item.text for item in selected)
-    if data.coverage.empty_blocks:
-        paragraphs.append("Невозможно оценить по доступным данным разделы: %s. Отсутствие данных не означает отсутствия событий."
-                          % ", ".join(data.coverage.empty_blocks))
-    if result.warnings:
-        paragraphs.append(("Результат частичный. " if result.status == "partial" else "Ограничения ответа. ") + " ".join(result.warnings))
-    paragraphs.append("Могу отдельно разобрать финансовую динамику или судебные дела — выберите, что важно для вашей проверки.")
-    blocks = _optional_artifact(data, evidence_by_id, selected, artifact, full_check=True)
+    blocks = []
+    if not contextual and data is not None:
+        policy = _policy_block(data, evidence_by_id)
+        if policy is not None:
+            blocks.append(policy)
+        optional = _optional_artifact(data, evidence_by_id, artifact)
+        if optional is not None:
+            blocks.append(optional)
+
+    full = isinstance(data, FullCompanyCheckData)
+    coverage_state = (context.get("coverage") or {}).get("state", "DATA")
+    partial = (result is not None and result.status == "partial") or coverage_state != "DATA"
+    domain = context.get("domain")
+    if domain == "full_check":
+        suggested = ["А что у них с финансами?", "А что у них с судами?"]
+    elif domain == "finance":
+        suggested = ["А что у них с судами?"]
+    else:
+        suggested = ["А что у них с финансами?"]
+
     return AssistantResponse(
-        message="\n\n".join(paragraphs),
-        leading_artifact=_company_summary(data, evidence_by_id),
+        message=message,
+        leading_artifact=_company_summary(data, evidence_by_id) if full and not contextual else None,
         blocks=blocks,
         evidence=list(evidence_by_id.values()),
-        suggested_actions=["А что у них с финансами?", "А что у них с судами?"],
+        suggested_actions=suggested,
         metadata=AssistantMetadata(
-            agent_run_id=agent_run_id, check_run_id=data.check_run_id,
-            status="partial" if result.status == "partial" else "completed",
-            tool_calls=1, routing=routing, model=model,
-            prompt_version=MASTER_PROMPT_VERSION, latency_ms=_elapsed_ms(started),
-            synthesis=synthesis_status,
+            agent_run_id=agent_run_id,
+            check_run_id=data.check_run_id if full and not contextual else None,
+            status="partial" if partial else "completed",
+            tool_calls=0 if contextual else 1,
+            routing=routing,
+            model=model,
+            prompt_version=MASTER_PROMPT_VERSION,
+            latency_ms=_elapsed_ms(started),
+            synthesis="model" if master_answer is not None else "fallback",
+            grounding_status=grounding_status,
+            repair_attempts=repair_attempts,
         ),
     )
 
 
-def _targeted_response(result, *, agent_run_id, routing, model, started, synthesis, question):
-    data = TargetedData.model_validate(result.data)
-    evidence_by_id = verified_evidence(data, result)
-    selected, artifact, synthesis_status = select_synthesis(data.findings, synthesis)
-    profit_focus = data.domain == "finance" and bool(re.search(r"\bприбыл\w*", question, re.I)) and not re.search(
-        r"\b(?:выручк|финанс|капитал|рентабельн|баланс|кредиторск|задолженн)\w*", question, re.I)
-    if profit_focus:
-        profit = next((data.facts[key] for key in data.metric_ids if _profit_fact(key)), None)
-        if profit is None or profit.value is None:
-            prefix = profit.label if profit is not None else "Прибыль"
-            paragraphs = [prefix + ": нет данных в доступной карточке. Оценить прибыль за этот период невозможно."]
-        else:
-            paragraphs = ["%s: %s. Для оценки устойчивости прибыли полезно посмотреть её динамику."
-                          % (profit.label, display_fact_value(profit))]
-        # Keep required adverse observations, but don't lead a profit question
-        # with the generic revenue/capital/payables overview.
-        selected = [item for item in selected if item.required or any(_profit_fact(ref) for ref in item.evidence_ids)]
-        selected = [item for item in selected if item.id != "finance.latest"]
-        paragraphs.extend(item.text for item in selected)
-    elif data.availability == "NO_DATA":
-        paragraphs = ["Невозможно оценить по доступным данным."]
-    elif selected:
-        paragraphs = [item.text for item in selected]
-    else:
-        paragraphs = ["В доступной карточке недостаточно сведений для содержательного ответа."]
-    if data.availability == "PARTIAL":
-        paragraphs.append("Данные неполные.")
-    if data.gaps or result.warnings:
-        paragraphs.append(" ".join(dict.fromkeys(data.gaps + result.warnings)))
-    return AssistantResponse(
-        message="\n\n".join(paragraphs),
-        blocks=_optional_artifact(data, evidence_by_id, selected, artifact, profit_focus=profit_focus),
-        evidence=list(evidence_by_id.values()),
-        suggested_actions=["А что у них с судами?"] if data.domain == "finance" else ["А что у них с финансами?"],
-        metadata=AssistantMetadata(
-            agent_run_id=agent_run_id, status="partial" if result.status == "partial" or data.availability != "DATA" else "completed",
-            tool_calls=1, routing=routing, model=model, prompt_version=MASTER_PROMPT_VERSION,
-            latency_ms=_elapsed_ms(started), synthesis=synthesis_status,
-        ),
-    )
+def _result_data(result: ToolResult):
+    if result.metadata.tool == "full_company_check":
+        return FullCompanyCheckData.model_validate(result.data)
+    return TargetedData.model_validate(result.data)
 
 
-def _profit_fact(fact_id):
-    return fact_id.startswith("fin.profit.") or fact_id == "fin.profit_last"
+def _fallback_message(context: dict) -> str:
+    hard_stops = [
+        signal for signal in context.get("policy_signals", [])
+        if signal.get("kind") == "official_hard_stop"
+    ]
+    if hard_stops:
+        return (
+            "В проверенных данных есть официальный стоп-сигнал. Аналитический ответ "
+            "сейчас недоступен; проверьте сигнал и первичные сведения до сделки."
+        )
+    state = (context.get("coverage") or {}).get("state")
+    if state == "NO_DATA":
+        return (
+            "По доступным проверенным данным содержательный вывод сделать нельзя. "
+            "Отсутствие сведений не подтверждает отсутствие событий или риска."
+        )
+    observations = list(context.get("metrics", [])) + list(context.get("statuses", []))
+    shown = [
+        "%s — %s" % (item.get("label"), item.get("display_value"))
+        for item in observations[:3] if item.get("label") and item.get("display_value")
+    ]
+    if shown:
+        return "Аналитический ответ сейчас недоступен. Подтверждённые данные: %s." % "; ".join(shown)
+    return "Проверенные данные получены, но сформировать аналитическое объяснение сейчас не удалось."
 
 
-def _optional_artifact(data, evidence_by_id, selected, artifact, *, full_check=False, profit_focus=False):
+def _policy_block(data, evidence_by_id: Dict[str, Evidence]) -> Optional[FindingListBlock]:
+    items = []
+    for signal in data.policy_signals:
+        if signal.kind not in {"official_hard_stop", "source_attention"}:
+            continue
+        fact = data.facts.get(signal.id)
+        if fact is None:
+            continue
+        prefix = "Официальный стоп-сигнал источника" if signal.kind == "official_hard_stop" else "Сигнал источника для уточнения"
+        items.append(FindingItem(
+            title=signal.label,
+            text="%s: %s." % (prefix, display_fact_value(fact)),
+            evidence_ids=[ref for ref in signal.evidence_ids if ref in evidence_by_id],
+        ))
+    return FindingListBlock(title="Детерминированные сигналы", items=items) if items else None
+
+
+def _optional_artifact(data, evidence_by_id: Dict[str, Evidence], artifact: str):
     if artifact == "chart":
         chart = _chart_block(data, evidence_by_id)
-        if profit_focus:
-            chart.series = [series for series in chart.series if series.key == "profit"]
-            chart.title = "Динамика прибыли"
-            chart.description = "Прибыль по доступным отчётным годам."
-        # A single point or NO_DATA panel does not explain a trend.
-        if chart.state == "data" and any(sum(p.value is not None for p in s.points) >= 2 for s in chart.series):
-            return [chart]
-    elif artifact == "metrics":
-        if full_check:
-            block = _metric_block(data, evidence_by_id)
-        else:
-            block = _targeted_metrics(data, profit_focus=profit_focus)
-        if block and any(item.state == "data" for item in block.items):
-            return [block]
-    elif artifact == "findings" and full_check and selected:
-        return [FindingListBlock(title="Что стоит уточнить", items=[
-            FindingItem(title=item.title, text=item.text, evidence_ids=item.evidence_ids)
-            for item in selected
-        ])]
-    return []
+        if chart.state == "data" and any(
+            sum(point.value is not None for point in series.points) >= 2 for series in chart.series
+        ):
+            return chart
+    if artifact == "metrics":
+        block = _metric_block(data, evidence_by_id) if isinstance(data, FullCompanyCheckData) else _targeted_metrics(data)
+        if block is not None and any(item.state == "data" for item in block.items):
+            return block
+    return None
 
 
-def _targeted_metrics(data, *, profit_focus=False):
+def _targeted_metrics(data: TargetedData) -> Optional[MetricGridBlock]:
     items = []
     for fact_id in data.metric_ids:
-        if profit_focus and not _profit_fact(fact_id):
-            continue
         fact = data.facts[fact_id]
         value = fact.value if isinstance(fact.value, (int, float, str, bool)) else None
         items.append(MetricItem(
-            id=fact.id, label=fact.label, value=value,
-            display_value=display_fact_value(fact), unit=fact.unit,
-            state="no_data" if value is None else "data", evidence_id=fact.id,
+            id=fact.id,
+            label=fact.label,
+            value=value,
+            display_value=display_fact_value(fact),
+            unit=fact.unit,
+            state="no_data" if value is None else "data",
+            evidence_id=fact.id,
         ))
     return MetricGridBlock(title="Показатели по вопросу", items=items) if items else None
 
 
-def _company_summary(data, evidence_by_id):
+def _company_summary(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence]):
     def value(fact_id):
         fact = data.facts.get(fact_id)
         if fact is None or fact.value is None:
             return None
-        # Use the same sanitized source value as evidence, not raw source markup.
         return evidence_by_id[fact_id].display_value if isinstance(fact.value, str) else fact.value
 
     inn = value("company.inn") or data.inn
     if inn != data.inn or inn != data.company.inn:
         raise ValueError("Company identifier does not match backend fact")
-    # Identity/status/bank indicators use facts, never synthesis or legacy prose.
     return CompanySummaryBlock(
-        name=value("company.name") or "Контрагент", inn=inn,
+        name=value("company.name") or "Контрагент",
+        inn=inn,
         status=value("company.status"),
         years_from_registration=value("company.age_years"),
         bank_risk_level=value("bank.risk_level"),
@@ -243,12 +247,9 @@ def _company_summary(data, evidence_by_id):
     )
 
 
-def runtime_timeout_response(
-    agent_run_id: str, started: float, *, tool_calls: int = 0
-) -> AssistantResponse:
-    message = "Проверка не завершилась в отведённое время. Попробуйте ещё раз."
+def runtime_timeout_response(agent_run_id: str, started: float, *, tool_calls: int = 0) -> AssistantResponse:
     return AssistantResponse(
-        message=message,
+        message="Проверка не завершилась в отведённое время. Попробуйте ещё раз.",
         metadata=AssistantMetadata(
             agent_run_id=agent_run_id,
             status="error",
@@ -261,9 +262,7 @@ def runtime_timeout_response(
     )
 
 
-def _metric_block(
-    data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence]
-) -> MetricGridBlock:
+def _metric_block(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence]) -> MetricGridBlock:
     items: List[MetricItem] = []
     for fact_id in METRIC_FACT_IDS:
         fact = data.facts.get(fact_id)
@@ -282,21 +281,15 @@ def _metric_block(
         ))
     if not items:
         items.append(MetricItem(
-            id="metrics.no_data",
-            label="Показатели",
-            display_value="Нет данных",
-            state="no_data",
+            id="metrics.no_data", label="Показатели", display_value="Нет данных", state="no_data"
         ))
     return MetricGridBlock(title="Ключевые показатели", items=items)
 
 
-def _chart_block(
-    data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence]
-) -> LineChartBlock:
+def _chart_block(data, evidence_by_id: Dict[str, Evidence]) -> LineChartBlock:
     fact = data.facts.get("fin.series")
     if fact is None or fact.id not in evidence_by_id or not isinstance(fact.value, list):
         return _empty_chart()
-
     rows = [row for row in fact.value if isinstance(row, dict) and row.get("year") is not None]
     rows.sort(key=lambda row: str(row.get("year")))
     series: List[ChartSeries] = []
@@ -309,12 +302,7 @@ def _chart_block(
             for row in rows
         ]
         if any(point.value is not None for point in points):
-            series.append(ChartSeries(
-                key=key,
-                label=label,
-                points=points,
-                evidence_id=fact.id,
-            ))
+            series.append(ChartSeries(key=key, label=label, points=points, evidence_id=fact.id))
     if not series:
         return _empty_chart()
     return LineChartBlock(
@@ -329,7 +317,7 @@ def _chart_block(
 def _empty_chart() -> LineChartBlock:
     return LineChartBlock(
         title="Финансовая динамика",
-        description="График строится только из детерминированного ряда fin.series.",
+        description="График строится только из проверенного ряда fin.series.",
         unit="руб",
         state="no_data",
         empty_message="Финансовых рядов в доступной карточке нет.",

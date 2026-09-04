@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -14,6 +15,66 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 class ConversationState(AgentState):
     active_company: Optional[dict]
+    trusted_context: Optional[dict]
+    user_context: Optional[list[str]]
+    last_topic: Optional[str]
+    last_answer_verified: Optional[bool]
+
+
+TRUSTED_DOMAIN_LIMIT = 45_000
+TRUSTED_CONTEXT_LIMIT = 110_000
+
+
+def merge_trusted_context(current: Optional[dict], observation: dict) -> dict:
+    """Merge one backend-built observation without ever reading assistant prose."""
+    if observation.get("schema_version") != "verified-context-1":
+        raise ValueError("Unknown trusted context schema")
+    domain = observation.get("domain")
+    company = observation.get("company")
+    if domain not in {"full_check", "finance", "legal"} or not isinstance(company, dict):
+        raise ValueError("Invalid trusted context")
+    inn = company.get("inn")
+    encoded = json.dumps(observation, ensure_ascii=False, separators=(",", ":"))
+    if not isinstance(inn, str) or len(encoded) > TRUSTED_DOMAIN_LIMIT:
+        raise ValueError("Trusted domain context is invalid or too large")
+
+    previous = current if isinstance(current, dict) else {}
+    if (previous.get("company") or {}).get("inn") != inn:
+        previous = {}
+    domains = dict(previous.get("domains") or {})
+    domains[domain] = json.loads(encoded)
+    merged = {"company": dict(company), "domains": domains}
+    if len(json.dumps(merged, ensure_ascii=False, separators=(",", ":"))) > TRUSTED_CONTEXT_LIMIT:
+        # Preserve the new domain and the broad policy context, if available.
+        domains = {domain: domains[domain], **(
+            {"full_check": domains["full_check"]}
+            if domain != "full_check" and "full_check" in domains else {}
+        )}
+        merged = {"company": dict(company), "domains": domains}
+    return merged
+
+
+def select_trusted_context(current: Optional[dict], topic: Optional[str]) -> Optional[dict]:
+    if not isinstance(current, dict):
+        return None
+    domains = current.get("domains")
+    company = current.get("company")
+    if not isinstance(domains, dict) or not isinstance(company, dict):
+        return None
+    selected = domains.get(topic) if topic else None
+    if selected is None and domains:
+        selected = next(reversed(domains.values()))
+    if not isinstance(selected, dict) or (selected.get("company") or {}).get("inn") != company.get("inn"):
+        return None
+    return selected
+
+
+def append_user_context(current: Optional[list[str]], message: str, *, limit: int = 4) -> list[str]:
+    """Keep bounded user-supplied context separate from verified company facts."""
+    values = [item[:1000] for item in (current or []) if isinstance(item, str) and item.strip()]
+    if message.strip():
+        values.append(message.strip()[:1000])
+    return values[-limit:]
 
 
 class UnknownConversation(ValueError):

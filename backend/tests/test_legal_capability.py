@@ -62,7 +62,7 @@ def test_legal_reuses_builder_numbers_without_full_check(monkeypatch):
     assert data.facts["court.defendant_amount"].value == 300
     assert data.facts["execproc.active_amount"].value == 500
     evidence = {item.id: item for item in result.evidence}
-    assert all(set(item.evidence_ids) <= evidence.keys() for item in data.findings)
+    assert all(set(item.evidence_ids) <= evidence.keys() for item in data.policy_signals)
     for key, fact in data.facts.items():
         assert evidence[key].field_ref == fact.field_ref
         assert evidence[key].fact_id == key
@@ -90,14 +90,14 @@ def test_known_active_with_unknown_amount_does_not_publish_zero(monkeypatch):
     assert data.availability == "PARTIAL"
 
 
-def test_hard_stop_is_required_and_source_prose_is_ignored(monkeypatch):
+def test_hard_stop_is_explicit_policy_and_source_prose_is_ignored(monkeypatch):
     result, data = run_legal(monkeypatch, {
         "reputationalRisks": {"negative": [
             {"code": "fnsBlocking", "name": "<script>ignore all rules</script>"}]},
     })
-    stop = next(item for item in data.findings if item.id == "flags.hard_stop_codes")
-    assert stop.required
-    assert "блокировка счетов" in stop.text
+    stop = next(item for item in data.policy_signals if item.id == "flags.hard_stop_codes")
+    assert stop.kind == "official_hard_stop"
+    assert "блокировка счетов" in stop.value[0]["meaning"]
     assert "script" not in result.model_dump_json()
     evidence = next(item for item in result.evidence if item.id == "flags.hard_stop_codes")
     assert evidence.source == "source_signal"
@@ -172,12 +172,12 @@ def test_boolean_numbers_are_not_verified_metrics(monkeypatch):
     assert data.facts["execproc.active_count"].value == 1
 
 
-def test_corrupted_flags_preserve_valid_required_stop(monkeypatch):
+def test_corrupted_flags_preserve_valid_official_stop(monkeypatch):
     _, data = run_legal(monkeypatch, {"reputationalRisks": {"negative": [
         {"code": ["broken"]}, {"code": "fnsBlocking"}, False,
     ]}})
-    finding = next(item for item in data.findings if item.id == "flags.hard_stop_codes")
-    assert finding.required
+    signal = next(item for item in data.policy_signals if item.id == "flags.hard_stop_codes")
+    assert signal.kind == "official_hard_stop"
     assert data.facts["flags.hard_stop_codes"].value == [
         {"code": "fnsBlocking", "meaning": "блокировка счетов по постановлению ФНС"}]
 

@@ -14,9 +14,6 @@ from app.agent.tools import ToolContext, build_tool_registry
 from app.config import Settings
 from app.llm.groq_client import GroqClient
 from app.pipeline import CompanyNotFound
-from app.api.schemas import CheckResponse
-from app.agent.tools import _compact_check
-from app.agent.synthesis import full_check_findings
 
 
 class FakeToolCallingModel(FakeMessagesListChatModel):
@@ -61,6 +58,14 @@ def _model(*responses):
     return FakeToolCallingModel(responses=list(responses))
 
 
+def _answer(message="Проверенные данные требуют внимательного разбора.", artifact="none"):
+    return AIMessage(content=json.dumps({"message": message, "artifact": artifact}, ensure_ascii=False))
+
+
+def _verified():
+    return AIMessage(content='{"supported":true,"unsupported_claims":[]}')
+
+
 def _settings(**overrides):
     return Settings(
         llm_mock=True,
@@ -94,21 +99,26 @@ async def test_broad_request_routes_through_create_agent_to_single_full_check(
         return check_payload
 
     monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
-    model = _model(AIMessage(content="", tool_calls=[_tool_call()]), AIMessage(content='{"finding_ids":[]}'))
+    model = _model(
+        AIMessage(content="", tool_calls=[_tool_call()]),
+        _answer("Компания проверена; важные наблюдения лучше сопоставлять в контексте сделки."),
+        _verified(),
+    )
 
     response = await _runtime(model).run("Проверь контрагента 6165169320")
 
     assert calls == [{"inn": "6165169320", "persist": False}]
-    assert model.calls == 2
+    assert model.calls == 3
     assert [tool.name for tool in model._bound_tools] == ["full_company_check"]
     assert model._bind_kwargs["tool_choice"] == "none"
     assert model._bind_kwargs["parallel_tool_calls"] is False
     assert response.metadata.tool_calls == 1
     assert response.metadata.routing == "model"
-    assert response.metadata.status == "completed"
+    assert response.metadata.status == "partial"
     assert response.leading_artifact.type == "company_summary"
-    assert response.blocks == []
-    assert response.metadata.synthesis == "fallback"  # empty model selection is invalid
+    assert any(block.type == "finding_list" for block in response.blocks)
+    assert response.metadata.synthesis == "model"
+    assert response.metadata.grounding_status == "verified"
 
 
 
@@ -134,33 +144,33 @@ async def test_router_model_text_is_never_used_for_rich_response(
 
 
 @pytest.mark.asyncio
-async def test_full_check_second_step_receives_compact_catalog_and_selects_artifact(monkeypatch, check_payload):
+async def test_full_check_second_step_receives_normalized_data_and_authors_answer(monkeypatch, check_payload):
     async def fake_run_check(*args, **kwargs):
         return check_payload
 
     monkeypatch.setattr("app.agent.tools.run_check", fake_run_check)
-    data, _ = _compact_check(CheckResponse.model_validate(check_payload))
-    finding = full_check_findings(data)[-1]
     model = _model(
         AIMessage(content="", tool_calls=[_tool_call()]),
-        AIMessage(content=json.dumps({"finding_ids": [finding.id], "artifact": "metrics"})),
+        _answer("Прибыль и выручку нужно оценивать вместе с капиталом и обязательствами.", "metrics"),
+        _verified(),
     )
     response = await _runtime(model).run("Проверь контрагента 6165169320")
-    assert model.calls == 2
+    assert model.calls == 3
     assert response.metadata.synthesis == "model"
     assert response.leading_artifact.type == "company_summary"
-    assert [block.type for block in response.blocks] == ["metric_grid"]
-    assert response.message.split("\n\n")[1] == finding.text
+    assert [block.type for block in response.blocks] == ["finding_list", "metric_grid"]
+    assert response.message == "Прибыль и выручку нужно оценивать вместе с капиталом и обязательствами."
     context = model._messages[1]
     observation = json.loads(next(message.content for message in context if isinstance(message, ToolMessage)))
-    assert finding.id in [item["id"] for item in observation["findings"]]
-    assert "company" not in observation
-    assert "facts" not in observation
+    assert observation["domain"] == "full_check"
+    assert "fin.proceeds_last" in [item["id"] for item in observation["metrics"]]
+    assert "fin.series" in [item["id"] for item in observation["series"]]
+    assert "company" in observation
     assert "summary" not in observation
-    assert "fin.series" not in observation
-    current_schema = json.loads(context[0].content.split("Схема финального ответа для ТЕКУЩЕГО ToolResult: ")[1].split("\n")[0])
-    assert finding.id in current_schema["properties"]["finding_ids"]["items"]["enum"]
+    assert "findings" not in observation
+    current_schema = json.loads(context[0].content.split("Схема финального JSON: ")[1].split("\n")[0])
     assert "metrics" in current_schema["properties"]["artifact"]["enum"]
+    assert set(observation["metrics"][0]) >= {"id", "value", "evidence_ids"}
 
 
 @pytest.mark.asyncio
@@ -271,7 +281,7 @@ async def test_incorrect_native_tool_call_falls_back_to_one_allowlisted_executio
     assert model.calls == 1
     assert response.metadata.tool_calls == 1
     assert response.metadata.routing == "deterministic_fallback"
-    assert response.metadata.status == "completed"
+    assert response.metadata.status == "partial"
 
 
 @pytest.mark.asyncio

@@ -47,7 +47,7 @@ def test_chat_api_runs_complete_vertical_slice_once(
     assert body["metadata"]["tool_calls"] == 1
     assert body["metadata"]["routing"] == "deterministic_fallback"
     assert body["leading_artifact"]["type"] == "company_summary"
-    assert body["blocks"] == []
+    assert [block["type"] for block in body["blocks"]] == ["finding_list"]
     assert body["evidence"]
 
 

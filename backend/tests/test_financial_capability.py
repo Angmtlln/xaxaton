@@ -47,7 +47,8 @@ def test_finance_reuses_builder_and_preserves_original_row_references(monkeypatc
     assert data.facts["fin.proceeds_change_pct"].value == 50
     assert data.facts["fin.series"].value[0]["year"] == 2023
     assert set(data.metric_ids) <= set(data.facts)
-    assert all(set(finding.evidence_ids) <= set(data.facts) for finding in data.findings)
+    assert data.series_ids == ["fin.series"]
+    assert data.policy_signals == []
 
 
 @pytest.mark.parametrize("snapshot", [_snapshot(), _snapshot(_row(2024, None, None, None, None)), {"inn": INN}])
@@ -55,7 +56,7 @@ def test_finance_no_data_does_not_become_zero_or_no_risk(snapshot):
     data = build_financial_data(snapshot, INN)
     assert data.availability == "NO_DATA"
     assert any("невозможно оценить" in gap for gap in data.gaps)
-    assert all(finding.id != "finance.latest" for finding in data.findings)
+    assert data.policy_signals == []
 
 
 def test_partial_missing_profit_preserves_zero_revenue():
@@ -64,7 +65,8 @@ def test_partial_missing_profit_preserves_zero_revenue():
     assert data.facts["fin.proceeds.2024"].value == 0
     assert data.facts["fin.profit.2024"].value is None
     assert data.facts["fin.proceeds_change_pct"].value == -100
-    assert next(f for f in data.findings if f.id == "finance.revenue_trend").required
+    assert "fin.proceeds_change_pct" in data.metric_ids
+    assert data.policy_signals == []
 
 
 @pytest.mark.parametrize("rows", [(_row(2020), _row(2024)), (_row(2023, 0), _row(2024))])
@@ -72,7 +74,6 @@ def test_yoy_requires_consecutive_years_and_nonzero_base(rows):
     data = build_financial_data(_snapshot(*rows), INN)
     assert data.availability == "PARTIAL"
     assert "fin.proceeds_change_pct" not in data.facts
-    assert not any(f.id == "finance.revenue_trend" for f in data.findings)
 
 
 @pytest.mark.parametrize("invalid_year", [
@@ -99,12 +100,12 @@ def test_fractional_year_cannot_create_a_fabricated_yoy(fractional_year):
     assert "fin.proceeds_change_pct" not in data.facts
 
 
-def test_negative_capital_and_losses_are_required_findings():
+def test_negative_capital_and_losses_remain_data_not_policy_conclusions():
     data = build_financial_data(_snapshot(_row(2023), _row(2024, profit=-1, capital=-2)), INN)
-    findings = {f.id: f for f in data.findings}
-    assert findings["finance.loss"].required
-    assert findings["finance.negative_capital"].required
-    assert findings["finance.loss"].evidence_ids == ["fin.profit.2024"]
+    assert data.facts["fin.profit.2024"].value == -1
+    assert data.facts["fin.capitals.2024"].value == -2
+    assert data.facts["fin.series"].value[-1]["profit"] == -1
+    assert data.policy_signals == []
 
 
 def test_bounded_rows_and_nonfinite_values():
@@ -187,9 +188,9 @@ async def test_registry_rejects_invalid_args_and_normalizes_missing_snapshot(mon
     assert missing_result.error.code == "not_found"
 
 
-def test_contract_rejects_spoofed_finding_evidence():
+def test_contract_rejects_unknown_normalized_fact_reference():
     payload = build_financial_data(_snapshot(_row(2023), _row(2024)), INN).model_dump()
     payload = copy.deepcopy(payload)
-    payload["findings"][0]["evidence_ids"] = ["fin.fabricated"]
+    payload["series_ids"] = ["fin.fabricated"]
     with pytest.raises(ValidationError):
         TargetedData.model_validate(payload)

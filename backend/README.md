@@ -76,8 +76,11 @@ curl -X POST http://localhost:8000/api/v1/chat/messages \
 
 Runtime принимает полную проверку и узкие финансовые/юридические вопросы.
 Передайте `conversation_id` из предыдущего ответа, чтобы использовать активную
-компанию без повторного ИНН. На turn допускаются два model steps и один domain
-tool call. По умолчанию Master использует стандартный `ChatOpenAI` с
+компанию без повторного ИНН. На turn допускаются один domain tool call и до пяти
+model calls: Master выбирает tool, формирует собственный естественный ответ,
+а отдельный grounding-вызов проверяет его company-specific утверждения. При
+неуспехе разрешена одна repair-попытка. По умолчанию Master использует
+стандартный `ChatOpenAI` с
 OpenAI-compatible API Polza и моделью `z-ai/glm-5.3-flash`;
 `MASTER_PROVIDER=groq` оставляет прежний `ChatGroq` как альтернативу. Выбор
 provider/model фиксируется при создании conversation и не меняется внутри
@@ -96,8 +99,9 @@ LLM_MOCK=true python scripts/demo_offline.py --inn 6165169320
 ## Модели
 
 Сам `run_check()` делает пять вызовов: четыре блочных агента параллельно и один
-Summary-LLM поверх их ответов. Chat flow добавляет выбор tool и финальный шаг
-Master, если доступен выбранный Master provider;
+Summary-LLM поверх их ответов. Chat flow добавляет выбор tool, естественный
+ответ Master и его bounded grounding-проверку, если доступен выбранный Master
+provider;
 в mock-режиме routing детерминированный. Targeted finance/legal читают только
 snapshot и нужный builder, не вызывая полный pipeline и доменные LLM.
 Подробнее: [multi-turn chat](../docs/MULTI_TURN_CHAT.md).
@@ -105,7 +109,7 @@ snapshot и нужный builder, не вызывая полный pipeline и �
 
 | Роль | Модель | Почему |
 |---|---|---|
-| Master | `z-ai/glm-5.3-flash` через Polza | native tool call, затем grounded выбор findings |
+| Master | `z-ai/glm-5.3-flash` через Polza | native tool call, естественный ответ, grounding verifier и одна repair-попытка |
 | Блок «Кто это» | `openai/gpt-oss-20b` | короткий блок, младшей модели достаточно |
 | Блок «Надёжность и правовые риски» | `openai/gpt-oss-120b` | самый ответственный блок, отдаём сильнейшей модели |
 | Блок «Финансовое состояние» | `qwen/qwen3.8-27b` | устойчиво держит JSON-схему на числовых данных |

@@ -1,25 +1,29 @@
-"""Grounded observation catalog shared by post-tool context and hydration.
+"""Verified context for Master reasoning and backend hydration.
 
-The model selects emphasis and optional visualization. Statements and their
-explanations are backend templates applied to the same verified facts.
+This module deliberately contains no catalog of prose conclusions. Domain data
+is normalized into metrics, series, events, statuses, coverage and explicit
+policy signals. Evidence IDs remain provenance links, not a reasoning whitelist.
 """
+from __future__ import annotations
+
 import json
+from typing import Iterable
 
-from .targeted_models import MasterSynthesis, TargetedFinding
+from .models import FullCompanyCheckData, MasterAnswer, ToolFact, ToolResult
+from .targeted_models import TargetedData
 from .tools import _evidence_from_fact, display_fact_value
-from .models import FullCompanyCheckData
 
 
-def observation_findings(result):
-    if result.status == "error":
-        return []
+def _validated_data(result: ToolResult) -> FullCompanyCheckData | TargetedData:
     if result.metadata.tool == "full_company_check":
-        return [item.model_dump(mode="json") for item in full_check_findings(
-            FullCompanyCheckData.model_validate(result.data))]
-    return result.data.get("findings", [])
+        return FullCompanyCheckData.model_validate(result.data)
+    if result.metadata.tool in {"get_financial_data", "get_legal_data"}:
+        return TargetedData.model_validate(result.data)
+    raise ValueError("Unsupported ToolResult domain")
 
 
-def verified_evidence(data, result):
+def verified_evidence(data, result: ToolResult):
+    """Rebuild every evidence row from facts and reject any foreign reference."""
     expected = {key: _evidence_from_fact(fact) for key, fact in data.facts.items()}
     evidence = {}
     for item in result.evidence:
@@ -31,69 +35,82 @@ def verified_evidence(data, result):
     return evidence
 
 
-def full_check_findings(data):
-    # The predicate and explanation belong together: a model cannot attach the
-    # favorable interpretation of one fact to a different adverse observation.
-    rules = (
-        ("flags.hard_stop_codes", bool, True,
-         "Эти стоп-факторы нужно проверить до обсуждения условий сделки."),
-        ("flags.attention_codes", bool, True,
-         "По этим сигналам стоит запросить пояснения и подтверждающие документы."),
-        ("execproc.active_count", _positive, True,
-         "Перед сделкой стоит уточнить основания и текущее состояние производств."),
-        ("court.defendant_count", _positive, False,
-         "Само число дел не описывает исход споров; стоит отдельно разобрать их содержание."),
-        ("fin.negative_capitals", lambda value: value is True, True,
-         "Это повод запросить актуальную отчётность и пояснения о собственном капитале."),
-        ("fin.proceeds_change_pct", _negative, True,
-         "Причины снижения выручки стоит уточнить; одна динамика не определяет условия сделки."),
-        ("fin.profit_last", lambda value: isinstance(value, (int, float)) and not isinstance(value, bool), False,
-         "Для оценки устойчивости прибыли полезно посмотреть её динамику по годам."),
-        ("procurement.contracts_signed", _positive, False,
-         "Количество заключённых контрактов само по себе не подтверждает качество исполнения."),
-        ("positive.count", _positive, False,
-         "Положительные сведения стоит учитывать вместе с ограничениями и остальными фактами."),
+def _observation(fact: ToolFact) -> dict:
+    return {
+        "id": fact.id,
+        "label": fact.label,
+        "value": fact.value,
+        "display_value": display_fact_value(fact),
+        "unit": fact.unit,
+        "evidence_ids": [fact.id],
+    }
+
+
+def _observations(data, ids: Iterable[str]) -> list[dict]:
+    return [_observation(data.facts[fact_id]) for fact_id in ids if fact_id in data.facts]
+
+
+def normalized_tool_context(result: ToolResult) -> dict:
+    """Return compact verified data for one Master turn; never legacy prose."""
+    if result.status == "error":
+        raise ValueError("Error ToolResult cannot become trusted context")
+    data = _validated_data(result)
+    evidence = verified_evidence(data, result)
+    policy_ids = []
+    for signal in data.policy_signals:
+        if signal.id in policy_ids or set(signal.evidence_ids) - evidence.keys():
+            raise ValueError("Policy signal has invalid provenance")
+        policy_ids.append(signal.id)
+
+    full = isinstance(data, FullCompanyCheckData)
+    domain = "full_check" if full else data.domain
+    coverage = (
+        {
+            "state": data.availability,
+            "filled_blocks": data.coverage.filled_blocks,
+            "total_blocks": data.coverage.total_blocks,
+            "coverage_pct": data.coverage.coverage_pct,
+            "empty_blocks": data.coverage.empty_blocks,
+        }
+        if full
+        else {"state": data.availability, "gaps": data.gaps}
     )
-    findings = []
-    for fact_id, predicate, required, explanation in rules:
-        fact = data.facts.get(fact_id)
-        if fact is None or not predicate(fact.value):
-            continue
-        findings.append(TargetedFinding(
-            id=fact.id, title=fact.label,
-            text="%s: %s. %s" % (fact.label, display_fact_value(fact), explanation),
-            evidence_ids=[fact.id], required=required or (fact_id == "fin.profit_last" and fact.value < 0),
-        ))
-    return findings
+    company = {
+        "inn": data.company.inn,
+        "ogrn": data.company.ogrn,
+        "name": data.company.short_name or data.company.full_name,
+        "status": data.company.status,
+    }
+    return {
+        "schema_version": "verified-context-1",
+        "tool": result.metadata.tool,
+        "domain": domain,
+        "status": result.status,
+        "company": company,
+        "metrics": _observations(data, data.metric_ids),
+        "series": _observations(data, data.series_ids),
+        "events": _observations(data, data.event_ids),
+        "statuses": _observations(data, data.status_ids),
+        "coverage": coverage,
+        "policy_signals": [signal.model_dump(mode="json") for signal in data.policy_signals],
+        "evidence": [item.model_dump(mode="json") for item in evidence.values()],
+        "warnings": list(dict.fromkeys(result.warnings)),
+    }
 
 
-def select_synthesis(findings, synthesis):
-    known = {item.id: item for item in findings}
-    # A safe fallback still reads like a short answer, not a dump of the catalog.
-    selected = list(known)[:3]
-    artifact = "none"
-    status = "deterministic" if synthesis is None else "fallback"
-    if synthesis is not None:
-        try:
-            proposal = MasterSynthesis.model_validate(
-                json.loads(synthesis) if isinstance(synthesis, str) else synthesis
-            )
-            ids = proposal.finding_ids
-            if len(set(ids)) != len(ids) or set(ids) - known.keys() or (known and not ids):
-                raise ValueError("Unknown, repeated or empty synthesis")
-            # Selection is bounded even if an over-verbose model selects all IDs.
-            selected = ids[:3]
-            artifact = proposal.artifact
-            status = "model"
-        except (ValueError, TypeError):
-            pass
-    selected += [item.id for item in findings if item.required and item.id not in selected]
-    return [known[key] for key in selected], artifact, status
+def parse_master_answer(value, *, allowed_artifacts: Iterable[str]) -> MasterAnswer:
+    """Validate structure only; natural-language meaning is checked separately."""
+    proposal = MasterAnswer.model_validate(
+        json.loads(value) if isinstance(value, str) else value
+    )
+    if proposal.artifact not in set(allowed_artifacts):
+        raise ValueError("Artifact is unavailable for this turn")
+    return proposal
 
 
-def _positive(value):
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
-
-
-def _negative(value):
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and value < 0
+def allowed_artifacts(result: ToolResult | None, *, contextual: bool) -> tuple[str, ...]:
+    if contextual or result is None:
+        return ("none",)
+    if result.metadata.tool in {"full_company_check", "get_financial_data"}:
+        return ("none", "metrics", "chart")
+    return ("none", "metrics")

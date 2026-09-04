@@ -1,4 +1,4 @@
-"""Live HTTP smoke: full check → finance → legal, against PostgreSQL/ChatGroq."""
+"""Live seven-turn Master conversation against the configured provider and DB."""
 import argparse
 import json
 import time
@@ -21,14 +21,21 @@ def main():
             return json.load(response)
 
     health = request("/health")
-    assert health["database"] is True and health["llm_mode"] == "groq", health
+    assert health["database"] is True, health
     conversation_id = None
-    for index, message in enumerate([
+    turns = [
         "Проверь контрагента " + args.inn,
         "А что у них с финансами?",
+        "Почему это вообще плохо?",
+        "Объясни проще",
+        "Насколько это критично для сделки с отсрочкой?",
         "А что у них с судами?",
-    ]):
-        if index and args.pause_seconds > 0:
+        "Что здесь самое неприятное?",
+    ]
+    tool_turns = {1, 2, 6}
+    total_tool_calls = 0
+    for index, message in enumerate(turns, start=1):
+        if index > 1 and args.pause_seconds > 0:
             time.sleep(args.pause_seconds)
         payload = request("/api/v1/chat/messages", {
             "message": message, "conversation_id": conversation_id,
@@ -36,16 +43,24 @@ def main():
         meta = payload["metadata"]
         assert meta["status"] in ("completed", "partial"), meta
         assert payload["active_company"]["inn"] == args.inn, payload["active_company"]
-        assert meta["tool_calls"] == 1 and meta["model_calls"] == 2, meta
+        expected_tools = 1 if index in tool_turns else 0
+        assert meta["tool_calls"] == expected_tools, meta
+        assert 1 <= meta["model_calls"] <= 5, meta
         assert meta["routing"] == "model", meta
+        expected_grounding = "skipped_rewrite" if index == 4 else None
+        if expected_grounding:
+            assert meta["grounding_status"] == expected_grounding, meta
+        else:
+            assert meta["grounding_status"] in ("verified", "repaired"), meta
+        total_tool_calls += meta["tool_calls"]
         if conversation_id:
             assert payload["conversation_id"] == conversation_id
         conversation_id = payload["conversation_id"]
         assert meta["synthesis"] == "model", meta
         assert payload["message"].strip(), payload
-        if index:
+        if index != 1:
             assert payload["leading_artifact"] is None, payload
-            assert len(payload["blocks"]) <= 1, payload["blocks"]
+            assert len(payload["blocks"]) <= 2, payload["blocks"]
             assert meta["check_run_id"] is None, meta
         else:
             summary = payload["leading_artifact"]
@@ -60,14 +75,16 @@ def main():
             for item in block.get("items", []):
                 if item.get("evidence_id"):
                     assert item["evidence_id"] in evidence
-        print(json.dumps({"turn": index + 1, "conversation_id": conversation_id,
+        print(json.dumps({"turn": index, "question": message,
+                          "answer": payload["message"], "conversation_id": conversation_id,
                           "metadata": meta, "blocks": [b["type"] for b in payload["blocks"]],
                           "leading_artifact": (payload.get("leading_artifact") or {}).get("type"),
                           "evidence_count": len(evidence)}, ensure_ascii=False), flush=True)
+    assert total_tool_calls == 3, total_tool_calls
     for path in ("/", "/report?inn=" + args.inn):
         with urlopen(args.base_url.rstrip("/") + path) as response:
             assert response.status == 200
-    print("PASS: live multi-turn ChatGroq + PostgreSQL, landing and legacy report", flush=True)
+    print("PASS: seven-turn grounded Master conversation, PostgreSQL, landing and legacy report", flush=True)
 
 
 if __name__ == "__main__":

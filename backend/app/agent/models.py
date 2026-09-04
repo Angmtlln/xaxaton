@@ -138,6 +138,21 @@ class ToolFact(StrictModel):
     comment: Optional[SafeText] = None
 
 
+class PolicySignal(StrictModel):
+    """A backend-owned policy/status signal, never a prose conclusion catalog."""
+
+    id: SafeText
+    kind: Literal[
+        "official_hard_stop",
+        "source_attention",
+        "bank_risk_status",
+        "zsk_status",
+    ]
+    label: SafeText
+    value: JsonValue = None
+    evidence_ids: List[SafeText] = Field(default_factory=list, max_length=8)
+
+
 class FullCheckCompany(StrictModel):
     inn: SafeText
     ogrn: Optional[SafeText] = None
@@ -159,33 +174,54 @@ class FullCheckCoverage(StrictModel):
     empty_blocks: List[SafeText] = Field(default_factory=list)
 
 
-class FullCheckSummary(StrictModel):
-    verdict_group: Literal["STOP", "ENHANCED_CHECK", "CONDITIONALLY_OK", "NO_DATA"]
-    headline: SafeText = ""
-    narrative_points: List[SafeText] = Field(default_factory=list, max_length=3)
-    data_gaps: List[SafeText] = Field(default_factory=list, max_length=8)
-    questions_to_ask: List[SafeText] = Field(default_factory=list, max_length=8)
-
-
-class FullCheckGrounding(StrictModel):
-    statements: int = Field(ge=0)
-    grounded: int = Field(ge=0)
-    unverified: int = Field(ge=0)
-    no_ref: int = Field(ge=0)
-    grounded_pct: float = Field(ge=0, le=100)
-
-
 class FullCompanyCheckData(StrictModel):
     check_run_id: Optional[SafeText] = None
     pipeline_status: Literal["SUCCEEDED", "PARTIAL"]
+    availability: Literal["DATA", "PARTIAL", "NO_DATA"]
     inn: SafeText
     company: FullCheckCompany
     coverage: FullCheckCoverage
-    summary: FullCheckSummary
     facts: Dict[str, ToolFact]
-    grounding: FullCheckGrounding
-    llm_mode: SafeText
+    metric_ids: List[SafeText] = Field(default_factory=list, max_length=20)
+    series_ids: List[SafeText] = Field(default_factory=list, max_length=8)
+    event_ids: List[SafeText] = Field(default_factory=list, max_length=8)
+    status_ids: List[SafeText] = Field(default_factory=list, max_length=8)
+    policy_signals: List[PolicySignal] = Field(default_factory=list, max_length=12)
     calculator_version: SafeText
+
+    @model_validator(mode="after")
+    def validate_verified_links(self) -> "FullCompanyCheckData":
+        if self.inn != self.company.inn:
+            raise ValueError("Full-check company identifier mismatch")
+        if any(key != fact.id for key, fact in self.facts.items()):
+            raise ValueError("Fact keys must match fact IDs")
+        references = set(self.metric_ids + self.series_ids + self.event_ids + self.status_ids)
+        references.update(ref for signal in self.policy_signals for ref in signal.evidence_ids)
+        if references - self.facts.keys():
+            raise ValueError("Unknown full-check fact reference")
+        return self
+
+
+class MasterAnswer(StrictModel):
+    """Natural-language answer authored by Master; UI remains backend-owned."""
+
+    message: SafeText = Field(min_length=1, max_length=5000)
+    artifact: Literal["none", "metrics", "chart"] = "none"
+
+
+class GroundingVerification(StrictModel):
+    """Narrow verdict about unsupported company-specific factual claims."""
+
+    supported: bool
+    unsupported_claims: List[SafeText] = Field(default_factory=list, max_length=8)
+
+    @model_validator(mode="after")
+    def validate_verdict(self) -> "GroundingVerification":
+        if self.supported and self.unsupported_claims:
+            raise ValueError("Supported answer cannot contain unsupported claims")
+        if not self.supported and not self.unsupported_claims:
+            raise ValueError("Unsupported answer must identify at least one claim")
+        return self
 
 
 class CompanyCardBlock(StrictModel):
@@ -303,8 +339,12 @@ class AssistantMetadata(StrictModel):
     prompt_version: SafeText
     latency_ms: int = Field(ge=0)
     error_code: Optional[SafeText] = None
-    model_calls: int = Field(default=0, ge=0, le=2)
+    model_calls: int = Field(default=0, ge=0, le=5)
     synthesis: Literal["deterministic", "model", "fallback"] = "deterministic"
+    grounding_status: Literal[
+        "not_required", "verified", "repaired", "skipped_rewrite", "fallback"
+    ] = "not_required"
+    repair_attempts: int = Field(default=0, ge=0, le=1)
 
 
 class AssistantResponse(StrictModel):

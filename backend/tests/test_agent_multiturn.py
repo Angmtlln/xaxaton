@@ -6,7 +6,7 @@ import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agent.conversations import ConversationStore
-from app.agent.models import ToolFact, ToolResult, ToolResultMetadata
+from app.agent.models import ToolError, ToolFact, ToolResult, ToolResultMetadata
 from app.agent.runtime import MasterAgentRuntime
 from app.agent.tools import _evidence_from_fact
 from test_agent_runtime import _runtime, _model, _tool_call
@@ -20,8 +20,8 @@ def targeted_result(domain="finance", inn="6165169320", availability="DATA"):
     return ToolResult(status="success" if availability == "DATA" else "partial",
         data={"domain": domain, "company": {"inn": inn, "short_name": "Проверенная компания"},
               "availability": availability, "facts": {fact_id: fact.model_dump()},
-              "metric_ids": [fact_id], "findings": [{"id": "observation", "title": "Факт",
-                  "text": "Подтверждённое наблюдение", "evidence_ids": [fact_id]}], "gaps": []},
+              "metric_ids": [fact_id], "series_ids": [], "event_ids": [],
+              "status_ids": [], "policy_signals": [], "gaps": []},
         evidence=[_evidence_from_fact(fact)], metadata=ToolResultMetadata(
             tool="get_financial_data" if domain == "finance" else "get_legal_data", latency_ms=1))
 
@@ -29,9 +29,15 @@ def targeted_result(domain="finance", inn="6165169320", availability="DATA"):
 @pytest.mark.asyncio
 async def test_full_check_then_finance_and_legal_use_active_company_and_second_model_step(monkeypatch, check_payload):
     model = _model(
-        AIMessage(content="", tool_calls=[_tool_call()]), AIMessage(content='{"finding_ids":[]}'),
-        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]), AIMessage(content='{"finding_ids":["observation"]}'),
-        AIMessage(content="", tool_calls=[_tool_call("get_legal_data")]), AIMessage(content='{"finding_ids":["observation"]}'),
+        AIMessage(content="", tool_calls=[_tool_call()]),
+        AIMessage(content='{"message":"Проверка завершена, разберём важное.","artifact":"none"}'),
+        AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
+        AIMessage(content='{"message":"Прибыль нужно смотреть вместе с динамикой.","artifact":"none"}'),
+        AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
+        AIMessage(content="", tool_calls=[_tool_call("get_legal_data")]),
+        AIMessage(content='{"message":"Судебные события требуют разбора контекста.","artifact":"none"}'),
+        AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
     )
     runtime = _runtime(model)
     calls = []
@@ -55,20 +61,19 @@ async def test_full_check_then_finance_and_legal_use_active_company_and_second_m
     assert second.conversation_id == third.conversation_id == first.conversation_id
     assert calls == [(name, {"inn": "6165169320"}) for name in
                      ("full_company_check", "get_financial_data", "get_legal_data")]
-    assert model.calls == 6
-    assert second.metadata.model_calls == third.metadata.model_calls == 2
+    assert model.calls == 9
+    assert second.metadata.model_calls == third.metadata.model_calls == 3
     assert second.metadata.synthesis == third.metadata.synthesis == "model"
-    for index, domain in ((3, "finance"), (5, "legal")):
+    for index, domain in ((4, "finance"), (7, "legal")):
         observation = next(m for m in model._messages[index] if isinstance(m, ToolMessage))
         payload = json.loads(observation.content)
-        assert payload["data"]["domain"] == domain
+        assert payload["domain"] == domain
         assert payload["evidence"][0]["field_ref"] == "report.test"
 
 
 @pytest.mark.asyncio
 async def test_model_cannot_replace_active_company_or_verified_data(monkeypatch):
-    model = _model(AIMessage(content="", tool_calls=[_tool_call("get_financial_data", {"inn": "0278949271"})]),
-                   AIMessage(content='{"finding_ids":["fake"],"value":987654321,"url":"https://invented.test"}'))
+    model = _model(AIMessage(content="", tool_calls=[_tool_call("get_financial_data", {"inn": "0278949271"})]))
     runtime = _runtime(model)
     calls = []
     async def execute(name, args, context):
@@ -122,6 +127,36 @@ async def test_failed_new_run_never_returns_previous_tool_artifact(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_failed_company_switch_preserves_previous_active_company_and_trusted_context(monkeypatch):
+    runtime = _runtime(None)
+
+    async def execute(name, args, context):
+        if args["inn"] == "6165169320":
+            return targeted_result(inn=args["inn"])
+        return ToolResult(
+            status="error",
+            error=ToolError(
+                code="not_found", user_safe_message="Карточка не найдена."
+            ),
+            metadata=ToolResultMetadata(tool=name, latency_ms=1),
+        )
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    first = await runtime.run("Финансы 6165169320")
+    failed = await runtime.run("Финансы 0278949271", first.conversation_id)
+
+    assert failed.metadata.error_code == "not_found"
+    assert failed.active_company.inn == "6165169320"
+    checkpoint = await runtime.conversation_store.checkpointer.aget_tuple(
+        {"configurable": {"thread_id": first.conversation_id}}
+    )
+    values = checkpoint.checkpoint["channel_values"]
+    assert values["active_company"]["inn"] == "6165169320"
+    assert values["trusted_context"]["company"]["inn"] == "6165169320"
+    assert all("0278949271" not in item for item in values["user_context"])
+
+
+@pytest.mark.asyncio
 async def test_history_and_checkpoints_are_bounded_and_only_trusted_turns_persist(monkeypatch):
     runtime = _runtime(None)
     runtime.conversation_store = ConversationStore(max_turns=2)
@@ -156,7 +191,7 @@ async def test_unavailable_routing_fallback_stays_targeted(monkeypatch, domain, 
     assert calls == [expected, expected]
     assert second.metadata.routing == "deterministic_fallback"
     assert second.metadata.status == "partial"
-    assert "невозможно оценить" in second.message.lower()
+    assert "содержательный вывод сделать нельзя" in second.message.lower()
 
 
 @pytest.mark.asyncio
@@ -242,8 +277,9 @@ async def test_operational_trace_includes_safe_context_usage_and_fallback(monkey
     model = _model(
         AIMessage(content="", tool_calls=[_tool_call("get_financial_data")],
                   usage_metadata={"input_tokens": 5, "output_tokens": 2, "total_tokens": 7}),
-        AIMessage(content='{"finding_ids":["observation"]}',
+        AIMessage(content='{"message":"Проверенный финансовый ответ.","artifact":"none"}',
                   usage_metadata={"input_tokens": 10, "output_tokens": 3, "total_tokens": 13}),
+        AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
     )
     runtime = _runtime(model)
     async def execute(name, args, context):
@@ -262,9 +298,12 @@ async def test_operational_trace_includes_safe_context_usage_and_fallback(monkey
 
 
 @pytest.mark.asyncio
-async def test_second_model_policy_has_exact_current_finding_id_schema(monkeypatch):
-    model = _model(AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
-                   AIMessage(content='{"finding_ids":["observation"]}'))
+async def test_second_model_policy_has_answer_schema_and_normalized_context(monkeypatch):
+    model = _model(
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
+        AIMessage(content='{"message":"Содержательный ответ.","artifact":"none"}'),
+        AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
+    )
     runtime = _runtime(model)
     async def execute(name, args, context):
         return targeted_result()
@@ -272,8 +311,7 @@ async def test_second_model_policy_has_exact_current_finding_id_schema(monkeypat
     response = await runtime.run("Финансы 6165169320")
     assert response.metadata.synthesis == "model"
     system = model._messages[1][0].content
-    assert '"enum":["observation"]' in system
-    assert '"minItems":1' in system
+    assert '"required":["message"]' in system
     assert '"additionalProperties":false' in system
-    assert '"enum":["fin.profit_last"]' not in system
-    assert "Не возвращай fact_id вместо finding id" not in system
+    assert '"domain":"finance"' in system
+    assert '"findings"' not in system
