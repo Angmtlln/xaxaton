@@ -253,7 +253,8 @@ def _summary_public(summary: SummaryResult) -> Dict[str, Any]:
 def _summary_payload(summary: SummaryResult) -> Dict[str, Any]:
     return {
         "verdict_group": summary.verdict_group, "headline": summary.headline,
-        "narrative": summary.narrative, "key_numbers": summary.key_numbers,
+        "narrative": summary.narrative, "narrative_points": summary.narrative_points,
+        "key_numbers": summary.key_numbers,
         "top_risks": summary.top_risks, "positives": summary.positives,
         "data_gaps": summary.data_gaps, "questions_to_ask": summary.questions_to_ask,
         "model": summary.model, "latency_ms": summary.latency_ms,

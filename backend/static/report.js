@@ -295,14 +295,21 @@ function compactMetrics() {
     </div>`;
 }
 
-function narrativeBullets(text) {
-  const sentences = String(text || '')
+function narrativeBullets(summary) {
+  const modelPoints = Array.isArray(summary.narrative_points)
+    ? summary.narrative_points.map((point) => String(point || '').trim()).filter(Boolean)
+    : [];
+  const fallbackPoints = String(summary.narrative || '')
     .replace(/([.!?])\s+(?=[А-ЯЁ])/g, '$1\n')
     .split('\n')
     .map((sentence) => sentence.trim())
     .filter(Boolean);
-  if (!sentences.length) return '<li>Итоговое пояснение не сформировано.</li>';
-  return sentences.map((sentence) => `<li>${esc(sentence)}</li>`).join('');
+  const points = (modelPoints.length ? modelPoints : fallbackPoints).slice(0, 3);
+  if (!points.length) return '<li>Итоговое пояснение не сформировано.</li>';
+  return points.map((point) => {
+    const compact = point.length > 180 ? `${point.slice(0, 179).trimEnd()}…` : point;
+    return `<li>${esc(compact)}</li>`;
+  }).join('');
 }
 
 function blockLabel(title) {
@@ -385,7 +392,7 @@ function summaryPanel(data) {
       ${compactMetrics()}
       <div class="summary-note">
         <span class="eyebrow">Почему такой вывод</span>
-        <ul>${narrativeBullets(s.narrative)}</ul>
+        <ul>${narrativeBullets(s)}</ul>
         ${notes ? `<p>Защитный слой: ${esc(notes)}.</p>` : ''}
       </div>
     </section>`;

@@ -5,7 +5,9 @@ import pytest
 
 from app.config import Settings
 from app.domain.facts import build_all_blocks, build_coverage
-from app.llm.agents import enforce_guardrails, run_block_agents, run_summary_agent
+from app.llm.agents import (SUMMARY_POINT_CHAR_LIMIT, SUMMARY_POINT_MAX,
+                            SUMMARY_POINT_MIN, SUMMARY_POINTS_TOTAL_LIMIT,
+                            enforce_guardrails, run_block_agents, run_summary_agent)
 from app.llm.groq_client import GroqClient
 from app.pipeline import collect_statements, grounding_metrics, select_key_facts
 
@@ -39,6 +41,10 @@ def test_four_agents_answer(document):
         assert res.signal in {"NORM", "ATTENTION", "RISK", "NO_DATA"}
         assert res.facts_sentence
     assert summary.verdict_group in {"STOP", "ENHANCED_CHECK", "CONDITIONALLY_OK", "NO_DATA"}
+    assert SUMMARY_POINT_MIN <= len(summary.narrative_points) <= SUMMARY_POINT_MAX
+    assert all(len(point) <= SUMMARY_POINT_CHAR_LIMIT for point in summary.narrative_points)
+    assert sum(map(len, summary.narrative_points)) <= SUMMARY_POINTS_TOTAL_LIMIT
+    assert summary.narrative == " ".join(summary.narrative_points)
 
 
 def test_no_hallucinated_references(documents):

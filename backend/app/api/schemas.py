@@ -63,7 +63,10 @@ class RiskOut(BaseModel):
 class SummaryOut(BaseModel):
     verdict_group: str = Field(..., description="STOP | ENHANCED_CHECK | CONDITIONALLY_OK | NO_DATA")
     headline: str = ""
-    narrative: str = ""
+    narrative: str = Field("", description="Совместимое строковое представление итоговых тезисов")
+    narrative_points: List[str] = Field(
+        default_factory=list, max_length=3,
+        description="2–3 коротких тезиса Summary-агента; каждый до 135 символов")
     key_numbers: List[Dict[str, Any]] = []
     top_risks: List[Dict[str, Any]] = []
     positives: List[Dict[str, Any]] = []

@@ -11,6 +11,7 @@
 """
 import asyncio
 import logging
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
@@ -26,6 +27,12 @@ SIGNALS = ("NORM", "ATTENTION", "RISK", "NO_DATA")
 SIGNAL_RANK = {"NO_DATA": 0, "NORM": 1, "ATTENTION": 2, "RISK": 3}
 VERDICTS = ("STOP", "ENHANCED_CHECK", "CONDITIONALLY_OK", "NO_DATA")
 SEVERITIES = ("high", "medium", "low")
+SUMMARY_POINT_MIN = 2
+SUMMARY_POINT_MAX = 3
+SUMMARY_POINT_CHAR_LIMIT = 135
+SUMMARY_POINTS_TOTAL_LIMIT = 360
+SUMMARY_SAFE_FALLBACK_POINT = "Перед сделкой проверьте факты и пробелы данных в подробных блоках."
+SUMMARY_ALT_FALLBACK_POINT = "Откройте подробные блоки, чтобы сопоставить вывод с исходными фактами."
 
 
 @dataclass
@@ -70,6 +77,7 @@ class SummaryResult:
     verdict_group: str = "NO_DATA"
     headline: str = ""
     narrative: str = ""
+    narrative_points: List[str] = field(default_factory=list)
     key_numbers: List[Dict[str, Any]] = field(default_factory=list)
     top_risks: List[Dict[str, Any]] = field(default_factory=list)
     positives: List[Dict[str, Any]] = field(default_factory=list)
@@ -134,6 +142,88 @@ def _str_list(value: Any, limit: int = 12) -> List[str]:
         if text:
             out.append(text)
     return out
+
+
+def _word_chunks(text: str, limit: int) -> List[str]:
+    """Делит длинный тезис по границам слов, не добавляя новый смысл."""
+    chunks: List[str] = []
+    rest = re.sub(r"\s+", " ", text).strip()
+    while len(rest) > limit:
+        cut = rest.rfind(" ", 0, limit + 1)
+        if cut < limit // 2:
+            cut = limit
+        chunk = rest[:cut].strip(" ,;:-")
+        if chunk:
+            chunks.append(chunk)
+        rest = rest[cut:].strip()
+    if rest:
+        chunks.append(rest)
+    return chunks
+
+
+def normalize_summary_points(value: Any, legacy_narrative: Any = None) -> List[str]:
+    """Нормализует вывод модели в компактные тезисы для одного экрана.
+
+    Сначала принимается новый массив narrative_points. Старое поле narrative,
+    лишние элементы и длинные ответы проходят детерминированное разбиение по
+    предложениям/словам. Код ограничивает объём независимо от промпта.
+    """
+    if isinstance(value, (list, tuple)):
+        raw = [_text(item, 2000) for item in value]
+    elif isinstance(value, str):
+        raw = [_text(value, 2000)]
+    else:
+        raw = []
+    raw = [re.sub(r"\s+", " ", item).strip() for item in raw if item and item.strip()]
+
+    if not raw:
+        legacy = _text(legacy_narrative, 4000)
+        if legacy:
+            raw = [re.sub(r"\s+", " ", legacy).strip()]
+    if not raw:
+        return []
+
+    within_limits = (
+        SUMMARY_POINT_MIN <= len(raw) <= SUMMARY_POINT_MAX
+        and all(len(item) <= SUMMARY_POINT_CHAR_LIMIT for item in raw)
+        and sum(map(len, raw)) <= SUMMARY_POINTS_TOTAL_LIMIT
+    )
+    if within_limits:
+        return raw
+
+    units: List[str] = []
+    for item in raw:
+        sentences = re.split(r"(?<=[.!?])\s+(?=[А-ЯЁA-Z0-9])", item)
+        units.extend(sentence.strip() for sentence in sentences if sentence.strip())
+
+    if len(units) == 1:
+        clauses = re.split(
+            r"(?<=[,;])\s+|\s+(?=(?:но|поэтому|при этом|перед сделкой)\b)",
+            units[0], flags=re.IGNORECASE)
+        if len(clauses) > 1:
+            units = [clause.strip() for clause in clauses if clause.strip()]
+
+    chunks = (units if len(units) > 1
+              else _word_chunks(units[0], SUMMARY_POINT_CHAR_LIMIT))
+    points: List[str] = []
+    used = 0
+    for chunk in chunks:
+        if len(points) >= SUMMARY_POINT_MAX:
+            break
+        available = min(SUMMARY_POINT_CHAR_LIMIT, SUMMARY_POINTS_TOTAL_LIMIT - used)
+        if available < 24:
+            break
+        point = _word_chunks(chunk, available)[0]
+        if len(point) < len(chunk):
+            point = point.rstrip(" ,;:.-") + "…"
+        points.append(point[:available])
+        used += len(points[-1])
+    if len(points) == 1:
+        fallback = (SUMMARY_SAFE_FALLBACK_POINT
+                    if points[0] != SUMMARY_SAFE_FALLBACK_POINT
+                    else SUMMARY_ALT_FALLBACK_POINT)
+        points.append(fallback)
+    return points
 
 
 def fact_value(fact: Fact) -> Any:
@@ -337,15 +427,23 @@ async def run_summary_agent(client: GroqClient, settings: Settings,
     # Модель вправе сослаться на любой факт прогона, не только на ключевой.
     known = set(all_fact_ids or ()) | {f["fact_id"] for f in key_facts if f.get("fact_id")}
     verdict = _text(payload.get("verdict_group"), 30).upper()
+    narrative_points = normalize_summary_points(
+        payload.get("narrative_points"), payload.get("narrative"))
+    if not narrative_points:
+        narrative_points = [
+            "Итоговое пояснение модели не сформировано.",
+            SUMMARY_SAFE_FALLBACK_POINT,
+        ]
     return SummaryResult(
         verdict_group=verdict if verdict in VERDICTS else "ENHANCED_CHECK",
-        headline=_text(payload.get("headline"), 300),
-        narrative=_text(payload.get("narrative"), 2000),
-        key_numbers=_ref_list(payload.get("key_numbers"), known, "label"),
-        top_risks=_ref_list(payload.get("top_risks"), known, "text"),
-        positives=_ref_list(payload.get("positives"), known, "text"),
-        data_gaps=_str_list(payload.get("data_gaps")),
-        questions_to_ask=_str_list(payload.get("questions_to_ask"), 6) or DEFAULT_QUESTIONS,
+        headline=_text(payload.get("headline"), 90),
+        narrative=" ".join(narrative_points),
+        narrative_points=narrative_points,
+        key_numbers=_ref_list(payload.get("key_numbers"), known, "label", 4),
+        top_risks=_ref_list(payload.get("top_risks"), known, "text", 5),
+        positives=_ref_list(payload.get("positives"), known, "text", 3),
+        data_gaps=_str_list(payload.get("data_gaps"), 4),
+        questions_to_ask=_str_list(payload.get("questions_to_ask"), 4) or DEFAULT_QUESTIONS,
         model=response.model,
         latency_ms=response.latency_ms,
         prompt_tokens=response.prompt_tokens,
@@ -354,9 +452,9 @@ async def run_summary_agent(client: GroqClient, settings: Settings,
     )
 
 
-def _ref_list(items: Any, known: set, main_key: str) -> List[Dict[str, Any]]:
+def _ref_list(items: Any, known: set, main_key: str, limit: int = 8) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
-    for item in (items or [])[:8]:
+    for item in (items or [])[:limit]:
         if isinstance(item, str):
             item = {main_key: item}
         if not isinstance(item, dict):
@@ -599,18 +697,20 @@ def _mock_summary_result(company: Dict[str, Any], block_results: Dict[str, Block
         "NO_DATA": "Данных в карточке слишком мало для вывода",
     }[verdict]
 
-    narrative = (
-        "%s, ИНН %s. Оценка банка %s, светофор ЗСК %s, они приведены без изменений. "
-        "Заполнено %s из %s блоков данных. %s"
-        % (company.get("short_name"), company.get("inn"), company.get("risk_level"),
-           company.get("zsk_risk_level"), coverage.get("filled_blocks"),
-           coverage.get("total_blocks"),
-           " ".join(r.facts_sentence for r in block_results.values() if r.facts_sentence)[:900])
-    )
+    first = ("%s: оценка банка %s, ЗСК %s; заполнено %s из %s блоков данных."
+             % (company.get("short_name") or "Контрагент", company.get("risk_level"),
+                company.get("zsk_risk_level"), coverage.get("filled_blocks"),
+                coverage.get("total_blocks")))
+    second = ("Главный факт внимания: %s." % risks[0]["text"]
+              if risks else "Жёстких фактов в доступных данных не найдено.")
+    third = ("До сделки стоит уточнить: %s." % gaps[0]
+             if gaps else "До сделки стоит проверить актуальность доступных данных.")
+    narrative_points = normalize_summary_points([first, second, third])
     return SummaryResult(
-        verdict_group=verdict, headline=headline, narrative=narrative,
-        key_numbers=key_facts[:6], top_risks=risks[:6], positives=positives[:5],
-        data_gaps=list(dict.fromkeys(gaps))[:8],
-        questions_to_ask=list(DEFAULT_QUESTIONS),
+        verdict_group=verdict, headline=headline, narrative=" ".join(narrative_points),
+        narrative_points=narrative_points,
+        key_numbers=key_facts[:4], top_risks=risks[:5], positives=positives[:3],
+        data_gaps=list(dict.fromkeys(gaps))[:4],
+        questions_to_ask=list(DEFAULT_QUESTIONS)[:4],
         model="deterministic",
     )

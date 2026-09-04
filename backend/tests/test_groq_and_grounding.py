@@ -10,9 +10,13 @@ import pytest
 
 from app.config import Settings
 from app.domain.facts import build_all_blocks, build_coverage
-from app.llm.agents import SummaryResult, run_block_agent
+from app.llm.agents import (SUMMARY_POINT_CHAR_LIMIT, SUMMARY_POINT_MAX,
+                            SUMMARY_POINTS_TOTAL_LIMIT, BlockResult, SummaryResult,
+                            normalize_summary_points, run_block_agent,
+                            run_summary_agent)
 from app.llm.groq_client import GroqClient, LLMError
-from app.pipeline import collect_statements, grounding_metrics
+from app.llm.prompts import SUMMARY_SYSTEM_PROMPT
+from app.pipeline import collect_statements, grounding_metrics, select_key_facts
 
 
 def _settings():
@@ -51,6 +55,23 @@ def _run_block(document, transport):
     company = {"inn": document["report"]["baseInfo"]["inn"]}
     return blocks, asyncio.run(
         run_block_agent(client, settings, "identity", blocks["identity"], company, coverage))
+
+
+def _run_summary(document, transport):
+    settings = _settings()
+    client = GroqClient(settings, client=httpx.AsyncClient(transport=transport))
+    blocks = build_all_blocks(document)
+    coverage = build_coverage(document)
+    base = document["report"]["baseInfo"]
+    company = {"inn": base["inn"], "short_name": base.get("shortName"),
+               "risk_level": base.get("riskLevel"),
+               "zsk_risk_level": document["report"].get("zskRiskLevel")}
+    block_results = {key: BlockResult(block=key, signal="NORM") for key in blocks}
+    key_facts = select_key_facts(blocks)
+    all_fact_ids = {fact.id for block in blocks.values() for fact in block.facts}
+    return asyncio.run(run_summary_agent(
+        client, settings, company, block_results, key_facts, coverage,
+        all_fact_ids=all_fact_ids))
 
 
 def test_block_agent_parses_groq_answer(document):
@@ -92,6 +113,55 @@ def test_model_wrapped_json_is_recovered(document):
     _, result = _run_block(document, transport)
     assert result.signal == "ATTENTION"
     assert result.error is None
+
+
+def test_summary_agent_uses_bounded_points_and_checks_grounding(document):
+    points = [
+        "Компания действует, банковские оценки приведены без пересчёта.",
+        "Перед сделкой требуется уточнить исполнительные производства.",
+        "Запросите документы по отмеченным фактам и пробелам данных.",
+    ]
+    answer = {
+        "verdict_group": "ENHANCED_CHECK",
+        "headline": "Работать можно после уточнения отмеченных фактов",
+        "narrative_points": points,
+        "key_numbers": [],
+        "top_risks": [{"text": "Неподтверждённый риск", "severity": "high",
+                       "fact_id": "не.существует"}],
+        "positives": [], "data_gaps": [], "questions_to_ask": ["Что требуется уточнить?"],
+    }
+    result = _run_summary(
+        document, httpx.MockTransport(lambda request: _groq_answer(answer)))
+
+    assert result.narrative_points == points
+    assert result.narrative == " ".join(points)
+    assert result.top_risks[0]["grounded"] is False
+
+
+def test_summary_points_are_normalized_when_model_ignores_limits():
+    excessive = [
+        "Первый тезис " + "с очень подробным описанием " * 10,
+        "Второй тезис " + "с повторяющимися деталями " * 10,
+        "Третий тезис " + "с ненужными подробностями " * 10,
+        "Четвёртый лишний тезис.",
+    ]
+    points = normalize_summary_points(excessive)
+    legacy = normalize_summary_points(
+        None, "Первый вывод. Второй вывод. Третий вывод. Четвёртый лишний вывод.")
+    too_short = normalize_summary_points(["Единственный тезис модели."])
+
+    assert len(points) == SUMMARY_POINT_MAX
+    assert all(len(point) <= SUMMARY_POINT_CHAR_LIMIT for point in points)
+    assert sum(map(len, points)) <= SUMMARY_POINTS_TOTAL_LIMIT
+    assert legacy == ["Первый вывод.", "Второй вывод.", "Третий вывод."]
+    assert len(too_short) == 2
+
+
+def test_summary_prompt_requests_compact_structured_points():
+    assert '"narrative_points"' in SUMMARY_SYSTEM_PROMPT
+    assert "2–3" in SUMMARY_SYSTEM_PROMPT
+    assert "135 символов" in SUMMARY_SYSTEM_PROMPT
+    assert "360 символов" in SUMMARY_SYSTEM_PROMPT
 
 
 def test_falls_back_to_deterministic_when_groq_fails(document):
