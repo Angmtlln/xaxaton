@@ -33,6 +33,7 @@ SUMMARY_POINT_CHAR_LIMIT = 135
 SUMMARY_POINTS_TOTAL_LIMIT = 360
 SUMMARY_SAFE_FALLBACK_POINT = "Перед сделкой проверьте факты и пробелы данных в подробных блоках."
 SUMMARY_ALT_FALLBACK_POINT = "Откройте подробные блоки, чтобы сопоставить вывод с исходными фактами."
+ATTENTION_SEVERITY_FACT_IDS = frozenset({"flags.attention_codes", "execproc.active_count"})
 
 
 @dataclass
@@ -226,6 +227,13 @@ def normalize_summary_points(value: Any, legacy_narrative: Any = None) -> List[s
     return points
 
 
+def _normalize_attention_severities(items: List[Dict[str, Any]]) -> None:
+    """Резервирует красный high для детерминированных стоп-факторов."""
+    for item in items:
+        if item.get("fact_id") in ATTENTION_SEVERITY_FACT_IDS:
+            item["severity"] = "medium"
+
+
 def fact_value(fact: Fact) -> Any:
     return fact.to_dict()["value"]
 
@@ -360,6 +368,7 @@ def _parse_block_payload(block: str, payload: Dict[str, Any], facts: List[Dict[s
             "fact_id": fact_id,
             "grounded": bool(fact_id and fact_id in known),
         })
+    _normalize_attention_severities(findings)
 
     signal = _text(payload.get("signal"), 20).upper()
     return BlockResult(
@@ -434,13 +443,15 @@ async def run_summary_agent(client: GroqClient, settings: Settings,
             "Итоговое пояснение модели не сформировано.",
             SUMMARY_SAFE_FALLBACK_POINT,
         ]
+    top_risks = _ref_list(payload.get("top_risks"), known, "text", 5)
+    _normalize_attention_severities(top_risks)
     return SummaryResult(
         verdict_group=verdict if verdict in VERDICTS else "ENHANCED_CHECK",
         headline=_text(payload.get("headline"), 90),
         narrative=" ".join(narrative_points),
         narrative_points=narrative_points,
         key_numbers=_ref_list(payload.get("key_numbers"), known, "label", 4),
-        top_risks=_ref_list(payload.get("top_risks"), known, "text", 5),
+        top_risks=top_risks,
         positives=_ref_list(payload.get("positives"), known, "text", 3),
         data_gaps=_str_list(payload.get("data_gaps"), 4),
         questions_to_ask=_str_list(payload.get("questions_to_ask"), 4) or DEFAULT_QUESTIONS,
@@ -484,6 +495,9 @@ def enforce_guardrails(blocks: Dict[str, FactBlock], block_results: Dict[str, Bl
     attention = _attention_facts(blocks, scope="all")
 
     reliability = block_results.get("reliability")
+    if reliability is not None:
+        _normalize_attention_severities(reliability.findings)
+    _normalize_attention_severities(summary.top_risks)
     if hard and reliability is not None and SIGNAL_RANK.get(reliability.signal, 0) < SIGNAL_RANK["RISK"]:
         reliability.signal = "RISK"
         _sync_headline(reliability)
@@ -611,7 +625,8 @@ def _mock_block_result(block: str, fact_block: FactBlock,
         for item in att:
             add("flags.attention_codes", "Требует уточнения: %s" % item.get("meaning"), "medium")
         if isinstance(active, int) and active > 0:
-            add("execproc.active_count", "Действующих исполнительных производств: %s" % active, "high")
+            add("execproc.active_count", "Действующих исполнительных производств: %s" % active,
+                "medium")
         signal = "RISK" if hard else ("ATTENTION" if findings else "NORM")
         interpretation = ("Оценка банка приведена как есть, факты показаны отдельно от цвета."
                           if hard else "Жёстких фактов в данных не обнаружено.")

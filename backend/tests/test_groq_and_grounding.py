@@ -15,7 +15,7 @@ from app.llm.agents import (SUMMARY_POINT_CHAR_LIMIT, SUMMARY_POINT_MAX,
                             normalize_summary_points, run_block_agent,
                             run_summary_agent)
 from app.llm.groq_client import GroqClient, LLMError
-from app.llm.prompts import SUMMARY_SYSTEM_PROMPT
+from app.llm.prompts import BLOCK_SYSTEM_PROMPTS, SUMMARY_SYSTEM_PROMPT
 from app.pipeline import collect_statements, grounding_metrics, select_key_facts
 
 
@@ -47,14 +47,14 @@ BLOCK_ANSWER = {
 }
 
 
-def _run_block(document, transport):
+def _run_block(document, transport, block="identity"):
     settings = _settings()
     client = GroqClient(settings, client=httpx.AsyncClient(transport=transport))
     blocks = build_all_blocks(document)
     coverage = build_coverage(document)
     company = {"inn": document["report"]["baseInfo"]["inn"]}
     return blocks, asyncio.run(
-        run_block_agent(client, settings, "identity", blocks["identity"], company, coverage))
+        run_block_agent(client, settings, block, blocks[block], company, coverage))
 
 
 def _run_summary(document, transport):
@@ -100,6 +100,30 @@ def test_unknown_fact_reference_is_marked_unverified(document):
     assert kinds["Выдуманное наблюдение"] == "UNVERIFIED"
     assert kinds["Без ссылки на факт"] == "NO_REF"
     assert grounding_metrics(statements)["unverified"] == 1
+
+
+def test_execution_proceedings_stay_yellow_when_model_returns_high(documents):
+    document = next(d for d in documents if d["report"]["baseInfo"]["inn"] == "0278949271")
+    answer = {
+        "signal": "ATTENTION",
+        "headline": "Есть факты для уточнения",
+        "facts_sentence": "Есть одно действующее исполнительное производство.",
+        "interpretation": "Перед сделкой нужно уточнить сумму и основание.",
+        "findings": [
+            {"text": "Действующих исполнительных производств: 1", "severity": "high",
+             "fact_id": "execproc.active_count"},
+            {"text": "Выдуманный красный риск", "severity": "high", "fact_id": "не.существует"},
+        ],
+        "data_gaps": [], "cannot_assess": [],
+    }
+    _, result = _run_block(
+        document, httpx.MockTransport(lambda request: _groq_answer(answer)), block="reliability")
+
+    by_id = {finding["fact_id"]: finding for finding in result.findings}
+    assert by_id["execproc.active_count"]["severity"] == "medium"
+    assert by_id["execproc.active_count"]["grounded"] is True
+    assert by_id["не.существует"]["severity"] == "high"
+    assert by_id["не.существует"]["grounded"] is False
 
 
 def test_model_wrapped_json_is_recovered(document):
@@ -162,6 +186,12 @@ def test_summary_prompt_requests_compact_structured_points():
     assert "2–3" in SUMMARY_SYSTEM_PROMPT
     assert "135 символов" in SUMMARY_SYSTEM_PROMPT
     assert "360 символов" in SUMMARY_SYSTEM_PROMPT
+
+
+def test_reliability_prompt_reserves_high_for_hard_stops():
+    prompt = BLOCK_SYSTEM_PROMPTS["reliability"]
+    assert "уровень внимания medium" in prompt
+    assert "high используй только" in prompt
 
 
 def test_falls_back_to_deterministic_when_groq_fails(document):

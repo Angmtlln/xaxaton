@@ -83,6 +83,21 @@ def test_green_with_hard_stop_forces_stop(documents):
     assert summary.top_risks[0]["added_by"] == "guardrail"
 
 
+def test_execution_proceedings_are_attention_not_red(documents):
+    """Одиночное исполнительное производство не выглядит как STOP без жёсткого факта."""
+    target = next(d for d in documents if d["report"]["baseInfo"]["inn"] == "0278949271")
+    _, results, summary, _, _ = _run(target)
+
+    reliability_findings = {
+        item["fact_id"]: item for item in results["reliability"].findings
+    }
+    summary_risks = {item["fact_id"]: item for item in summary.top_risks}
+    assert results["reliability"].signal == "ATTENTION"
+    assert reliability_findings["execproc.active_count"]["severity"] == "medium"
+    assert summary_risks["execproc.active_count"]["severity"] == "medium"
+    assert summary.verdict_group == "ENHANCED_CHECK"
+
+
 def test_empty_card_says_no_data(documents):
     """Пустой блок обязан честно отвечать «невозможно оценить»."""
     empty = [d for d in documents if not (d["report"].get("finReports") or [])]
