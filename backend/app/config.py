@@ -25,6 +25,14 @@ class Settings(BaseSettings):
     openrouter_api_key: Optional[str] = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     master_model: str = "z-ai/glm-5.3-flash"
+    # OpenRouter показывает эти значения в статистике аккаунта; на вызов не влияют.
+    openrouter_app_url: Optional[str] = None
+    # Только латиница: HTTP-заголовок не принимает кириллицу.
+    openrouter_app_title: str = "Counterparty Agent"
+    # GLM тратит выходные токены на скрытые рассуждения и при коротком лимите
+    # возвращает пустой content. Отключить их провайдер не даёт, но "low"
+    # обнуляет рассуждения там, где нужен структурный ответ.
+    openrouter_reasoning_effort: str = "low"
 
     # --- Groq ---
     groq_api_key: Optional[str] = None
@@ -37,11 +45,12 @@ class Settings(BaseSettings):
     # МОДЕЛИ, а четыре агента идут параллельно и вместе весят около 8 тыс.
     # токенов. Поэтому блоки разведены по разным моделям: так проход
     # укладывается в лимит без ожидания. Формат: block=model через запятую.
+    # Блоки разведены по моделям, чтобы параллельный проход не делил один TPM.
     groq_block_model_map: str = (
-        "identity=openai/gpt-oss-20b,"
+        "identity=qwen/qwen3.8-27b,"
         "reliability=openai/gpt-oss-120b,"
         "finance=qwen/qwen3.8-27b,"
-        "experience=openai/gpt-oss-20b"
+        "experience=qwen/qwen3.6-27b"
     )
     groq_timeout_s: float = 60.0
     groq_max_retries: int = 2
@@ -49,8 +58,11 @@ class Settings(BaseSettings):
     summary_temperature: float = 0.2
     max_output_tokens: int = 2000
     # Лимит ответа router-модели; отчёт из её текста не строится.
-    agent_router_max_tokens: int = 256
-    agent_model_timeout_s: float = 20.0
+    # GLM-5.3-Flash использует обязательные reasoning tokens; 256 не хватает
+    # даже короткому structured/tool ответу, 512 подтверждено live-smoke.
+    agent_router_max_tokens: int = 512
+    # Запаса хватает на полный tool/answer/grounding проход Master.
+    agent_model_timeout_s: float = 45.0
     agent_tool_timeout_s: float = 150.0
     agent_run_timeout_s: float = 175.0
     agent_tool_result_max_chars: int = 120_000
@@ -60,6 +72,8 @@ class Settings(BaseSettings):
     # Если модель упёрлась в лимит токенов, вызов уходит на следующую из
     # списка, а не ждёт минуту. Порядок — от лёгкой к тяжёлой.
     groq_fallback_models: str = "openai/gpt-oss-20b,qwen/qwen3.8-27b,openai/gpt-oss-120b"
+    # Каталог интерфейса. По умолчанию — frontend/ рядом с backend/.
+    frontend_dir: Optional[str] = None
 
     # Работа без ключа: детерминированный псевдо-LLM для демо и тестов.
     llm_mock: bool = False
@@ -67,6 +81,14 @@ class Settings(BaseSettings):
     # Версия детерминированного калькулятора фактов (S2). Меняем при
     # изменении логики расчёта, чтобы кэш audit.snapshot_facts не протух.
     calculator_version: str = "facts-1.0.0"
+
+    def answer_max_tokens(self) -> int:
+        """Бюджет естественного ответа Master через OpenRouter."""
+        return 1100
+
+    def verifier_max_tokens(self) -> int:
+        """Бюджет короткого JSON-вердикта grounding verifier."""
+        return 512
 
     def model_for_block(self, block: str) -> str:
         """Модель конкретного блочного агента."""

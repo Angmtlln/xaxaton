@@ -33,6 +33,7 @@ def test_openrouter_factory_uses_standard_openai_compatible_adapter_without_netw
         master_model="z-ai/glm-5.3-flash",
         openrouter_api_key="test-key",
         openrouter_base_url="https://openrouter.ai/api/v1/",
+        openrouter_app_url="https://example.test",
         agent_router_max_tokens=321,
         agent_model_timeout_s=7,
     )
@@ -46,11 +47,36 @@ def test_openrouter_factory_uses_standard_openai_compatible_adapter_without_netw
     assert model.request_timeout == 7
     assert model.max_retries == 0
     assert model.model_kwargs["parallel_tool_calls"] is False
+    assert model.default_headers["HTTP-Referer"] == "https://example.test"
+    assert model.default_headers["X-Title"] == "Counterparty Agent"
+    assert model.extra_body == {"reasoning": {"effort": "low"}}
 
 
 def test_openrouter_key_is_required_and_mock_disables_master():
     assert build_master_model(_settings(openrouter_api_key=None)) is None
     assert build_master_model(_settings(llm_mock=True, openrouter_api_key="test-key")) is None
+
+
+def test_openrouter_attribution_is_optional_and_latin1_safe():
+    plain = build_master_model(
+        _settings(openrouter_api_key="test-key", openrouter_app_title="")
+    )
+    non_latin = build_master_model(
+        _settings(openrouter_api_key="test-key", openrouter_app_title="Контрагент")
+    )
+
+    assert plain.default_headers == {}
+    assert "X-Title" not in non_latin.default_headers
+    for value in non_latin.default_headers.values():
+        value.encode("latin-1")
+
+
+def test_reasoning_effort_can_be_disabled():
+    model = build_master_model(
+        _settings(openrouter_api_key="test-key", openrouter_reasoning_effort="")
+    )
+
+    assert model.extra_body is None
 
 
 def test_documented_master_environment_names(monkeypatch):

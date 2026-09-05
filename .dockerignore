@@ -1,0 +1,13 @@
+.git/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log
+.env
+.env.*
+design/prototype/node_modules/
+design/prototype/dist/
+contractors_audit.snapshot.json
+materials/

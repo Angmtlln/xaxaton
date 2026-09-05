@@ -30,32 +30,52 @@ class LangChainToolExecution:
 
 def build_langchain_tools(
     registry: ToolRegistry, tool_context: ToolContext, *, agent_run_id: str,
-    expected_inn: str, execution: LangChainToolExecution,
+    expected_inn: Optional[str] = None, execution: LangChainToolExecution,
     expected_tool: str = "full_company_check",
+    expected_inns: Optional[List[str]] = None,
 ) -> List[StructuredTool]:
+    """Идентификаторы компаний остаются за бэкендом: аргумент модели только сверяется."""
     definition = registry.get_definition(expected_tool)
     if definition is None:
         raise ValueError("Tool отсутствует в domain registry")
 
-    async def execute(inn: str) -> tuple[str, Dict[str, object]]:
+    async def reserve() -> None:
         async with execution.lock:
             if execution.started:
                 raise RuntimeError("Domain tool call budget exhausted")
             execution.started = True
             execution.tool_calls = 1
-        if inn != expected_inn:
-            execution.used_fallback = True
+
+    async def run(arguments: Dict[str, object], subject: str) -> tuple[str, Dict[str, object]]:
         log.info("agent_tool_call run_id=%s tool=%s inn=%s routing=%s call=1/1",
-                 agent_run_id, expected_tool, expected_inn,
+                 agent_run_id, expected_tool, subject,
                  "deterministic_fallback" if execution.used_fallback else "model")
-        result = await registry.execute(expected_tool, {"inn": expected_inn}, tool_context)
+        result = await registry.execute(expected_tool, arguments, tool_context)
         execution.result = result
         log.info("agent_tool_result run_id=%s tool=%s status=%s latency_ms=%s",
                  agent_run_id, expected_tool, result.status, result.metadata.latency_ms)
         return _observation(result)
 
+    async def execute(inn: str) -> tuple[str, Dict[str, object]]:
+        await reserve()
+        if inn != expected_inn:
+            execution.used_fallback = True
+        return await run({"inn": expected_inn}, expected_inn)
+
+    async def execute_comparison(
+        inns: List[str], focus: str = "both"
+    ) -> tuple[str, Dict[str, object]]:
+        await reserve()
+        if sorted(inns or []) != sorted(expected_inns or []):
+            execution.used_fallback = True
+        # focus — выбор агента, но только из перечисления контракта.
+        selected = focus if focus in {"finance", "legal", "both"} else "both"
+        return await run({"inns": list(expected_inns or []), "focus": selected},
+                         ", ".join(expected_inns or []))
+
+    coroutine = execute_comparison if expected_tool == "compare_companies" else execute
     return [StructuredTool.from_function(
-        coroutine=execute, name=definition.name, description=definition.description,
+        coroutine=coroutine, name=definition.name, description=definition.description,
         args_schema=definition.input_model, response_format="content_and_artifact",
         return_direct=False,
     )]

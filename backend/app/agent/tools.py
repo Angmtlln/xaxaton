@@ -13,9 +13,10 @@ from pydantic import BaseModel, ValidationError
 from app.api.schemas import CheckResponse
 from app.config import Settings
 from app.llm.groq_client import GroqClient
-from app.pipeline import CompanyNotFound, run_check
+from app.domain.pipeline import CompanyNotFound, run_check
 
-from .models import (Evidence, FullCheckCompany, FullCheckCoverage,
+from .models import (CompareCompaniesArgs, Evidence, FullCheckCompany,
+                     FullCheckCoverage,
                      FullCompanyCheckArgs, FullCompanyCheckData, PolicySignal,
                      ToolError, ToolFact, ToolFreshness, ToolResult,
                      ToolResultMetadata)
@@ -137,8 +138,8 @@ class ToolRegistry:
             result = await asyncio.wait_for(
                 definition.executor(context, parsed_args), timeout=definition.timeout_s
             )
-        except CompanyNotFound:
-            inn = getattr(parsed_args, "inn", "")
+        except CompanyNotFound as exc:
+            inn = str(exc) or getattr(parsed_args, "inn", "")
             return _error_result(
                 "not_found",
                 "Карточка по ИНН %s не найдена." % inn,
@@ -190,9 +191,10 @@ class ToolRegistry:
 
 
 def build_tool_registry(settings: Settings) -> ToolRegistry:
+    from .comparison import execute_comparison
     from .finance import execute_financial_data
     from .legal import execute_legal_data
-    from .targeted_models import TargetedData
+    from .targeted_models import ComparisonData, TargetedData
 
     return ToolRegistry([
         ToolDefinition(
@@ -228,6 +230,22 @@ def build_tool_registry(settings: Settings) -> ToolRegistry:
                 ("get_legal_data", "Суды, исполнительные производства и правовые факты одного контрагента по ИНН, без полной проверки.", execute_legal_data),
             )
         ],
+        ToolDefinition(
+            name="compare_companies",
+            description=(
+                "Сравнение двух или трёх контрагентов по явно указанным валидным ИНН. "
+                "focus сужает сбор до finance или legal, если пользователь назвал приоритет. "
+                "Не запускать полную проверку каждой компании по отдельности."
+            ),
+            input_model=CompareCompaniesArgs,
+            output_model=ComparisonData,
+            risk_class="read_only",
+            side_effects="none",
+            timeout_s=settings.agent_tool_timeout_s,
+            result_size_limit=min(settings.agent_tool_result_max_chars, 80_000),
+            retry_policy="none",
+            executor=execute_comparison,
+        ),
     ])
 
 

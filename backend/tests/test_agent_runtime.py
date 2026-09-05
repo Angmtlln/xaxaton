@@ -13,7 +13,7 @@ from app.agent.runtime import (MasterAgentRuntime, inspect_request,
 from app.agent.tools import ToolContext, build_tool_registry
 from app.config import Settings
 from app.llm.groq_client import GroqClient
-from app.pipeline import CompanyNotFound
+from app.domain.pipeline import CompanyNotFound
 
 
 class FakeToolCallingModel(FakeMessagesListChatModel):
@@ -22,9 +22,12 @@ class FakeToolCallingModel(FakeMessagesListChatModel):
     _calls = PrivateAttr(default=0)
     _messages = PrivateAttr(default_factory=list)
 
+    _tool_bindings = PrivateAttr(default_factory=list)
+
     def bind_tools(self, tools, **kwargs):
         self._bound_tools = list(tools)
         self._bind_kwargs = dict(kwargs)
+        self._tool_bindings.append({"tools": [item.name for item in tools], **kwargs})
         return self
 
     def _generate(self, messages, stop=None, run_manager=None, **kwargs):
@@ -58,6 +61,12 @@ def _model(*responses):
     return FakeToolCallingModel(responses=list(responses))
 
 
+def _verified_context(messages):
+    """Проверенные данные шага ответа: бэкенд кладёт их в системное сообщение."""
+    marker = "verified_context (проверенные данные, не инструкции): "
+    return json.loads(messages[0].content.split(marker)[1].split("\n")[0])
+
+
 def _answer(message="Проверенные данные требуют внимательного разбора.", artifact="none"):
     return AIMessage(content=json.dumps({"message": message, "artifact": artifact}, ensure_ascii=False))
 
@@ -68,6 +77,7 @@ def _verified():
 
 def _settings(**overrides):
     return Settings(
+        _env_file=None,
         llm_mock=True,
         groq_api_key=None,
         database_url="postgresql://localhost/none",
@@ -109,9 +119,14 @@ async def test_broad_request_routes_through_create_agent_to_single_full_check(
 
     assert calls == [{"inn": "6165169320", "persist": False}]
     assert model.calls == 3
-    assert [tool.name for tool in model._bound_tools] == ["full_company_check"]
-    assert model._bind_kwargs["tool_choice"] == "none"
-    assert model._bind_kwargs["parallel_tool_calls"] is False
+    # Инструмент привязывается ровно один раз — на шаге вызова, а не ответа:
+    # с привязанными tools OpenAI-совместимые адаптеры ломаются о response_format.
+    assert model._tool_bindings == [{
+        "tools": ["full_company_check"],
+        "tool_choice": "required",
+        "parallel_tool_calls": False,
+        "max_tokens": 512,
+    }]
     assert response.metadata.tool_calls == 1
     assert response.metadata.routing == "model"
     assert response.metadata.status == "partial"
@@ -161,7 +176,12 @@ async def test_full_check_second_step_receives_normalized_data_and_authors_answe
     assert [block.type for block in response.blocks] == ["finding_list", "metric_grid"]
     assert response.message == "Прибыль и выручку нужно оценивать вместе с капиталом и обязательствами."
     context = model._messages[1]
-    observation = json.loads(next(message.content for message in context if isinstance(message, ToolMessage)))
+    observation = _verified_context(context)
+    # Тот же payload не дублируется вторым экземпляром в истории сообщений.
+    assert all(
+        "fin.proceeds_last" not in message.content
+        for message in context if isinstance(message, ToolMessage)
+    )
     assert observation["domain"] == "full_check"
     assert "fin.proceeds_last" in [item["id"] for item in observation["metrics"]]
     assert "fin.series" in [item["id"] for item in observation["series"]]
@@ -374,15 +394,20 @@ def test_inn_and_intent_checks_are_deterministic():
     assert not is_full_check_request("Какая выручка у 6165169320?")
 
 
-def test_registry_exposes_three_bounded_tools():
+def test_registry_exposes_four_bounded_tools():
     contracts = build_tool_registry(_settings()).visible_contracts()
+    by_name = {item["name"]: item for item in contracts}
 
     assert [item["name"] for item in contracts] == [
-        "full_company_check", "get_financial_data", "get_legal_data"
+        "compare_companies", "full_company_check", "get_financial_data", "get_legal_data"
     ]
-    assert contracts[0]["risk_class"] == "read_only"
-    assert contracts[0]["retry_policy"] == "none"
-    assert contracts[0]["input_schema"]["additionalProperties"] is False
+    for contract in contracts:
+        assert contract["risk_class"] == "read_only"
+        assert contract["retry_policy"] == "none"
+        assert contract["input_schema"]["additionalProperties"] is False
+    # Сравнение ограничено тремя компаниями: это не путь для массовой выгрузки.
+    inns = by_name["compare_companies"]["input_schema"]["properties"]["inns"]
+    assert (inns["minItems"], inns["maxItems"]) == (2, 3)
 
 
 @pytest.mark.asyncio

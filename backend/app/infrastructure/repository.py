@@ -6,7 +6,7 @@ from uuid import UUID
 
 from psycopg.types.json import Jsonb
 
-from app.db import get_pool
+from app.infrastructure.db import get_pool
 
 log = logging.getLogger(__name__)
 

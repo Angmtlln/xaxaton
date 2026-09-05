@@ -9,7 +9,7 @@ from app.llm.agents import (SUMMARY_POINT_CHAR_LIMIT, SUMMARY_POINT_MAX,
                             SUMMARY_POINT_MIN, SUMMARY_POINTS_TOTAL_LIMIT,
                             enforce_guardrails, run_block_agents, run_summary_agent)
 from app.llm.groq_client import GroqClient
-from app.pipeline import collect_statements, grounding_metrics, select_key_facts
+from app.domain.pipeline import collect_statements, grounding_metrics, select_key_facts
 
 
 def _run(doc):

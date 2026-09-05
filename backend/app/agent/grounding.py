@@ -9,10 +9,13 @@ from typing import Iterable
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from .models import GroundingVerification, MasterAnswer
-from .synthesis import parse_master_answer
+from .synthesis import json_payload, parse_master_answer
 
 
 GROUNDING_PROMPT_VERSION = "company-grounding-1.0.0"
+# Вердикт — короткий JSON, ремонт переписывает ответ целиком.
+VERIFIER_MAX_TOKENS = 200
+REPAIR_MAX_TOKENS = 600
 URL_RE = re.compile(r"(?:https?://|www\.|javascript:|data:)[^\s<]+", re.IGNORECASE)
 LABELLED_IDENTIFIER_RE = re.compile(
     r"\b(ИНН|ОГРН|ОГРНИП)\s*[:№#-]?\s*(\d{5,20})\b", re.IGNORECASE
@@ -79,6 +82,7 @@ async def call_grounding_verifier(
     verified_context: dict,
     *,
     timeout_s: float,
+    max_tokens: int = VERIFIER_MAX_TOKENS,
 ) -> tuple[GroundingVerification, AIMessage]:
     payload = {
         "candidate_answer": candidate.message,
@@ -90,13 +94,14 @@ async def call_grounding_verifier(
                 SystemMessage(content=VERIFIER_SYSTEM_PROMPT),
                 HumanMessage(content=json.dumps(payload, ensure_ascii=False, separators=(",", ":"))),
             ],
-            max_tokens=320,
+            max_tokens=max_tokens,
+            response_format={"type": "json_object"},
         ),
         timeout=timeout_s,
     )
     if not isinstance(response, AIMessage):
         raise ValueError("Grounding verifier returned an invalid message")
-    verdict = GroundingVerification.model_validate_json(message_text(response))
+    verdict = GroundingVerification.model_validate(json_payload(message_text(response)))
     return verdict, response
 
 
@@ -108,6 +113,7 @@ async def call_master_repair(
     *,
     allowed_artifacts: Iterable[str],
     timeout_s: float,
+    max_tokens: int = REPAIR_MAX_TOKENS,
 ) -> tuple[MasterAnswer, AIMessage]:
     payload = {
         "candidate_answer": candidate.model_dump(mode="json"),
@@ -122,7 +128,8 @@ async def call_master_repair(
                 SystemMessage(content=REPAIR_SYSTEM_PROMPT),
                 HumanMessage(content=json.dumps(payload, ensure_ascii=False, separators=(",", ":"))),
             ],
-            max_tokens=900,
+            max_tokens=max_tokens,
+            response_format={"type": "json_object"},
         ),
         timeout=timeout_s,
     )

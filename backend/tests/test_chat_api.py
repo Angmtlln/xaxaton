@@ -5,13 +5,15 @@ from fastapi.testclient import TestClient
 from app.config import Settings
 from app.agent.conversations import ConversationStore
 from app.llm.groq_client import GroqClient
-from app.main import app, groq_dep, settings_dep
+from app.api.deps import groq_dep, settings_dep
+from app.main import app
 
 
 @pytest.fixture
 def api_client():
     app.state.conversation_store = ConversationStore()
     settings = Settings(
+        _env_file=None,
         llm_mock=True,
         groq_api_key=None,
         database_url="postgresql://localhost/none",
@@ -89,7 +91,7 @@ def test_legacy_checks_api_contract_is_unchanged(api_client, monkeypatch, check_
         calls.append((inn, persist))
         return check_payload
 
-    monkeypatch.setattr("app.main.run_check", fake_run_check)
+    monkeypatch.setattr("app.api.routes.checks.run_check", fake_run_check)
     response = api_client.post(
         "/api/v1/checks",
         json={"inn": "6165169320", "persist": False},
@@ -129,7 +131,7 @@ def test_multi_turn_api_uses_active_company_and_only_targeted_tools(
         return {"inn": inn, "document": document, "short_name": "Демо"}
 
     monkeypatch.setattr("app.agent.tools.run_check", full_check)
-    monkeypatch.setattr("app.repository.get_latest_snapshot", snapshot)
+    monkeypatch.setattr("app.infrastructure.repository.get_latest_snapshot", snapshot)
     first = api_client.post("/api/v1/chat/messages", json={"message": "Проверь контрагента 6165169320"}).json()
     conversation_id = first["conversation_id"]
     assert first["active_company"]["inn"] == "6165169320"

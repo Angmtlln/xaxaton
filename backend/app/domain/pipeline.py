@@ -12,7 +12,7 @@ import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from app import repository
+from app.infrastructure import repository
 from app.config import Settings
 from app.domain import facts as facts_mod
 from app.domain.facts import BLOCK_KEYS, FactBlock

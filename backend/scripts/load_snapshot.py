@@ -21,7 +21,7 @@ from psycopg.types.json import Jsonb
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.domain.facts import build_coverage           # noqa: E402
-from app.mongo import as_float, as_int, dig, parse_date, parse_datetime  # noqa: E402
+from app.infrastructure.mongo import as_float, as_int, dig, parse_date, parse_datetime  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger("loader")

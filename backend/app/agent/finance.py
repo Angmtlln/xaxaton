@@ -4,10 +4,10 @@ from __future__ import annotations
 import math
 from collections import Counter
 
-from app import repository
+from app.infrastructure import repository
 from app.domain.facts import CALCULATOR_VERSION, build_finance
-from app.mongo import as_int, num
-from app.pipeline import CompanyNotFound
+from app.infrastructure.mongo import as_int, num
+from app.domain.pipeline import CompanyNotFound
 
 from .models import (FullCheckCompany, FullCompanyCheckArgs, ToolFact,
                      ToolFreshness, ToolResult, ToolResultMetadata)

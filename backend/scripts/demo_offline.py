@@ -19,7 +19,7 @@ from app.config import get_settings                                   # noqa: E4
 from app.domain import facts as facts_mod                             # noqa: E402
 from app.llm.agents import enforce_guardrails, run_block_agents, run_summary_agent  # noqa: E402
 from app.llm.groq_client import GroqClient                            # noqa: E402
-from app.pipeline import (collect_statements, grounding_metrics,      # noqa: E402
+from app.domain.pipeline import (collect_statements, grounding_metrics,      # noqa: E402
                           select_key_facts, _block_public, _summary_public)
 
 SIGNAL_MARK = {"NORM": "[норма]", "ATTENTION": "[внимание]", "RISK": "[риск]", "NO_DATA": "[нет данных]"}

@@ -450,7 +450,7 @@ Engineering effort should go into agent behavior, reasoning quality, evidence an
 - live Groq tool-calling smoke;
 - bounded execution and deterministic fallback.
 
-## Stage 3 — Conversation-first UX / multi-turn — DONE, STABILIZING
+## Stage 3 — Conversation-first UX / multi-turn — DONE
 
 Implemented:
 - chat workspace;
@@ -458,17 +458,10 @@ Implemented:
 - full report as drill-down;
 - active-company conversation basics;
 - targeted finance/legal flows;
-- inline artifacts.
-
-Current stabilization priorities:
-1. remove report-style synthesis;
-2. remove hardcoded reasoning catalogs where they act as a conclusion whitelist;
-3. remove semantic/lexical regex policing of natural prose;
-4. keep trusted structured context separate from chat history;
-5. let the Master reason over normalized verified data;
-6. add bounded grounding verification;
-7. A/B test a stronger Master model;
-8. behavioral multi-turn evals.
+- inline artifacts;
+- trusted structured context kept apart from chat history;
+- bounded grounding verification with one repair attempt;
+- no semantic/lexical regex policing of natural prose.
 
 Acceptance conversation:
 
@@ -484,21 +477,45 @@ Acceptance conversation:
 
 This must feel like one continuous analyst conversation, not seven report renders.
 
-## Stage 4 — Multi-company comparison — NEXT
+## Stage 4 — Master model stabilization — CURRENT
 
-Support several company refs and requests such as:
+The Master must hold tool calling, post-tool synthesis, verification and repair
+across a full seven-turn conversation without dropping to deterministic fallback.
 
-`Сравни этих поставщиков. Главное — финансовая устойчивость и судебные риски.`
+Done:
+- one explicit Master online path: ChatOpenAI-compatible OpenRouter with
+  `z-ai/glm-5.3-flash`; domain agents remain independently configured on Groq;
+- low reasoning effort and provider-sized answer/verifier token budgets;
+- reserved output tokens matched to real answer length;
+- one copy of a ToolResult per prompt: the same payload was previously sent both
+  as a tool message and as `verified_context`, which overflowed a single request;
+- tolerant structured-output parsing across providers.
+- live OpenRouter text, structured-output and native tool probes;
+- live three-company comparison with model synthesis and verified grounding.
 
-The Master should:
-- collect only relevant domains;
-- compare observations;
-- account for user priorities;
-- explain trade-offs;
-- use compact comparison artifacts;
-- avoid generating N separate full reports.
+Open:
+- seven-turn conversation with zero fallback on a data-rich company.
 
-## Stage 5 — Deal-context reasoning
+The Groq free tier caps output tokens per model per minute and per day, so it is
+kept for domain agents rather than restored as an alternative Master path.
+
+## Stage 5 — Multi-company comparison — DONE
+
+`compare_companies` accepts two or three verified INNs and one optional focus,
+collects only the requested domains through the same targeted builders, and
+returns a single normalized ToolResult.
+
+- one tool call for the whole comparison, never N full checks;
+- fact and evidence IDs are prefixed by INN, so provenance stays separable;
+- finance IDs carry a year, so rows fold to a comparable measure instead of a
+  raw fact ID;
+- the compact `comparison_table` is hydrated by the backend, not chosen by the
+  model, so it survives a Master failure;
+- comparison state lives beside `trusted_context`, which stays single-company,
+  and follow-ups answer from it without a new tool call;
+- the active company of the conversation is not overwritten by a comparison.
+
+## Stage 6 — Deal-context reasoning
 
 Use business context:
 - role of the counterparty;
@@ -516,7 +533,7 @@ Not merely:
 but:
 `what these verified observations mean for this specific deal`.
 
-## Stage 6 — Complex agent scenarios
+## Stage 7 — Complex agent scenarios
 
 Focus on behavior:
 - ambiguous requests;
@@ -530,7 +547,7 @@ Focus on behavior:
 
 This is more valuable than adding infrastructure or many UI screens.
 
-## Stage 7 — Evaluation, demo polish and deploy
+## Stage 8 — Evaluation, demo polish and deploy
 
 - curated behavioral eval set;
 - model A/B;

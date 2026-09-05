@@ -14,7 +14,14 @@
 
 Узкий вопрос можно задать первым сообщением с явным ИНН. Новый явный ИНН
 становится активным только после успешного или частичного результата tool.
-Comparison, поиск по названию, SSE и persistent history не входят в этот срез.
+Поиск по названию, SSE и persistent history не входят в этот срез.
+
+Сравнение живёт рядом: «Сравни 6165169320 и 2311304742, важнее суды» вызывает
+`compare_companies` один раз на все компании. Ответ содержит таблицу
+`comparison_table`, которую строит backend, а не выбирает модель. Состояние
+сравнения хранится отдельно от `trusted_context`: тот привязан к одной активной
+компании, поэтому сравнение не перезаписывает её. Продолжения вроде «Кого
+выбрать и почему?» отвечают из сохранённого сравнения без нового вызова tool.
 
 ## API и состояние
 
@@ -167,10 +174,12 @@ tools, calls, безопасные аргументы, статусы, latency �
 
 ```bash
 cd backend
-.venv/bin/python -m pytest -q
+.venv/bin/pytest -q
 .venv/bin/python -m compileall -q app tests scripts
-node --check static/landing.js
-node --check static/report.js
+# модули интерфейса: node --check не разрешает импорты, проверяем загрузкой
+cd .. && for f in frontend/js/**/*.js; do node --input-type=module \
+  --eval "await import('./$f')" 2>&1 | grep -qE "SyntaxError|MODULE_NOT_FOUND" \
+  && echo "СЛОМАН: $f"; done; cd backend
 .venv/bin/python scripts/smoke_multiturn.py --base-url http://localhost:8000 --pause-seconds 60
 .venv/bin/python scripts/smoke_openrouter_master.py --base-url http://localhost:8000
 ```
@@ -197,18 +206,25 @@ completion, structured output и LangChain tool calling через OpenRouter.
 
 ## Проверка 05.09.2026
 
-- После миграции Master на OpenRouter полный backend regression: `161 passed`,
-  одно прежнее предупреждение Starlette/AnyIO. Профильный agent/grounding набор:
-  `133 passed`. `compileall` и `git diff --check` прошли.
+- После интеграции ветки Amir полный backend regression: `188 passed`, одно
+  предупреждение Starlette/AnyIO. Профильный comparison/OpenRouter/runtime/chat
+  набор: `57 passed`. `compileall`, frontend module check и `git diff --check`
+  прошли.
 - Точный семирепличный сценарий прошёл behavioral-тест с одним
   `conversation_id`: tools вызваны только на turns 1, 2 и 6; turn 4 использовал
   rewrite fast path, остальные содержательные ответы прошли verifier.
-- Browser smoke на текущем checkout: чат, компактная сводка, policy-сигналы,
-  раскрытие 25 источников и переход в legacy `/report` работают. В консоли нет
-  ошибок; при viewport 390 × 844 `scrollWidth=clientWidth=390`.
-- Строгий OpenRouter smoke остановлен до сетевого вызова: в локальном окружении
-  не задан `OPENROUTER_API_KEY`. Повторить командой выше после добавления ключа;
-  успешным считается только `routing=model`, `synthesis=model` и отсутствие
+- Docker API пересобран; `/health`, `/` и `/report` отвечают `200`. Live
+  comparison трёх компаний прошёл одним tool call: `routing=model`,
+  `synthesis=model`, `grounding_status=verified`, таблица из 9 строк и 14
+  проверенных evidence rows.
+- Browser smoke того же сравнения: таблица и кнопки источников отрисовались,
+  ошибок консоли нет, при ширине 830 px `scrollWidth=clientWidth=830`.
+- Три прямые OpenRouter-пробы прошли на `z-ai/glm-5.3-flash`: обычный ответ,
+  structured output и LangChain native tool calling. Для обязательных reasoning
+  tokens routing budget поднят с 256 до 512 после воспроизводимого
+  `LengthFinishReasonError` на 256.
+- Полный семиходовый live-сценарий после интеграции ещё нужно повторить; успешным
+  считается `routing=model`, `synthesis=model` и отсутствие
   `grounding_status=fallback` на всех семи turns.
 
 ## DB impact
