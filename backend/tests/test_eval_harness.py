@@ -27,6 +27,9 @@ def test_every_source_question_is_preserved_and_every_suite_is_complete():
                 q = q.replace(f"<{alias}>", inn)
             assert q == t["question"]
             assert t["template"] in text.splitlines()[t["source_line"] - 1]
+            if t["id"].startswith("S"):
+                headings = re.findall(r"^# (\d+)\.", "\n".join(text.splitlines()[:t["source_line"]]), re.M)
+                assert int(headings[-1]) == int(t["id"].split("_")[0][1:])
     assert sum(t["scored"] for s in select(bank, "killer") for t in s["turns"]) == 25
     assert sum(t["scored"] for s in select(bank, "traps") for t in s["turns"]) == 31
     assert {s["id"] for s in select(bank, "multiturn")} == {f"M{i:02}" for i in range(1, 11)}
@@ -46,6 +49,12 @@ def test_fixture_evidence_is_real_and_missing_does_not_equal_zero():
     active = [e for e in docs[f["inn"]]["report"]["executionProceedings"] if e.get("active")]
     assert any(e.get("amount") is None for e in active)
     assert any(e.get("amount") is not None for e in active)
+    inspection_case = next(s for s in bank["sessions"] if s["id"] == "K24")
+    assert inspection_case["setup_tools"] == ["get_legal_data"]
+    evidence = bank["fixtures"]["unknown_inspection"]["evidence"][0]
+    index = evidence["path"][-1]
+    assert f"страница {index // 5 + 1}" in inspection_case["setup"][0]
+    assert f"запись номер {index % 5 + 1}" in inspection_case["setup"][0]
     assert at({}, ["profit"]) != at({"profit": 0}, ["profit"])
     bank["sessions"][0]["turns"][0]["question"] = "Easy replacement"
     with pytest.raises(ValueError):

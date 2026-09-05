@@ -102,6 +102,8 @@ def grade(row, session, docs, latency_ms=60000):
         required = "compare_companies" if session["mode"] == "comparison" else "full_company_check"
     if row["case_id"] in ("K15", "M03.1", "M07.1", "S10_01", "S10_02", "S14_01"):
         required = "compare_companies"
+    if row.get("expected_tool"):
+        required = row["expected_tool"]
     out.append(check("expected_tool", required in names if required else None, required))
     expected_domain = None
     if row["case_id"] in ("K05", "K06") or row["case_id"].startswith("S03_"):

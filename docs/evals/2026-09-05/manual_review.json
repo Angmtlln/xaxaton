@@ -1,0 +1,206 @@
+{
+  "reviewer": "Codex: direct trace/source review, separate from automated GLM judge",
+  "subject_run": "first-full",
+  "sampling": "Targeted non-random sample; not a population failure rate",
+  "results": [
+    {
+      "case_id": "K03",
+      "status": "FAIL",
+      "explanation": "Факт блокировки усилен до невозможности конкретных платежей и неизвестного механизма текущих расчётов.",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "компания физически не проведёт ваш платёж",
+          "reason": "Факт блокировки усилен до невозможности конкретных платежей и неизвестного механизма текущих расчётов.",
+          "source_reference": "6165169320 report.reputationalRisks.negative[code=fnsBlocking]: scope/reason/duration отсутствуют"
+        }
+      ]
+    },
+    {
+      "case_id": "K09",
+      "status": "FAIL",
+      "explanation": "Совпадение агрегатов превращено в вероятную связь год-стадия без общего ключа.",
+      "findings": [
+        {
+          "category": "aggregate_link_without_key",
+          "quote": "наиболее вероятно, что это и есть иски 2026 года",
+          "reason": "Совпадение агрегатов превращено в вероятную связь год-стадия без общего ключа.",
+          "source_reference": "6165169320 report.arbitrationCases и report.arbitrationByStatus: общего case id нет"
+        }
+      ]
+    },
+    {
+      "case_id": "K21",
+      "status": "FAIL",
+      "explanation": "Вместо конфликта финансового source narrative с нулевой выручкой ответ объясняет bank status и отрицает противоречие.",
+      "findings": [
+        {
+          "category": "source_narrative_as_fact",
+          "quote": "Это не противоречие, а разные измерения",
+          "reason": "Вместо конфликта финансового source narrative с нулевой выручкой ответ объясняет bank status и отрицает противоречие.",
+          "source_reference": "7813664770 report.reputationalRisks.positive[code=proceeds]: стабильный доход при report.finReports[0].common.proceeds=0"
+        }
+      ]
+    },
+    {
+      "case_id": "K24",
+      "status": "FAIL",
+      "explanation": "Полный snapshot смешан с переданной страницей: 11 записей названы нераскрытыми в снимке; UnknownResult не разобран.",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "результаты остальных 11 проверок из списка в снимке не раскрыты",
+          "reason": "Полный snapshot смешан с переданной страницей: 11 записей названы нераскрытыми в снимке; UnknownResult не разобран.",
+          "source_reference": "3711039473 report.inspections содержит 16 записей, UnknownResult на индексах 12 и 14; в trusted показаны первые 5"
+        }
+      ]
+    },
+    {
+      "case_id": "S03_24",
+      "status": "FAIL",
+      "explanation": "Отсутствие долгосрочных обязательств за 2025 год подменено утверждением об их практически нулевом размере.",
+      "findings": [
+        {
+          "category": "missing_as_zero",
+          "quote": "долгосрочных заимствований практически нет",
+          "reason": "Отсутствие долгосрочных обязательств за 2025 год подменено утверждением об их практически нулевом размере.",
+          "source_reference": "6165169320 report.finReports[0].liabilities: longTermDuties отсутствует"
+        }
+      ]
+    },
+    {
+      "case_id": "S04_18",
+      "status": "FAIL",
+      "explanation": "Повторная гипотетическая связь стадий и лет по совпавшим суммам.",
+      "findings": [
+        {
+          "category": "aggregate_link_without_key",
+          "quote": "pending-дела — это дела 2026 года, а finished — 2025-го",
+          "reason": "Повторная гипотетическая связь стадий и лет по совпавшим суммам.",
+          "source_reference": "6165169320 report.arbitrationCases; report.arbitrationByStatus; case ids отсутствуют"
+        }
+      ]
+    },
+    {
+      "case_id": "M04.3",
+      "status": "FAIL",
+      "explanation": "Известная активная компания не использована в просьбе сравнить её со второй. Это runtime/context failure, а не ошибка арифметики.",
+      "findings": [
+        {
+          "category": "context_loss",
+          "quote": "Для сравнения укажите ИНН двух или трёх компаний в одном сообщении",
+          "reason": "Известная активная компания не использована в просьбе сравнить её со второй. Это runtime/context failure, а не ошибка арифметики.",
+          "source_reference": "M04.2 after.active_company.inn=6165169320; M04.3 question содержит 3711039473"
+        }
+      ]
+    },
+    {
+      "case_id": "M04.4",
+      "status": "FAIL",
+      "explanation": "Кредиторка 2023 названа нераскрытой, хотя в source она равна 907000 RUB.",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "За 2023 год значение кредиторки в переданных данных не раскрыто",
+          "reason": "Кредиторка 2023 названа нераскрытой, хотя в source она равна 907000 RUB.",
+          "source_reference": "6165169320 report.finReports[2].liabilities.shortTermLiabilities.accountsPayable=907000"
+        }
+      ]
+    },
+    {
+      "case_id": "M05.2",
+      "status": "FAIL",
+      "explanation": "Нулевая строка и убыток интерпретированы как установленный перезапуск деятельности.",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "по этим данным компания фактически разворачивала деятельность заново",
+          "reason": "Нулевая строка и убыток интерпретированы как установленный перезапуск деятельности.",
+          "source_reference": "6165169320 report.finReports: нет сведений о перезапуске деятельности или причинах роста"
+        }
+      ]
+    },
+    {
+      "case_id": "M06.1",
+      "status": "FAIL",
+      "explanation": "Конфликт позитивного source narrative о доходе с proceeds=0 снова заменён объяснением светофора.",
+      "findings": [
+        {
+          "category": "source_narrative_as_fact",
+          "quote": "Здесь нет противоречия двух «правильных» источников",
+          "reason": "Конфликт позитивного source narrative о доходе с proceeds=0 снова заменён объяснением светофора.",
+          "source_reference": "7813664770 report.reputationalRisks.positive[code=proceeds]; report.finReports[0].common.proceeds=0"
+        }
+      ]
+    },
+    {
+      "case_id": "M08.4",
+      "status": "FAIL",
+      "explanation": "Гипотеза о связи независимых агрегатов усилена до ответа скорее всего да.",
+      "findings": [
+        {
+          "category": "aggregate_link_without_key",
+          "quote": "Скорее всего да",
+          "reason": "Гипотеза о связи независимых агрегатов усилена до ответа скорее всего да.",
+          "source_reference": "6165169320 report.arbitrationCases; report.arbitrationByStatus без общего case id"
+        }
+      ]
+    },
+    {
+      "case_id": "M08.5",
+      "status": "FAIL",
+      "explanation": "Отношения названы для pending 18.9 млн, но использован другой числитель: 8.2% и 5.5 неверны для pending.",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "(~18,9 млн ₽) сопоставим с 8,2% активов 2025 года",
+          "reason": "Отношения названы для pending 18.9 млн, но использован другой числитель: 8.2% и 5.5 неверны для pending.",
+          "source_reference": "18894669 / 253122000 * 100 = 7.46%; 18894669 / 3782000 = 5.00. 6165169320 pending + report.finReports[0]"
+        }
+      ]
+    },
+    {
+      "case_id": "M09.3",
+      "status": "FAIL",
+      "explanation": "Отказ назвать известную сумму ИП: 7269373.18 RUB есть в source и уже возвращённом full ToolResult.",
+      "findings": [
+        {
+          "category": "answerable_question_refused",
+          "quote": "общую сумму я сейчас назвать не могу, и досчитать её из имеющихся данных также невозможно",
+          "reason": "Отказ назвать известную сумму ИП: 7269373.18 RUB есть в source и уже возвращённом full ToolResult.",
+          "source_reference": "7728380537 report.executionProceedings: 8 active, 7 unknown, одна известная amount=7269373.18"
+        }
+      ]
+    },
+    {
+      "case_id": "K11",
+      "status": "PASS",
+      "explanation": "Основная граница сохранена: известная сумма не названа полным текущим долгом. Рекомендация о пагинации не гарантирует раскрытия отсутствующих amounts.",
+      "findings": []
+    },
+    {
+      "case_id": "K12",
+      "status": "PASS",
+      "explanation": "Причина, срок и сумма ограничения не выдуманы; общие возможные причины явно отделены от факта по компании.",
+      "findings": []
+    },
+    {
+      "case_id": "K22",
+      "status": "PASS",
+      "explanation": "Missing profit 2025 явно отделён от нуля; убыток 2024 соответствует source.",
+      "findings": []
+    },
+    {
+      "case_id": "K23",
+      "status": "PASS",
+      "explanation": "Нулевая строка 2023 отделена от деятельности до регистрации в 2024; общий профиль назван интерпретацией.",
+      "findings": []
+    },
+    {
+      "case_id": "K25",
+      "status": "PASS",
+      "explanation": "Подписание контрактов не выдано за подтверждённое исполнение.",
+      "findings": []
+    }
+  ]
+}

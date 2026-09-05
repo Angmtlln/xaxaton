@@ -135,11 +135,12 @@ async def run(args):
             client = GroqClient(settings); store = ConversationStore()
             runtime = build_master_runtime(settings, client, persist=False, conversation_store=store)
             cid = None
-            turns = [{"id": session["id"] + f".setup{i}", "question": q, "scored": False, "setup": True} for i, q in enumerate(session["setup"], 1)] + session["turns"]
+            turns = [{"id": session["id"] + f".setup{i}", "question": q, "scored": False, "setup": True,
+                      "expected_tool": session.get("setup_tools", [None] * len(session["setup"]))[i - 1]} for i, q in enumerate(session["setup"], 1)] + session["turns"]
             try:
                 for t in turns:
                     row = {"session": session["id"], "case_id": t["id"], "question": t["question"],
-                           "scored": t["scored"], "setup": t.get("setup", False), "expectation": t.get("expectation"),
+                           "scored": t["scored"], "setup": t.get("setup", False), "expectation": t.get("expectation"), "expected_tool": t.get("expected_tool"),
                            "calls": [], "tools": [], "before": await state(store, cid)}
                     token = CURRENT.set(row); start = time.perf_counter()
                     try:

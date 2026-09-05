@@ -1,0 +1,127 @@
+{
+  "suite": "full",
+  "started_at": "2026-09-05T16:46:34.259445+00:00",
+  "git_commit": "472cbaf0cc08b24dfba49312529abd52f64a6ed4",
+  "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+  "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+  "bank_sha256": "820d44651eb0c2a292d0b995425dc8164f82a45929a1edff353ef1c54db7f91e",
+  "master_model": "z-ai/glm-5.3-flash",
+  "block_models": {
+    "identity": "openai/gpt-oss-20b",
+    "reliability": "openai/gpt-oss-120b",
+    "finance": "qwen/qwen3.8-27b",
+    "experience": "openai/gpt-oss-20b"
+  },
+  "grounding_debug": false,
+  "concurrency": 6,
+  "latency_threshold_ms": 60000,
+  "data_mode": "snapshot",
+  "persist": false,
+  "planned_scored_turns": 406,
+  "finished_at": "2026-09-05T17:04:25.823537+00:00",
+  "completed_turns": 451,
+  "scored_turns": 406,
+  "deterministic_pass": 294,
+  "deterministic_fail": 112,
+  "semantic_status": "AUTOMATED_REVIEW_COMPLETE_WITH_LIMITATIONS",
+  "suites": [
+    {
+      "suite": "killer",
+      "planned": 25,
+      "completed": 25,
+      "technical_pass": 19,
+      "technical_fail": 6,
+      "semantic": {
+        "BLOCKED_RUNTIME": 6,
+        "PASS": 19
+      }
+    },
+    {
+      "suite": "solo",
+      "planned": 213,
+      "completed": 213,
+      "technical_pass": 207,
+      "technical_fail": 6,
+      "semantic": {
+        "JUDGE_ERROR": 18,
+        "PASS": 175,
+        "FAIL": 19,
+        "BLOCKED_RUNTIME": 1
+      }
+    },
+    {
+      "suite": "comparison",
+      "planned": 92,
+      "completed": 92,
+      "technical_pass": 11,
+      "technical_fail": 81,
+      "semantic": {
+        "PASS": 7,
+        "BLOCKED_RUNTIME": 81,
+        "FAIL": 1,
+        "JUDGE_ERROR": 3
+      }
+    },
+    {
+      "suite": "traps",
+      "planned": 31,
+      "completed": 31,
+      "technical_pass": 24,
+      "technical_fail": 7,
+      "semantic": {
+        "BLOCKED_RUNTIME": 7,
+        "PASS": 24
+      }
+    },
+    {
+      "suite": "multiturn",
+      "planned": 55,
+      "completed": 55,
+      "technical_pass": 42,
+      "technical_fail": 13,
+      "semantic": {
+        "BLOCKED_RUNTIME": 11,
+        "PASS": 40,
+        "FAIL": 4
+      }
+    },
+    {
+      "suite": "full",
+      "planned": 406,
+      "completed": 406,
+      "technical_pass": 294,
+      "technical_fail": 112,
+      "semantic": {
+        "BLOCKED_RUNTIME": 105,
+        "PASS": 256,
+        "JUDGE_ERROR": 21,
+        "FAIL": 24
+      }
+    }
+  ],
+  "technical_failure_checks": {
+    "no_fallback": 105,
+    "comparison_companies": 4,
+    "expected_tool": 1,
+    "context_reuse": 1,
+    "latency": 6,
+    "no_repeated_full_check": 1
+  },
+  "explicit_runtime_errors": {
+    "result_too_large": 12
+  },
+  "automated_semantic_counts": {
+    "BLOCKED_RUNTIME": 105,
+    "PASS": 256,
+    "JUDGE_ERROR": 21,
+    "FAIL": 24
+  },
+  "manual_review_counts": {
+    "FAIL": 13,
+    "PASS": 5
+  },
+  "archive_sha256": "47bb1b691f0909d11dd7a262716d79877af9528560e221876654d4a25c5a5982",
+  "latency_p50_ms": 8195,
+  "latency_p95_ms": 50445,
+  "judgment_authority": "Provisional automatic judge; manual source review is a nonrandom sample"
+}

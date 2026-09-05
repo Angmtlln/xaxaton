@@ -3,7 +3,6 @@ import argparse
 import gzip
 import hashlib
 import json
-import shutil
 from collections import Counter
 from pathlib import Path
 
@@ -59,6 +58,8 @@ def export(run, destination):
     failures = Counter(c["name"] for r in scored for c in checks[r["case_id"]] if c["status"] == "FAIL")
     manifest = {k: v for k, v in summary.items() if k != "rows"}
     manifest.update(suites=table, technical_failure_checks=dict(failures), explicit_runtime_errors=dict(errors),
+                    semantic_status="AUTOMATED_REVIEW_COMPLETE_WITH_LIMITATIONS" if len(judgments) == len(scored) else "INCOMPLETE",
+                    automated_semantic_counts=semantic.get("counts", {}),
                     manual_review_counts=dict(Counter(r["status"] for r in manual["results"])),
                     archive_sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),
                     latency_p50_ms=latencies[len(latencies)//2], latency_p95_ms=latencies[int((len(latencies)-1)*.95)],
@@ -82,15 +83,16 @@ def export(run, destination):
               f"Judge model: `{semantic.get('judge_model', 'not run')}`, same_model_as_subject={semantic.get('same_model_as_subject', 'n/a')}.",
               "Автоматический PASS предварительный: judge может пропускать нарушения. Его доля PASS не является уровнем качества продукта.",
               f"Отдельная ручная сверка Codex по trace и snapshot: `{manifest['manual_review_counts']}`. Выборка целевая, не случайная; нельзя экстраполировать её долю FAIL на весь банк.",
-              "", "| Case | Review | Основание |", "|---|---|---|"]
+              "", "| Case | Review Codex | Auto judge | Основание |", "|---|---|---|---|"]
     for item in manual["results"]:
-        lines.append(f"| {item['case_id']} | {item['status']} | {item['explanation'].replace('|', '/')} |")
+        lines.append(f"| {item['case_id']} | {item['status']} | {judgments.get(item['case_id'], {}).get('status', 'NOT_REVIEWED')} | {item['explanation'].replace('|', '/')} |")
     lines += ["", "Точные цитаты, классы §19 и пути проверки — в [manual_review.json](manual_review.json).",
               "", "## Границы и воспроизведение", "",
-              "До полного прогона выполнен пилот killer: 25/25 реплик, 6 технических FAIL сравнения. В нём unknown execution имел только неизвестную активную сумму; основной банк усилен до смеси известных и неизвестных сумм. Пилот сохранён отдельно, не подменяет основной результат.",
-              "K24: UnknownResult есть в source, но первая страница trusted inspections может его не содержать. Проверка страницы/конкретной записи требует отдельного follow-up; существование fixture не означает, что запись была показана Master.",
+              "До полного прогона выполнен [пилот killer](pilot-killer.json.gz): 25/25 реплик, 6 технических FAIL сравнения. В нём unknown execution имел только неизвестную активную сумму; основной банк усилен до смеси известных и неизвестных сумм. Пилот не подменяет основной результат.",
+              "K24: UnknownResult есть в source, но первая страница trusted inspections его не содержит. В финальном harness setup явно запрашивает нужную страницу и порядковую запись, сохраняя исходный вопрос K24. [Дополнительные попытки setup](k24-supplement.json.gz) сохранены отдельно: ERP ID ошибочно распознан runtime как ИНН; запрос «Покажи проверки» не допущен routing. Эти ограничения продукта не исправлялись; основной полный прогон не перезаписан. Итог проверки адресованной записи — в [supplement.json](supplement.json).",
               "История finance в этой выгрузке — максимум три года. Выбор фикстур не доказывает репрезентативность базы за её пределами.",
-              "Фикстуры, формулировки и ожидаемые классы неизменны в копии банка каждого прогона. Технические проверки доработаны и пересчитаны на тех же сохранённых ответах (`regraded.json.gz`); LLM-ответы не перезаписывались.",
+              "Фикстуры, формулировки и ожидаемые классы неизменны в копии банка каждого прогона. Технические проверки доработаны и пересчитаны на тех же сохранённых ответах (`regraded.json.gz`); LLM-ответы не перезаписывались. В финальном компиляторе исправлены source_line для повторяющихся вопросов: ссылка указывает на соответствующий раздел, а не первое вхождение текста. Это не меняет вопросы или их порядок.",
+              "Узкие проверки harness: **9 passed**. Проверены полнота и неизменность source-вопросов, порядок multi-turn, source evidence, зависимости, неверные знаменатели/периоды/типы, повтор tools, company contamination и запрет выдуманных цитат judge. Изменённый код проходит git diff --check; исходный AGENT_EVALS.md сохранён байт-в-байт с его Markdown hard breaks.",
               "SQL/schema/repository, runtime/prompts, legacy endpoints и UI не изменены. DB impact отсутствует, миграции не нужны.",
               "", "```bash", "cd backend", "PYTHONPATH=. .venv/bin/python -m pytest -q tests/test_eval_harness.py",
               "PYTHONPATH=. .venv/bin/python -m evals.run_local --suite full --concurrency 6 --output evals/results/replay",

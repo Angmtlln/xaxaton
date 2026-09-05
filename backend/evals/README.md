@@ -64,6 +64,8 @@ Unknown execution требует одновременно известных и 
 дрейф source/snapshot/bank. В каждой директории прогона лежит именно её копия банка.
 Факт наличия записи в snapshot не доказывает, что агент запросил нужную страницу:
 это проверяется в trace и учитывается в содержательном review.
+Для K24 setup явно запрашивает страницу и порядковую запись с UnknownResult.
+Дословный scored-вопрос не меняется. Ошибки первоначальных setup сохранены в отчёте.
 
 ## Что оценивается
 
@@ -106,6 +108,14 @@ Judge raw final output сохраняется отдельно; usage одной
 `regrade` пересчитывает точные проверки на сохранённых ответах без новых LLM
 вызовов, пишет отдельный `regraded.json` с хешем grader и сохраняет исходную оценку.
 В финальном отчёте ручная оценка и ошибки измерения отделяются от judge verdicts.
+
+Полный архив и Markdown-отчёт для репозитория:
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evals.export_report --run evals/results/my-full --destination ../docs/evals/my-run
+```
+
+Первый сохранённый результат: [report.md](../../docs/evals/2026-09-05/report.md).
 
 Подход eval-only дополнительно сверялся с официальными
 [Agents](https://developers.openai.com/api/docs/guides/agents) и

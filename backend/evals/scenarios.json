@@ -2391,7 +2391,7 @@
       "fixture": "unknown_inspection",
       "mode": "solo",
       "setup": [
-        "Проверь 3711039473"
+        "Юридические данные компании 3711039473: надзорные проверки, страница 3. Дальше обсудим запись номер 5 на этой странице."
       ],
       "turns": [
         {
@@ -2406,6 +2406,9 @@
           ],
           "question": "У компании нашли нарушение на этой проверке?"
         }
+      ],
+      "setup_tools": [
+        "get_legal_data"
       ]
     },
     {
@@ -2449,7 +2452,7 @@
         {
           "id": "S02_01",
           "template": "Проверь <A>.",
-          "source_line": 35,
+          "source_line": 173,
           "expectation": "Solo — общая проверка; применить §0, §19 и §20 source of truth",
           "suites": [
             "solo",
@@ -2504,7 +2507,7 @@
         {
           "id": "S02_06",
           "template": "Что здесь самое критичное?",
-          "source_line": 41,
+          "source_line": 178,
           "expectation": "Solo — общая проверка; применить §0, §19 и §20 source of truth",
           "suites": [
             "solo",
@@ -2706,7 +2709,7 @@
         {
           "id": "S03_01",
           "template": "Что у них с финансами?",
-          "source_line": 56,
+          "source_line": 200,
           "expectation": "Finance; применить §0, §19 и §20 source of truth",
           "suites": [
             "solo",
@@ -3124,7 +3127,7 @@
         {
           "id": "S03_39",
           "template": "За счёт чего выросла выручка?",
-          "source_line": 66,
+          "source_line": 238,
           "expectation": "Finance; применить §0, §19 и §20 source of truth",
           "suites": [
             "solo",
@@ -3260,7 +3263,7 @@
         {
           "id": "S04_01",
           "template": "Что у них с судами?",
-          "source_line": 71,
+          "source_line": 254,
           "expectation": "Арбитраж; применить §0, §19 и §20 source of truth",
           "suites": [
             "solo",
@@ -5099,7 +5102,7 @@
         {
           "id": "S11_22",
           "template": "У кого больше всего кредиторов?",
-          "source_line": 124,
+          "source_line": 440,
           "expectation": "Comparison — finance; применить §0, §19 и §20 source of truth",
           "suites": [
             "comparison",
@@ -5806,7 +5809,7 @@
         {
           "id": "S15_01",
           "template": "У кого больше всего кредиторов?",
-          "source_line": 124,
+          "source_line": 521,
           "expectation": "Answerability traps; применить §0, §19 и §20 source of truth",
           "suites": [
             "traps",
@@ -6350,7 +6353,7 @@
         {
           "id": "M01.1",
           "template": "Проверь <A>",
-          "source_line": 35,
+          "source_line": 552,
           "expectation": "context reuse, calibrated reasoning, отсутствие новых неподтверждённых фактов, прямой итоговый вывод.",
           "suites": [
             "multiturn",
@@ -6372,7 +6375,7 @@
         {
           "id": "M01.3",
           "template": "Почему это плохо?",
-          "source_line": 46,
+          "source_line": 554,
           "expectation": "context reuse, calibrated reasoning, отсутствие новых неподтверждённых фактов, прямой итоговый вывод.",
           "suites": [
             "multiturn",
@@ -6383,7 +6386,7 @@
         {
           "id": "M01.4",
           "template": "Объясни проще",
-          "source_line": 50,
+          "source_line": 555,
           "expectation": "context reuse, calibrated reasoning, отсутствие новых неподтверждённых фактов, прямой итоговый вывод.",
           "suites": [
             "multiturn",
@@ -6440,7 +6443,7 @@
         {
           "id": "M02.1",
           "template": "Проверь <A>",
-          "source_line": 35,
+          "source_line": 566,
           "expectation": "domain switching, company memory, отсутствие лишнего full check.",
           "suites": [
             "multiturn",
@@ -6519,7 +6522,7 @@
         {
           "id": "M03.1",
           "template": "Сравни <A>, <B>, <C>",
-          "source_line": 109,
+          "source_line": 579,
           "expectation": "criterion switching, ranking explanation, reuse comparison context.",
           "suites": [
             "multiturn",
@@ -6530,7 +6533,7 @@
         {
           "id": "M03.2",
           "template": "Кого бы ты выбрал?",
-          "source_line": 405,
+          "source_line": 580,
           "expectation": "criterion switching, ranking explanation, reuse comparison context.",
           "suites": [
             "multiturn",
@@ -6609,7 +6612,7 @@
         {
           "id": "M04.1",
           "template": "Проверь <A>",
-          "source_line": 35,
+          "source_line": 593,
           "expectation": "correct entity reference, no context contamination.",
           "suites": [
             "multiturn",
@@ -6688,7 +6691,7 @@
         {
           "id": "M05.1",
           "template": "Проверь <A>",
-          "source_line": 35,
+          "source_line": 606,
           "expectation": "fact / interpretation / hypothesis.",
           "suites": [
             "multiturn",
@@ -6826,7 +6829,7 @@
         {
           "id": "M07.1",
           "template": "Сравни <A> и <B>",
-          "source_line": 402,
+          "source_line": 630,
           "expectation": "корректный отказ от unavailable metric + полезный proxy + продолжение диалога.",
           "suites": [
             "multiturn",
@@ -6883,7 +6886,7 @@
         {
           "id": "M08.1",
           "template": "Проверь <A>",
-          "source_line": 35,
+          "source_line": 641,
           "expectation": "отсутствие незаконной связи year ↔ stage.",
           "suites": [
             "multiturn",
@@ -6951,7 +6954,7 @@
         {
           "id": "M09.1",
           "template": "Проверь <A>",
-          "source_line": 35,
+          "source_line": 653,
           "expectation": "known sum lower bound; amount_unknown semantics.",
           "suites": [
             "multiturn",
@@ -6962,7 +6965,7 @@
         {
           "id": "M09.2",
           "template": "Есть активные ИП?",
-          "source_line": 570,
+          "source_line": 654,
           "expectation": "known sum lower bound; amount_unknown semantics.",
           "suites": [
             "multiturn",
@@ -7019,7 +7022,7 @@
         {
           "id": "M10.1",
           "template": "Проверь <A>",
-          "source_line": 35,
+          "source_line": 665,
           "expectation": "bank score ≠ final recommendation; cross-domain synthesis.",
           "suites": [
             "multiturn",

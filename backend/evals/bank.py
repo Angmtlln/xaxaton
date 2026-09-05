@@ -140,7 +140,14 @@ def compile_bank():
             q = q.replace(f"<{alias}>", inn)
         return q
     def turn(cid, q, expectation, suites):
-        line = next(i for i, s in enumerate(source.splitlines(), 1) if q in s)
+        if cid.startswith("S"):
+            section = int(cid.split("_")[0][1:])
+            start = re.search(rf"^# {section}\.", source, re.M).start()
+        elif cid.startswith(("K", "M")):
+            start = source.index("## " + cid.split(".")[0] + " —")
+        else:
+            start = source.index("## K01 —")
+        line = source[:source.index(q, start)].count("\n") + 1
         return {"id": cid, "template": q, "source_line": line, "expectation": expectation, "suites": [*suites, "full"]}
     def session(sid, turns, fixture=None, comparison=False, setup=True):
         a = {**aliases, **({"A": fx[fixture]["inn"]} if fixture else {})}
@@ -163,6 +170,12 @@ def compile_bank():
     special = {10: "small_execution", 11: "unknown_execution", 12: "fns_blocking", 21: "source_conflict", 22: "missing_profit", 23: "pre_registration", 24: "unknown_inspection", 25: "procurements"}
     for i, fixture in special.items():
         session(f"K{i:02}", [ks[i]], fixture)
+        if i == 24:
+            evidence = fx[fixture]["evidence"][0]
+            index = evidence["path"][-1]
+            inn = fx[fixture]["inn"]
+            sessions[-1]["setup"] = [f"Юридические данные компании {inn}: надзорные проверки, страница {index // 5 + 1}. Дальше обсудим запись номер {index % 5 + 1} на этой странице."]
+            sessions[-1]["setup_tools"] = ["get_legal_data"]
     # Sections are coherent, ordered conversations; special factual premises get their own fixture.
     question_fixtures = {
         "Есть ИП на 24 рубля. Мне вообще есть дело до него?": "small_execution",
