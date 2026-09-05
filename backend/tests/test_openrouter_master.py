@@ -25,6 +25,11 @@ def test_openrouter_is_the_only_default_master_profile():
 
     assert settings.master_model == "z-ai/glm-5.3-flash"
     assert settings.openrouter_base_url == "https://openrouter.ai/api/v1"
+    assert settings.openrouter_reasoning_effort == "low"
+    assert settings.agent_router_max_tokens == 512
+    assert settings.answer_max_tokens() == 4096
+    assert settings.verifier_max_tokens() == 2048
+    assert settings.repair_max_tokens() == 4096
     assert not hasattr(settings, "master_provider")
 
 
@@ -103,6 +108,9 @@ def test_openrouter_master_is_not_gated_by_domain_groq_client():
     assert isinstance(runtime.model, ChatOpenAI)
     assert runtime.model_name == "z-ai/glm-5.3-flash"
     assert runtime.model_provider == "openrouter"
+    assert runtime.answer_max_tokens == 4096
+    assert runtime.verifier_max_tokens == 2048
+    assert runtime.repair_max_tokens == 4096
 
 
 @pytest.mark.asyncio

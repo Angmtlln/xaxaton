@@ -86,6 +86,8 @@ model calls: Master выбирает tool, формирует собственн
 native tool calling runtime переходит на conservative deterministic fallback;
 штатный online path — только OpenRouter. Сам `run_check()` и его доменные
 Groq-вызовы не переписаны.
+Reasoning остаётся на минимальном `low`; конечные output-бюджеты
+разделены: routing 512, synthesis 4096, verifier 2048, repair 4096.
 LangGraph устанавливается транзитивно через LangChain; LangSmith tracing и API
 key для запуска не требуются.
 

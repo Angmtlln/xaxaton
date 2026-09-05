@@ -221,8 +221,13 @@ completion, structured output и LangChain tool calling через OpenRouter.
   ошибок консоли нет, при ширине 830 px `scrollWidth=clientWidth=830`.
 - Три прямые OpenRouter-пробы прошли на `z-ai/glm-5.3-flash`: обычный ответ,
   structured output и LangChain native tool calling. Для обязательных reasoning
-  tokens routing budget поднят с 256 до 512 после воспроизводимого
-  `LengthFinishReasonError` на 256.
+  tokens сохранены раздельные конечные output-бюджеты: routing 512,
+  synthesis 4096, verifier 2048 и repair 4096. `OPENROUTER_REASONING_EFFORT=low`.
+- После разделения бюджетов live-диалог `Проверь контрагента
+  6165169320` → `Почему это вообще плохо?` прошёл без fallback. На втором
+  turn synthesis завершился с `stop` на 308 output / 12 reasoning tokens,
+  verifier — с `stop` на 90 output / 78 reasoning tokens; `tool_calls=0`,
+  `repair_attempts=0`, `grounding_status=verified`.
 - Полный семиходовый live-сценарий после интеграции ещё нужно повторить; успешным
   считается `routing=model`, `synthesis=model` и отсутствие
   `grounding_status=fallback` на всех семи turns.

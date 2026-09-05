@@ -14,8 +14,10 @@ from .synthesis import json_payload, parse_master_answer
 
 GROUNDING_PROMPT_VERSION = "company-grounding-1.0.0"
 # Вердикт — короткий JSON, ремонт переписывает ответ целиком.
-VERIFIER_MAX_TOKENS = 200
-REPAIR_MAX_TOKENS = 600
+# Reasoning tokens входят в output budget OpenRouter-модели, поэтому
+# даже короткий JSON-вердикт получает ограниченный запас.
+VERIFIER_MAX_TOKENS = 2048
+REPAIR_MAX_TOKENS = 4096
 URL_RE = re.compile(r"(?:https?://|www\.|javascript:|data:)[^\s<]+", re.IGNORECASE)
 LABELLED_IDENTIFIER_RE = re.compile(
     r"\b(ИНН|ОГРН|ОГРНИП)\s*[:№#-]?\s*(\d{5,20})\b", re.IGNORECASE

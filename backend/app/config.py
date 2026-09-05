@@ -58,9 +58,14 @@ class Settings(BaseSettings):
     summary_temperature: float = 0.2
     max_output_tokens: int = 2000
     # Лимит ответа router-модели; отчёт из её текста не строится.
-    # GLM-5.3-Flash использует обязательные reasoning tokens; 256 не хватает
-    # даже короткому structured/tool ответу, 512 подтверждено live-smoke.
+    # Routing возвращает только tool call, поэтому ему достаточно 512.
     agent_router_max_tokens: int = 512
+    # GLM-5.3-Flash считает reasoning частью output budget. Каждый
+    # этап имеет отдельный конечный лимит: более длинный synthesis/repair
+    # и короткий, но с запасом на reasoning, JSON-verifier.
+    agent_answer_max_tokens: int = 4096
+    agent_verifier_max_tokens: int = 2048
+    agent_repair_max_tokens: int = 4096
     # Запаса хватает на полный tool/answer/grounding проход Master.
     agent_model_timeout_s: float = 45.0
     agent_tool_timeout_s: float = 150.0
@@ -84,11 +89,15 @@ class Settings(BaseSettings):
 
     def answer_max_tokens(self) -> int:
         """Бюджет естественного ответа Master через OpenRouter."""
-        return 1100
+        return self.agent_answer_max_tokens
 
     def verifier_max_tokens(self) -> int:
         """Бюджет короткого JSON-вердикта grounding verifier."""
-        return 512
+        return self.agent_verifier_max_tokens
+
+    def repair_max_tokens(self) -> int:
+        """Бюджет единственной repair-попытки Master."""
+        return self.agent_repair_max_tokens
 
     def model_for_block(self, block: str) -> str:
         """Модель конкретного блочного агента."""

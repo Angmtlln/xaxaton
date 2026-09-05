@@ -40,11 +40,12 @@ MAX_TOTAL_MODEL_CALLS = 5
 MAX_TOOL_CALLS = 1
 # Сравнение идёт одним вызовом инструмента, но не более трёх компаний.
 MAX_COMPARISON_COMPANIES = 3
-# GLM-5.3-Flash использует обязательные reasoning tokens. Live-smoke показал,
-# что 256 обрывает structured output, а 512 держит routing/verifier contract.
+# GLM-5.3-Flash учитывает reasoning в output budget. Routing короткий;
+# synthesis, verifier и repair имеют раздельные конечные лимиты.
 ROUTER_MAX_TOKENS = 512
-ANSWER_MAX_TOKENS = 1100
-VERIFIER_MAX_TOKENS = 512
+ANSWER_MAX_TOKENS = 4096
+VERIFIER_MAX_TOKENS = 2048
+REPAIR_MAX_TOKENS = 4096
 GRAPH_RECURSION_LIMIT = 12
 TOOL_BUNDLE_VERSION = "counterparty-tools-3.0.0"
 DIGIT_SEQUENCE_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
@@ -87,6 +88,7 @@ class MasterAgentRuntime:
         router_max_tokens: int = ROUTER_MAX_TOKENS,
         answer_max_tokens: int = ANSWER_MAX_TOKENS,
         verifier_max_tokens: int = VERIFIER_MAX_TOKENS,
+        repair_max_tokens: int = REPAIR_MAX_TOKENS,
     ):
         self.model = model
         self.model_name = model_name
@@ -97,6 +99,7 @@ class MasterAgentRuntime:
         self.router_max_tokens = router_max_tokens
         self.answer_max_tokens = answer_max_tokens
         self.verifier_max_tokens = verifier_max_tokens
+        self.repair_max_tokens = repair_max_tokens
         self.conversation_store = conversation_store or ConversationStore()
         self.model_provider = model_provider or ("local" if model is None else "custom")
 
@@ -473,7 +476,7 @@ class MasterAgentRuntime:
                 verified_context,
                 allowed_artifacts=artifacts,
                 timeout_s=self.model_timeout_s,
-                max_tokens=self.answer_max_tokens,
+                max_tokens=self.repair_max_tokens,
             )
             _record_usage(execution, response)
             repaired_violations = backend_owned_violations(repaired.message, verified_context)
@@ -635,6 +638,7 @@ def build_master_runtime(
         router_max_tokens=settings.agent_router_max_tokens,
         answer_max_tokens=settings.answer_max_tokens(),
         verifier_max_tokens=settings.verifier_max_tokens(),
+        repair_max_tokens=settings.repair_max_tokens(),
         conversation_store=conversation_store,
         model_provider="openrouter" if model else "local",
     )
