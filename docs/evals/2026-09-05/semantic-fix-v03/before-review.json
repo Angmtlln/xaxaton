@@ -1,0 +1,515 @@
+{
+  "authority": "manual_review_by_coding_agent_not_independent",
+  "source": "AGENT_EVALS.md",
+  "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+  "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+  "baseline": "../comparison-followup-fix.json.gz",
+  "scope": [
+    "K17",
+    "K18",
+    "K20"
+  ],
+  "findings": [
+    {
+      "case_id": "K17",
+      "category": "unavailable_metric_fabricated",
+      "quote": "любая задолженность там бесконечно велика относительно выручки",
+      "source_reference": "7813664770: report.finReports[0].common.proceeds=0; comparison_context.companies[2].sections.calculations payables_to_proceeds_pct.value=null, reason=nonpositive_denominator",
+      "expected": "Отношение не определено; не ранжировать его как infinity. Сохранить известную сумму 623000 RUB.",
+      "root_cause": "interpretation",
+      "change": "Risk Playbook: invalid denominator boundary"
+    },
+    {
+      "case_id": "K18",
+      "category": "unavailable_metric_fabricated",
+      "quote": "Косвенно о числе контрагентов-кредиторов можно судить по судебной активности",
+      "source_reference": "Все три report: finReports[].liabilities.shortTermLiabilities.accountsPayable — amount; arbitrationCases[].defendantCount — дела, не уникальные кредиторы; AGENT_EVALS.md K18 explicitly states creditor count not disclosed.",
+      "expected": "Не оценивать число лиц по суммам или делам; предложить объём кредиторской задолженности как другой показатель.",
+      "root_cause": "interpretation",
+      "change": "Risk Playbook: entity count vs amounts/event counts"
+    },
+    {
+      "case_id": "K20",
+      "category": "criterion_switch_ignored",
+      "quote": "просто не имеет масштаба, на котором риски были бы измеримы",
+      "source_reference": "7813664770: report.arbitrationCases[].defendantAmount=390000; report.finReports[0].assets.totalAssets=8046000; capitals=6794000; trusted claim_scale=4.85% assets/5.74% capital; active execution=24.63 RUB.",
+      "expected": "Сопоставить доступные legal признаки всех компаний; нулевая выручка ограничивает только базу revenue, не весь анализ. Выбор может остаться прежним при legal обосновании.",
+      "root_cause": "criterion interpretation",
+      "change": "Risk Playbook: new criterion and absolute/relative trade-off"
+    }
+  ],
+  "verified_inputs": [
+    {
+      "inn": "6165169320",
+      "year": 2025,
+      "raw_proceeds": 748359000,
+      "raw_accounts_payable": 249335000,
+      "ratio": {
+        "id": "payables_to_proceeds_pct",
+        "formula": "a/b*100",
+        "version": "balance-1",
+        "unit": "%",
+        "value": 33.32,
+        "state": "data",
+        "reason": null,
+        "input_refs": [
+          "i11",
+          "i7"
+        ]
+      },
+      "inputs": {
+        "i11": {
+          "field_ref": "report.finReports[0].liabilities.shortTermLiabilities.accountsPayable",
+          "value": 249335000.0,
+          "year": 2025,
+          "unit": "руб"
+        },
+        "i7": {
+          "field_ref": "report.finReports[0].common.proceeds",
+          "value": 748359000.0,
+          "year": 2025,
+          "unit": "руб"
+        }
+      },
+      "claim_scale": {
+        "field_ref": "report.arbitrationCases[]; report.executionProceedings[]; report.finReports[]",
+        "inputs": {
+          "i0": {
+            "value": 20843367.0,
+            "field_ref": "report.arbitrationCases[].defendantAmount",
+            "unit": "руб",
+            "report_date": "2026-08-24T21:00:00.000Z",
+            "period": "all disclosed legal records"
+          },
+          "i1": {
+            "value": 253122000.0,
+            "field_ref": "report.finReports[0].assets.totalAssets",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i2": {
+            "value": 3782000.0,
+            "field_ref": "report.finReports[0].liabilities.capitals",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i3": {
+            "value": 748359000.0,
+            "field_ref": "report.finReports[0].common.proceeds",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i4": {
+            "value": 0,
+            "field_ref": "report.executionProceedings[].amount",
+            "unit": "руб",
+            "report_date": "2026-08-24T21:00:00.000Z",
+            "period": "all disclosed legal records"
+          }
+        },
+        "state": "data",
+        "value": [
+          {
+            "id": "court.defendant_amount_to_total_assets_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 8.23,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i1"
+            ]
+          },
+          {
+            "id": "court.defendant_amount_to_capitals_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 551.12,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i2"
+            ]
+          },
+          {
+            "id": "court.defendant_amount_to_proceeds_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 2.79,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i3"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_total_assets_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 0.0,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i4",
+              "i1"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_capitals_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 0.0,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i4",
+              "i2"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_proceeds_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 0.0,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i4",
+              "i3"
+            ]
+          }
+        ],
+        "total": null,
+        "offset": 0,
+        "included": null,
+        "truncated": false,
+        "scope": "scale only, legal snapshot aggregates vs annual balance/revenue; separate obligations may overlap",
+        "next_offset": null
+      }
+    },
+    {
+      "inn": "3711039473",
+      "year": 2025,
+      "raw_proceeds": 3730752000,
+      "raw_accounts_payable": 2128099000,
+      "ratio": {
+        "id": "payables_to_proceeds_pct",
+        "formula": "a/b*100",
+        "version": "balance-1",
+        "unit": "%",
+        "value": 57.04,
+        "state": "data",
+        "reason": null,
+        "input_refs": [
+          "i11",
+          "i7"
+        ]
+      },
+      "inputs": {
+        "i11": {
+          "field_ref": "report.finReports[0].liabilities.shortTermLiabilities.accountsPayable",
+          "value": 2128099000.0,
+          "year": 2025,
+          "unit": "руб"
+        },
+        "i7": {
+          "field_ref": "report.finReports[0].common.proceeds",
+          "value": 3730752000.0,
+          "year": 2025,
+          "unit": "руб"
+        }
+      },
+      "claim_scale": {
+        "field_ref": "report.arbitrationCases[]; report.executionProceedings[]; report.finReports[]",
+        "inputs": {
+          "i0": {
+            "value": 28280247.0,
+            "field_ref": "report.arbitrationCases[].defendantAmount",
+            "unit": "руб",
+            "report_date": "2026-07-29T21:00:00.000Z",
+            "period": "all disclosed legal records"
+          },
+          "i1": {
+            "value": 3937605000.0,
+            "field_ref": "report.finReports[0].assets.totalAssets",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i2": {
+            "value": 593058000.0,
+            "field_ref": "report.finReports[0].liabilities.capitals",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i3": {
+            "value": 3730752000.0,
+            "field_ref": "report.finReports[0].common.proceeds",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i4": {
+            "value": null,
+            "field_ref": "execproc.active_amount",
+            "unit": "руб",
+            "report_date": "2026-07-29T21:00:00.000Z",
+            "period": "all disclosed legal records"
+          }
+        },
+        "state": "data",
+        "value": [
+          {
+            "id": "court.defendant_amount_to_total_assets_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 0.72,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i1"
+            ]
+          },
+          {
+            "id": "court.defendant_amount_to_capitals_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 4.77,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i2"
+            ]
+          },
+          {
+            "id": "court.defendant_amount_to_proceeds_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 0.76,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i3"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_total_assets_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": null,
+            "state": "not_calculable",
+            "reason": "missing_or_invalid_input",
+            "input_refs": [
+              "i4",
+              "i1"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_capitals_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": null,
+            "state": "not_calculable",
+            "reason": "missing_or_invalid_input",
+            "input_refs": [
+              "i4",
+              "i2"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_proceeds_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": null,
+            "state": "not_calculable",
+            "reason": "missing_or_invalid_input",
+            "input_refs": [
+              "i4",
+              "i3"
+            ]
+          }
+        ],
+        "total": null,
+        "offset": 0,
+        "included": null,
+        "truncated": false,
+        "scope": "scale only, legal snapshot aggregates vs annual balance/revenue; separate obligations may overlap",
+        "next_offset": null
+      }
+    },
+    {
+      "inn": "7813664770",
+      "year": 2025,
+      "raw_proceeds": 0,
+      "raw_accounts_payable": 623000,
+      "ratio": {
+        "id": "payables_to_proceeds_pct",
+        "formula": "a/b*100",
+        "version": "balance-1",
+        "unit": "%",
+        "value": null,
+        "state": "not_calculable",
+        "reason": "nonpositive_denominator",
+        "input_refs": [
+          "i11",
+          "i7"
+        ]
+      },
+      "inputs": {
+        "i11": {
+          "field_ref": "report.finReports[0].liabilities.shortTermLiabilities.accountsPayable",
+          "value": 623000.0,
+          "year": 2025,
+          "unit": "руб"
+        },
+        "i7": {
+          "field_ref": "report.finReports[0].common.proceeds",
+          "value": 0.0,
+          "year": 2025,
+          "unit": "руб"
+        }
+      },
+      "claim_scale": {
+        "field_ref": "report.arbitrationCases[]; report.executionProceedings[]; report.finReports[]",
+        "inputs": {
+          "i0": {
+            "value": 390000.0,
+            "field_ref": "report.arbitrationCases[].defendantAmount",
+            "unit": "руб",
+            "report_date": "2026-08-01T21:00:00.000Z",
+            "period": "all disclosed legal records"
+          },
+          "i1": {
+            "value": 8046000.0,
+            "field_ref": "report.finReports[0].assets.totalAssets",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i2": {
+            "value": 6794000.0,
+            "field_ref": "report.finReports[0].liabilities.capitals",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i3": {
+            "value": 0.0,
+            "field_ref": "report.finReports[0].common.proceeds",
+            "unit": "руб",
+            "year": 2025
+          },
+          "i4": {
+            "value": 24.63,
+            "field_ref": "report.executionProceedings[].amount",
+            "unit": "руб",
+            "report_date": "2026-08-01T21:00:00.000Z",
+            "period": "all disclosed legal records"
+          }
+        },
+        "state": "data",
+        "value": [
+          {
+            "id": "court.defendant_amount_to_total_assets_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 4.85,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i1"
+            ]
+          },
+          {
+            "id": "court.defendant_amount_to_capitals_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 5.74,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i0",
+              "i2"
+            ]
+          },
+          {
+            "id": "court.defendant_amount_to_proceeds_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": null,
+            "state": "not_calculable",
+            "reason": "nonpositive_denominator",
+            "input_refs": [
+              "i0",
+              "i3"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_total_assets_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 0.0,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i4",
+              "i1"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_capitals_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": 0.0,
+            "state": "data",
+            "reason": null,
+            "input_refs": [
+              "i4",
+              "i2"
+            ]
+          },
+          {
+            "id": "execproc.active_amount_to_proceeds_pct",
+            "formula": "a/b*100",
+            "version": "balance-1",
+            "unit": "%",
+            "value": null,
+            "state": "not_calculable",
+            "reason": "nonpositive_denominator",
+            "input_refs": [
+              "i4",
+              "i3"
+            ]
+          }
+        ],
+        "total": null,
+        "offset": 0,
+        "included": null,
+        "truncated": false,
+        "scope": "scale only, legal snapshot aggregates vs annual balance/revenue; separate obligations may overlap",
+        "next_offset": null
+      }
+    }
+  ],
+  "decision": "Change interpretation instructions only; no calculation/schema/data changes needed for these three failures."
+}

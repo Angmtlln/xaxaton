@@ -1,0 +1,180 @@
+{
+  "runs": {
+    "semantic-fix-comparison-v03": {
+      "suite": "killer",
+      "started_at": "2026-09-05T17:59:21.159541+00:00",
+      "git_commit": "c82fb4684fae9e489843cb1cd690b666fae3e080",
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "master_model": "z-ai/glm-5.3-flash",
+      "block_models": {
+        "identity": "openai/gpt-oss-20b",
+        "reliability": "openai/gpt-oss-120b",
+        "finance": "qwen/qwen3.8-27b",
+        "experience": "openai/gpt-oss-20b"
+      },
+      "grounding_debug": false,
+      "concurrency": 1,
+      "latency_threshold_ms": 60000,
+      "data_mode": "snapshot",
+      "persist": false,
+      "planned_scored_turns": 6,
+      "finished_at": "2026-09-05T18:01:01.295545+00:00",
+      "completed_turns": 6,
+      "scored_turns": 6,
+      "deterministic_pass": 6,
+      "deterministic_fail": 0,
+      "semantic_status": "NOT_REVIEWED",
+      "unscored_failures": []
+    },
+    "semantic-fix-traps-v03": {
+      "suite": "traps",
+      "started_at": "2026-09-05T17:59:22.367753+00:00",
+      "git_commit": "c82fb4684fae9e489843cb1cd690b666fae3e080",
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "master_model": "z-ai/glm-5.3-flash",
+      "block_models": {
+        "identity": "openai/gpt-oss-20b",
+        "reliability": "openai/gpt-oss-120b",
+        "finance": "qwen/qwen3.8-27b",
+        "experience": "openai/gpt-oss-20b"
+      },
+      "grounding_debug": false,
+      "concurrency": 3,
+      "latency_threshold_ms": 60000,
+      "data_mode": "snapshot",
+      "persist": false,
+      "planned_scored_turns": 31,
+      "finished_at": "2026-09-05T18:08:54.026738+00:00",
+      "completed_turns": 69,
+      "scored_turns": 31,
+      "deterministic_pass": 31,
+      "deterministic_fail": 0,
+      "semantic_status": "NOT_REVIEWED",
+      "unscored_failures": [
+        {
+          "case_id": "K01",
+          "wall_ms": 77738,
+          "checks": [
+            "latency"
+          ]
+        },
+        {
+          "case_id": "K25.setup1",
+          "wall_ms": 70106,
+          "checks": [
+            "latency"
+          ]
+        },
+        {
+          "case_id": "S15_06.setup1",
+          "wall_ms": 92066,
+          "checks": [
+            "latency"
+          ]
+        }
+      ]
+    },
+    "semantic-fix-comparison-v031": {
+      "suite": "killer",
+      "started_at": "2026-09-05T18:02:21.397214+00:00",
+      "git_commit": "c82fb4684fae9e489843cb1cd690b666fae3e080",
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "master_model": "z-ai/glm-5.3-flash",
+      "block_models": {
+        "identity": "openai/gpt-oss-20b",
+        "reliability": "openai/gpt-oss-120b",
+        "finance": "qwen/qwen3.8-27b",
+        "experience": "openai/gpt-oss-20b"
+      },
+      "grounding_debug": false,
+      "concurrency": 1,
+      "latency_threshold_ms": 60000,
+      "data_mode": "snapshot",
+      "persist": false,
+      "planned_scored_turns": 6,
+      "finished_at": "2026-09-05T18:03:33.887272+00:00",
+      "completed_turns": 6,
+      "scored_turns": 6,
+      "deterministic_pass": 6,
+      "deterministic_fail": 0,
+      "semantic_status": "NOT_REVIEWED",
+      "unscored_failures": []
+    },
+    "semantic-fix-traps-v031": {
+      "suite": "traps",
+      "started_at": "2026-09-05T18:02:43.760681+00:00",
+      "git_commit": "c82fb4684fae9e489843cb1cd690b666fae3e080",
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "master_model": "z-ai/glm-5.3-flash",
+      "block_models": {
+        "identity": "openai/gpt-oss-20b",
+        "reliability": "openai/gpt-oss-120b",
+        "finance": "qwen/qwen3.8-27b",
+        "experience": "openai/gpt-oss-20b"
+      },
+      "grounding_debug": false,
+      "concurrency": 3,
+      "latency_threshold_ms": 60000,
+      "data_mode": "snapshot",
+      "persist": false,
+      "planned_scored_turns": 31,
+      "finished_at": "2026-09-05T18:11:55.138497+00:00",
+      "completed_turns": 69,
+      "scored_turns": 31,
+      "deterministic_pass": 31,
+      "deterministic_fail": 0,
+      "semantic_status": "NOT_REVIEWED",
+      "unscored_failures": [
+        {
+          "case_id": "S15_06.setup1",
+          "wall_ms": 111597,
+          "checks": [
+            "latency"
+          ]
+        },
+        {
+          "case_id": "S15_17.setup1",
+          "wall_ms": 71509,
+          "checks": [
+            "latency"
+          ]
+        }
+      ]
+    }
+  },
+  "manual_review": "manual-review.json",
+  "automated_judge_status": "COMPLETED_WITH_JUDGE_ERROR",
+  "automated_judge_counts": {
+    "PASS": 29,
+    "JUDGE_ERROR": 1,
+    "FAIL": 1
+  },
+  "automated_judge_same_model": true,
+  "manual_comparison_counts": {
+    "PASS": 5,
+    "FAIL": 1
+  },
+  "targeted_K17_K18_K20": {
+    "PASS": 3,
+    "FAIL": 0
+  },
+  "manual_traps_failures": [
+    "K21",
+    "S15_10",
+    "S15_12",
+    "S15_18"
+  ],
+  "manual_traps_passes": [
+    "K18",
+    "S15_01"
+  ],
+  "acceptance": "NOT_PASSED: remaining semantic failures; automated PASS is provisional"
+}

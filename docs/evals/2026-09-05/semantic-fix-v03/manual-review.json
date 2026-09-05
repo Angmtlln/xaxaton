@@ -1,0 +1,145 @@
+{
+  "authority": "manual_review_by_coding_agent_not_independent",
+  "source": "AGENT_EVALS.md",
+  "scope": "All six final comparison answers; six selected final traps answers (two creditor-count checks, four observed failures); targeted failures in first iteration. Traps sample is not random. Full traps has a separate provisional automated judge.",
+  "final_comparison_counts": {
+    "PASS": 5,
+    "FAIL": 1
+  },
+  "targeted_K17_K18_K20": {
+    "PASS": 3,
+    "FAIL": 0
+  },
+  "results": [
+    {
+      "run": "semantic-fix-comparison-v031",
+      "case_id": "K15",
+      "status": "FAIL",
+      "explanation": "В ответе нулевая выручка превращается в установленную нулевую операционную активность. Общий рейтинг сам по себе не ошибка.",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "нулевая операционная активность",
+          "source_reference": "7813664770 report.finReports[0].common.proceeds=0; source не устанавливает отсутствие операций. AGENT_EVALS.md: calibrated reasoning, §19."
+        }
+      ]
+    },
+    {
+      "run": "semantic-fix-comparison-v031",
+      "case_id": "K16",
+      "status": "PASS",
+      "explanation": "Суммы и 2025 год сопоставимы; порядок 2128099000 > 249335000 > 623000 подтверждён snapshot.",
+      "findings": []
+    },
+    {
+      "run": "semantic-fix-comparison-v031",
+      "case_id": "K17",
+      "status": "PASS",
+      "explanation": "57.0% > 33.3%; АПРЕЛЬ исключён из ratio при нулевой выручке. Причинное дополнение обозначено как возможность, не установленный факт.",
+      "findings": []
+    },
+    {
+      "run": "semantic-fix-comparison-v031",
+      "case_id": "K18",
+      "status": "PASS",
+      "explanation": "Число кредиторов признано неизвестным; суммы задолженности предложены как другая мера, без оценки числа лиц.",
+      "findings": []
+    },
+    {
+      "run": "semantic-fix-comparison-v031",
+      "case_id": "K19",
+      "status": "PASS",
+      "explanation": "Роль ответчика, положительные базы и scope всех раскрытых исков сохранены; court и execution не сложены.",
+      "findings": []
+    },
+    {
+      "run": "semantic-fix-comparison-v031",
+      "case_id": "K20",
+      "status": "PASS",
+      "explanation": "Сопоставлены абсолютная и относительная legal нагрузка, активные ИП, полнота и ограничения. Победитель прежний с обоснованием нового критерия; это допустимо. Малая выручка не отменяет доступные legal сведения.",
+      "findings": []
+    },
+    {
+      "run": "semantic-fix-traps-v031",
+      "case_id": "K18",
+      "status": "PASS",
+      "explanation": "Количество кредиторов не раскрыто; суммы за 2025 год предложены как объём обязательств, без оценки количества. Проверены 2128099000/249335000/623000 по исходному snapshot.",
+      "findings": []
+    },
+    {
+      "run": "semantic-fix-traps-v031",
+      "case_id": "S15_01",
+      "status": "PASS",
+      "explanation": "Количество кредиторов не раскрыто; суммы за 2025 год предложены как объём обязательств, без оценки количества. Проверены 2128099000/249335000/623000 по исходному snapshot.",
+      "findings": []
+    },
+    {
+      "run": "semantic-fix-traps-v031",
+      "case_id": "K21",
+      "status": "FAIL",
+      "explanation": "Ответ заменяет конкретный конфликт source narrative и structured finance общим объяснением про реестровые маркеры и отрицает противоречие.",
+      "findings": [
+        {
+          "category": "source_narrative_as_fact",
+          "quote": "Это не противоречие, а разные измерения",
+          "source_reference": "7813664770 report.reputationalRisks.positive[12].name утверждает стабильный доход/успешную деятельность при proceeds=0."
+        }
+      ]
+    },
+    {
+      "run": "semantic-fix-traps-v031",
+      "case_id": "S15_10",
+      "status": "FAIL",
+      "explanation": "Отношение всех исков ошибочно приписано только незавершённым.",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "незавершённых исках на 18,9 млн ₽ (551% капитала)",
+          "source_reference": "6165169320 sections.claim_scale: 551.12% рассчитаны по ВСЕМ искам 20843367 / capitals 3782000, а pending=18894669."
+        }
+      ]
+    },
+    {
+      "run": "semantic-fix-traps-v031",
+      "case_id": "S15_18",
+      "status": "FAIL",
+      "explanation": "Источник и механизм финансирования названы фактом, хотя раскрыт лишь баланс задолженности.",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "по фактическим данным компанию финансируют преимущественно контрагенты через кредиторку",
+          "source_reference": "6165169320 report.finReports[].liabilities.shortTermLiabilities.accountsPayable: суммы без состава, договоров и источников финансирования."
+        }
+      ]
+    },
+    {
+      "run": "semantic-fix-traps-v031",
+      "case_id": "S15_12",
+      "status": "FAIL",
+      "explanation": "Повторная подмена числителя: коэффициент всех исков приписан незавершённым. Judge отметил ошибку, но вернул несовместимые PASS и findings, поэтому автоматический результат оставлен JUDGE_ERROR.",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "два незавершённых иска на 18,9 млн ₽ (в 5,5 раза больше капитала)",
+          "source_reference": "6165169320: pending=18894669, capitals=3782000; 551.12%=20843367/3782000*100 рассчитаны для всех исков."
+        }
+      ]
+    }
+  ],
+  "iteration_findings": [
+    {
+      "run": "semantic-fix-comparison-v03",
+      "case_id": "K17",
+      "status": "FAIL",
+      "quote": "кредиторская задолженность больше у ООО «ГДК»",
+      "reason": "Сам ответ приводит 33.3% ГДК и 57.0% ЛИДЕРТЕКС; победитель противоречит этим значениям. Ответ сохранён как получен, finish_reason не раскрыт."
+    },
+    {
+      "run": "semantic-fix-comparison-v03",
+      "case_id": "K20",
+      "status": "FAIL",
+      "quote": "минимальная раскрытая юридическая нагрузка по всем измерениям",
+      "reason": "АПРЕЛЬ имеет меньшую абсолютную, но большую относительную нагрузку: 4.85% активов/5.74% капитала против 0.72%/4.77% у ЛИДЕРТЕКС."
+    }
+  ]
+}

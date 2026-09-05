@@ -209,8 +209,11 @@ npm run dev
 - Chat `full_company_check` пропускает только legacy Summary; `/api/v1/checks`
   и `/report` продолжают вызывать её. Схема БД не меняется.
 
-## Risk Playbook v0.2: данные и проверка
+## Risk Playbook v0.3.1: данные и проверка
 
 - [DATA_COVERAGE](DATA_COVERAGE.md): source → ToolResult → Master, расчёты и границы.
 - [PLAYBOOK_VALIDATION](PLAYBOOK_VALIDATION.md): регрессия, Docker, live tokens/latency и оставшиеся поведенческие FAIL.
 - Каноническая runtime-методология: `backend/app/agent/RISK_PLAYBOOK.md`.
+- [Semantic fixes: K15–K20 и traps](evals/2026-09-05/semantic-fix-v03/report.md):
+  нулевой знаменатель, количество кредиторов и смена критерия; исходные данные,
+  последовательные live-прогоны и оставшиеся semantic failures.

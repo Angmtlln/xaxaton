@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.2"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.1"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
