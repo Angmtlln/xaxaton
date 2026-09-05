@@ -106,6 +106,47 @@ async def test_three_data_rich_companies_fit_the_evidence_contract(monkeypatch):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("limit,accepted", [(80_000, True), (70_000, False)])
+async def test_registry_preserves_real_k15_comparison_within_size_limit(monkeypatch, documents, limit, accepted):
+    inns = [RICH, "3711039473", "7813664770"]
+    store = {
+        doc["report"]["baseInfo"]["inn"]: {
+            "inn": doc["report"]["baseInfo"]["inn"],
+            "short_name": doc["report"]["baseInfo"].get("shortName"),
+            "document": doc,
+        }
+        for doc in documents if doc["report"]["baseInfo"]["inn"] in inns
+    }
+
+    async def get_latest_snapshot(inn):
+        return store.get(inn)
+
+    monkeypatch.setattr("app.infrastructure.repository.get_latest_snapshot", get_latest_snapshot)
+    settings = _settings(agent_tool_result_max_chars=limit)
+    client = GroqClient(settings)
+    context = ToolContext(settings=settings, client=client, persist=False)
+    args = CompareCompaniesArgs(inns=inns, focus="both")
+    try:
+        expected = await execute_comparison(context, args)
+        result = await build_tool_registry(settings).execute(
+            "compare_companies", args.model_dump(mode="json"), context,
+        )
+    finally:
+        await client.aclose()
+
+    assert expected.status != "error"
+    if accepted:
+        assert result.status == expected.status
+        assert result.data == expected.data
+        assert result.evidence == expected.evidence
+        assert result.warnings == expected.warnings
+        assert [company["inn"] for company in result.data["companies"]] == inns
+    else:
+        assert result.status == "error"
+        assert result.error.code == "result_too_large"
+
+
+@pytest.mark.asyncio
 async def test_missing_comparison_company_is_named_in_tool_error(snapshots):
     missing = "2311304742"
     settings = _settings()

@@ -179,7 +179,10 @@ class ToolRegistry:
 
         metadata = result.metadata.model_copy(update={"latency_ms": _elapsed_ms(started)})
         result = result.model_copy(update={"metadata": metadata})
-        encoded_size = len(json.dumps(result.model_dump(mode="json"), ensure_ascii=False))
+        # Count compact JSON, as used for agent context, without formatting whitespace.
+        encoded_size = len(json.dumps(
+            result.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":"),
+        ))
         if encoded_size > definition.result_size_limit:
             return _error_result(
                 "result_too_large",
