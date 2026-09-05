@@ -172,7 +172,20 @@ def _answer_payload(value: str) -> dict:
     Артефакт при этом остаётся за бэкендом, поэтому подставляется none.
     """
     try:
-        return json_payload(value)
+        payload = json_payload(value)
+        # Некоторые OpenAI-compatible провайдеры при repair дважды кодируют
+        # контракт и кладут весь объект строкой в message. Разворачиваем только
+        # структурную оболочку; естественный текст не переписываем.
+        nested = payload.get("message")
+        if isinstance(nested, str):
+            try:
+                nested_payload = json_payload(nested)
+            except (ValueError, json.JSONDecodeError):
+                pass
+            else:
+                if set(nested_payload) == {"message", "artifact"}:
+                    payload = nested_payload
+        return payload
     except ValueError:
         text = clean_model_text(value)
         if not text:

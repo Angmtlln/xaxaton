@@ -98,12 +98,14 @@ message + conversation_id
   → trusted state checkpoint
 ```
 
-На turn разрешён один domain tool call и не более пяти model calls. Обычный
-tool-turn использует три: routing/tool call, ответ Master и verifier. Repair
-добавляет один вызов. Контекстный follow-up обычно использует два вызова —
-ответ и verifier. Простая переформулировка последнего уже проверенного ответа
-может пропустить verifier, но строгая проверка неизвестных URL и подписанных
-ИНН/ОГРН остаётся.
+На turn разрешён один domain tool call и не более пяти model calls. Первичный
+full-check использует три: routing/tool call, ответ Master и verifier. Уже
+однозначно определённый finance/legal follow-up активной компании выполняет
+targeted tool без повторного model-routing, затем использует ответ Master и
+verifier. Repair добавляет два вызова: переписывание и повторную проверку.
+Контекстный follow-up обычно использует два вызова — ответ и verifier. Даже
+простая переформулировка проходит verifier: live acceptance показал, что модель
+может усилить утверждение или добавить условия сделки на «Объясни проще».
 
 Неверный routing, невалидные аргументы, timeout или недоступная модель приводят
 к ограниченному deterministic fallback. Уже полученная capability не
@@ -185,7 +187,7 @@ cd .. && for f in frontend/js/**/*.js; do node --input-type=module \
 ```
 
 Live smoke использует одну active company и один `conversation_id`, проходит
-семь реплик acceptance-сценария и требует tools только на turns 1, 2 и 6.
+восемь реплик acceptance-сценария и требует tools только на turns 1 и 5.
 Он проверяет связность, отсутствие лишних tool calls, grounding metadata,
 evidence и доступность `/` и `/report`. PostgreSQL, `OPENROUTER_API_KEY` и
 доменный Groq должны быть настроены заранее; `PARTIAL` допустим для неполной
@@ -200,7 +202,7 @@ completion, structured output и LangChain tool calling через OpenRouter.
 - `test_financial_capability.py`, `test_legal_capability.py`;
 - `test_agent_response.py`, `test_targeted_response.py`, `test_chat_api.py`.
 
-Ручной browser smoke: пройти семь реплик, открыть источники и «Полный анализ»,
+Ручной browser smoke: пройти восемь реплик, открыть источники и «Полный анализ»,
 перезагрузить вкладку, проверить «Новый диалог», Enter / Shift+Enter и ширину
 390 px.
 
@@ -210,9 +212,9 @@ completion, structured output и LangChain tool calling через OpenRouter.
   предупреждение Starlette/AnyIO. Профильный comparison/OpenRouter/runtime/chat
   набор: `57 passed`. `compileall`, frontend module check и `git diff --check`
   прошли.
-- Точный семирепличный сценарий прошёл behavioral-тест с одним
-  `conversation_id`: tools вызваны только на turns 1, 2 и 6; turn 4 использовал
-  rewrite fast path, остальные содержательные ответы прошли verifier.
+- Точный восьмиходовый сценарий покрыт behavioral-тестом с одним
+  `conversation_id`: tools вызываются только на turns 1 и 5, включая targeted
+  finance; каждый естественный ответ, в том числе rewrite, проходит verifier.
 - Docker API пересобран; `/health`, `/` и `/report` отвечают `200`. Live
   comparison трёх компаний прошёл одним tool call: `routing=model`,
   `synthesis=model`, `grounding_status=verified`, таблица из 9 строк и 14
@@ -222,15 +224,21 @@ completion, structured output и LangChain tool calling через OpenRouter.
 - Три прямые OpenRouter-пробы прошли на `z-ai/glm-5.3-flash`: обычный ответ,
   structured output и LangChain native tool calling. Для обязательных reasoning
   tokens сохранены раздельные конечные output-бюджеты: routing 512,
-  synthesis 4096, verifier 2048 и repair 4096. `OPENROUTER_REASONING_EFFORT=low`.
+  synthesis 4096, verifier 4096 и repair 4096. Для synthesis и verifier задан
+  минимальный `reasoning effort=low`.
 - После разделения бюджетов live-диалог `Проверь контрагента
   6165169320` → `Почему это вообще плохо?` прошёл без fallback. На втором
   turn synthesis завершился с `stop` на 308 output / 12 reasoning tokens,
   verifier — с `stop` на 90 output / 78 reasoning tokens; `tool_calls=0`,
   `repair_attempts=0`, `grounding_status=verified`.
-- Полный семиходовый live-сценарий после интеграции ещё нужно повторить; успешным
-  считается `routing=model`, `synthesis=model` и отсутствие
-  `grounding_status=fallback` на всех семи turns.
+- Finance fallback локализован до model-routing: GLM вернул обычный текст вместо
+  обязательного `get_financial_data`, middleware отклонил proposal до synthesis.
+  Для однозначного finance/legal follow-up активной компании существующий tool
+  теперь выбирает backend, после чего сохраняются Master synthesis и verifier.
+- Восьмиходовый behavioral-тест проходит, но полный live acceptance пока не
+  принят: GLM-verifier местами пропускает слишком сильные финансовые выводы, а
+  OpenRouter давал нестабильные timeout. Это известная граница текущего коммита;
+  успешным live считается отсутствие fallback и overclaim на всех восьми turns.
 
 ## DB impact
 

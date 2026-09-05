@@ -87,7 +87,9 @@ native tool calling runtime переходит на conservative deterministic f
 штатный online path — только OpenRouter. Сам `run_check()` и его доменные
 Groq-вызовы не переписаны.
 Reasoning остаётся на минимальном `low`; конечные output-бюджеты
-разделены: routing 512, synthesis 4096, verifier 2048, repair 4096.
+разделены: routing 512, synthesis 4096, verifier 4096, repair 4096. Verifier
+увеличен после live `LengthFinishReasonError`, где GLM потратил все 2048 токенов
+на reasoning и не вернул JSON-вердикт.
 LangGraph устанавливается транзитивно через LangChain; LangSmith tracing и API
 key для запуска не требуются.
 

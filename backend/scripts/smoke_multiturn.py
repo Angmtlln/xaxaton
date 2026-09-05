@@ -1,4 +1,4 @@
-"""Live seven-turn Master conversation against the configured provider and DB."""
+"""Live calibrated Master conversation against the configured provider and DB."""
 import argparse
 import json
 import time
@@ -25,14 +25,15 @@ def main():
     conversation_id = None
     turns = [
         "Проверь контрагента " + args.inn,
-        "А что у них с финансами?",
         "Почему это вообще плохо?",
         "Объясни проще",
-        "Насколько это критично для сделки с отсрочкой?",
-        "А что с судами?",
-        "Что здесь самое неприятное?",
+        "Насколько это критично?",
+        "А что у них с финансами?",
+        "Что из этого действительно подтверждено, а что ты предполагаешь?",
+        "Стоит ли с ними работать?",
+        "Мы покупаем у них товар на 20 млн, аванс 30%, остаток после поставки. Что теперь думаешь?",
     ]
-    tool_turns = {1, 2, 6}
+    tool_turns = {1, 5}
     total_tool_calls = 0
     for index, message in enumerate(turns, start=1):
         if index > 1 and args.pause_seconds > 0:
@@ -47,17 +48,28 @@ def main():
         assert meta["tool_calls"] == expected_tools, meta
         assert 1 <= meta["model_calls"] <= 5, meta
         assert meta["routing"] == "model", meta
-        expected_grounding = "skipped_rewrite" if index == 4 else None
-        if expected_grounding:
-            assert meta["grounding_status"] == expected_grounding, meta
-        else:
-            assert meta["grounding_status"] in ("verified", "repaired"), meta
+        assert meta["grounding_status"] in ("verified", "repaired"), meta
         total_tool_calls += meta["tool_calls"]
         if conversation_id:
             assert payload["conversation_id"] == conversation_id
         conversation_id = payload["conversation_id"]
         assert meta["synthesis"] == "model", meta
         assert payload["message"].strip(), payload
+        normalized_answer = payload["message"].casefold()
+        if index == 4:
+            assert not any(term in normalized_answer for term in (
+                "только по предоплате", "не давать отсрочку", "не платите аванс",
+            )), payload["message"]
+        if index == 6:
+            assert "подтвержд" in normalized_answer, payload["message"]
+            assert "предполага" in normalized_answer or "гипотез" in normalized_answer, payload["message"]
+        if index == 7:
+            assert "?" in payload["message"], payload["message"]
+            assert len(payload["message"]) <= 700, payload["message"]
+            assert not any(term in normalized_answer for term in (
+                "если вы поставщик", "если вы покупатель", "только по предоплате",
+                "не давать отсрочку", "не платите аванс",
+            )), payload["message"]
         if index != 1:
             assert payload["leading_artifact"] is None, payload
             assert len(payload["blocks"]) <= 2, payload["blocks"]
@@ -80,11 +92,11 @@ def main():
                           "metadata": meta, "blocks": [b["type"] for b in payload["blocks"]],
                           "leading_artifact": (payload.get("leading_artifact") or {}).get("type"),
                           "evidence_count": len(evidence)}, ensure_ascii=False), flush=True)
-    assert total_tool_calls == 3, total_tool_calls
+    assert total_tool_calls == 2, total_tool_calls
     for path in ("/", "/report?inn=" + args.inn):
         with urlopen(args.base_url.rstrip("/") + path) as response:
             assert response.status == 200
-    print("PASS: seven-turn grounded Master conversation, PostgreSQL, landing and legacy report", flush=True)
+    print("PASS: calibrated grounded Master conversation, PostgreSQL, landing and legacy report", flush=True)
 
 
 if __name__ == "__main__":

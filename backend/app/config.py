@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # возвращает пустой content. Отключить их провайдер не даёт, но "low"
     # обнуляет рассуждения там, где нужен структурный ответ.
     openrouter_reasoning_effort: str = "low"
+    # Короткий JSON-verdict на GLM должен оставлять output budget под сам ответ.
+    openrouter_verifier_reasoning_effort: str = "low"
 
     # --- Groq ---
     groq_api_key: Optional[str] = None
@@ -64,12 +66,13 @@ class Settings(BaseSettings):
     # этап имеет отдельный конечный лимит: более длинный synthesis/repair
     # и короткий, но с запасом на reasoning, JSON-verifier.
     agent_answer_max_tokens: int = 4096
-    agent_verifier_max_tokens: int = 2048
+    agent_verifier_max_tokens: int = 4096
     agent_repair_max_tokens: int = 4096
     # Запаса хватает на полный tool/answer/grounding проход Master.
-    agent_model_timeout_s: float = 45.0
+    agent_model_timeout_s: float = 90.0
+    agent_verifier_timeout_s: float = 75.0
     agent_tool_timeout_s: float = 150.0
-    agent_run_timeout_s: float = 175.0
+    agent_run_timeout_s: float = 300.0
     agent_tool_result_max_chars: int = 120_000
     # gpt-oss тратит часть ответа на рассуждения. На "low" ответ короче в
     # четыре раза, влезает в лимит токенов и не обрывается на середине JSON.

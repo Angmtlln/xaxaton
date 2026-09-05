@@ -32,10 +32,8 @@ async def test_full_check_then_finance_and_legal_use_active_company_and_second_m
         AIMessage(content="", tool_calls=[_tool_call()]),
         AIMessage(content='{"message":"Проверка завершена, разберём важное.","artifact":"none"}'),
         AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
-        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
         AIMessage(content='{"message":"Прибыль нужно смотреть вместе с динамикой.","artifact":"none"}'),
         AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
-        AIMessage(content="", tool_calls=[_tool_call("get_legal_data")]),
         AIMessage(content='{"message":"Судебные события требуют разбора контекста.","artifact":"none"}'),
         AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
     )
@@ -61,10 +59,10 @@ async def test_full_check_then_finance_and_legal_use_active_company_and_second_m
     assert second.conversation_id == third.conversation_id == first.conversation_id
     assert calls == [(name, {"inn": "6165169320"}) for name in
                      ("full_company_check", "get_financial_data", "get_legal_data")]
-    assert model.calls == 9
-    assert second.metadata.model_calls == third.metadata.model_calls == 3
+    assert model.calls == 7
+    assert second.metadata.model_calls == third.metadata.model_calls == 2
     assert second.metadata.synthesis == third.metadata.synthesis == "model"
-    for index, domain in ((4, "finance"), (7, "legal")):
+    for index, domain in ((3, "finance"), (5, "legal")):
         payload = _verified_context(model._messages[index])
         assert payload["domain"] == domain
         assert payload["evidence"][0]["field_ref"] == "report.test"

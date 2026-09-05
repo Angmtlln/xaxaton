@@ -4,6 +4,8 @@ import json
 import pytest
 from langchain_core.messages import AIMessage
 
+from app.agent.grounding import VERIFIER_SYSTEM_PROMPT
+from app.agent.prompt import MASTER_SYSTEM_PROMPT
 from test_agent_multiturn import targeted_result
 from test_agent_runtime import _model, _runtime, _tool_call
 
@@ -28,25 +30,26 @@ def install_finance(runtime, monkeypatch, calls):
 
 
 @pytest.mark.asyncio
-async def test_seven_turn_acceptance_keeps_one_conversation_and_three_tools(
+async def test_acceptance_calibrates_claims_and_asks_for_deal_context(
     monkeypatch, check_payload
 ):
     model = _model(
         AIMessage(content="", tool_calls=[_tool_call()]),
-        answer("В карточке есть официальный стоп-сигнал; начнём с его проверки."),
+        answer("В карточке есть подтверждённый стоп-сигнал; его причину нужно уточнить."),
         SUPPORTED,
-        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
-        answer("Прибыль нужно сопоставлять с динамикой и обязательствами."),
+        answer("Это плохо тем, что сигнал может мешать расчётам; конкретный исход не доказан."),
         SUPPORTED,
-        answer("Потому что один удачный период не гарантирует будущий платёж."),
+        answer("Проще: это повод проверить ситуацию, а не доказательство будущего отказа."),
         SUPPORTED,
-        answer("Проще: плюс сейчас ещё не означает, что денег хватит потом."),
-        answer("Для отсрочки это существенно: риск проявится к дате платежа."),
+        answer("Это серьёзный сигнал, но сам по себе он недостаточен для отказа от сделки."),
         SUPPORTED,
-        AIMessage(content="", tool_calls=[_tool_call("get_legal_data")]),
-        answer("Есть судебные дела; их роль, суммы и актуальный статус нужно разобрать."),
+        answer("Подтверждены выручка, капитал и кредиторка. Их влияние на будущие платежи ещё нужно оценить."),
         SUPPORTED,
-        answer("Самое неприятное — официальный стоп-сигнал и незакрытая неопределённость по спорам."),
+        answer("Подтверждены цифры. Их интерпретация — требуется проверка устойчивости; причина роста — лишь гипотеза."),
+        SUPPORTED,
+        answer("Чтобы ответить по сделке, уточните: они для вас поставщик, покупатель или подрядчик?"),
+        SUPPORTED,
+        answer("Вы покупаете товар на 20 млн с авансом 30%. Серьёзные сигналы требуют проверки исполнения; они не доказывают срыв поставки."),
         SUPPORTED,
     )
     runtime = _runtime(model)
@@ -66,12 +69,13 @@ async def test_seven_turn_acceptance_keeps_one_conversation_and_three_tools(
     monkeypatch.setattr(runtime.registry, "execute", execute)
     questions = [
         "Проверь контрагента 6165169320",
-        "А что у них с финансами?",
         "Почему это вообще плохо?",
         "Объясни проще",
-        "Насколько это критично для сделки с отсрочкой?",
-        "А что с судами?",
-        "Что здесь самое неприятное?",
+        "Насколько это критично?",
+        "А что у них с финансами?",
+        "Что из этого действительно подтверждено, а что ты предполагаешь?",
+        "Стоит ли с ними работать?",
+        "Мы покупаем у них товар на 20 млн, аванс 30%, остаток после поставки. Что теперь думаешь?",
     ]
     responses = []
     conversation_id = None
@@ -81,16 +85,31 @@ async def test_seven_turn_acceptance_keeps_one_conversation_and_three_tools(
         responses.append(response)
 
     assert len({item.conversation_id for item in responses}) == 1
-    assert [item.metadata.tool_calls for item in responses] == [1, 1, 0, 0, 0, 1, 0]
+    assert [item.metadata.tool_calls for item in responses] == [1, 0, 0, 0, 1, 0, 0, 0]
     assert [item.metadata.grounding_status for item in responses] == [
-        "verified", "verified", "verified", "skipped_rewrite", "verified",
-        "verified", "verified",
+        "verified", "verified", "verified", "verified", "verified",
+        "verified", "verified", "verified",
     ]
     assert calls == [
         (name, {"inn": "6165169320"})
-        for name in ("full_company_check", "get_financial_data", "get_legal_data")
+        for name in ("full_company_check", "get_financial_data")
     ]
-    assert model.calls == 16
+    assert model.calls == 17
+    assert responses[6].message.endswith("?")
+    assert "предоплат" not in responses[6].message.casefold()
+    assert "20 млн" in responses[7].message
+    verifier_payload = json.loads(model._messages[14][1].content)
+    assert verifier_payload["user_context"][-1] == questions[6]
+
+
+def test_prompts_calibrate_claim_strength_and_transaction_recommendations():
+    assert "verified fact" in MASTER_SYSTEM_PROMPT
+    assert "interpretation" in MASTER_SYSTEM_PROMPT
+    assert "hypothesis" in MASTER_SYSTEM_PROMPT
+    assert "recommendation" in MASTER_SYSTEM_PROMPT
+    assert "роль контрагента" in MASTER_SYSTEM_PROMPT
+    assert "сила утверждения" in VERIFIER_SYSTEM_PROMPT
+    assert "живёт\nна заёмные" in VERIFIER_SYSTEM_PROMPT
 
 
 @pytest.mark.asyncio
@@ -232,11 +251,12 @@ async def test_failed_repair_uses_conservative_deterministic_fallback(monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_contextual_rewrite_skips_tool_and_expensive_verifier(monkeypatch):
+async def test_contextual_rewrite_skips_tool_but_remains_grounded(monkeypatch):
     model = _model(
         AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
         answer("Одна прибыль не доказывает устойчивость будущего платежа."), SUPPORTED,
         answer("Проще: сейчас плюс есть, но важно понять, повторится ли он."),
+        SUPPORTED,
     )
     runtime = _runtime(model)
     calls = []
@@ -247,9 +267,9 @@ async def test_contextual_rewrite_skips_tool_and_expensive_verifier(monkeypatch)
 
     assert len(calls) == 1
     assert second.metadata.tool_calls == 0
-    assert second.metadata.model_calls == 1
-    assert second.metadata.grounding_status == "skipped_rewrite"
-    assert model.calls == 4
+    assert second.metadata.model_calls == 2
+    assert second.metadata.grounding_status == "verified"
+    assert model.calls == 5
 
 
 @pytest.mark.asyncio

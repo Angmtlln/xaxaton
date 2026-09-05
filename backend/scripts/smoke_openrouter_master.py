@@ -105,17 +105,17 @@ def probe_conversation(base_url: str, inn: str) -> list[dict]:
     results = []
     messages = [
         "Проверь контрагента " + inn,
-        "А что у них с финансами?",
         "Почему это вообще плохо?",
         "Объясни проще",
-        "Насколько это критично для сделки с отсрочкой?",
-        "А что с судами?",
-        "Что здесь самое неприятное?",
+        "Насколько это критично?",
+        "А что у них с финансами?",
+        "Что из этого действительно подтверждено, а что ты предполагаешь?",
+        "Стоит ли с ними работать?",
+        "Мы покупаем у них товар на 20 млн, аванс 30%, остаток после поставки. Что теперь думаешь?",
     ]
     expected_tools = {
         1: "full_company_check",
-        2: "get_financial_data",
-        6: "get_legal_data",
+        5: "get_financial_data",
     }
     for index, message in enumerate(messages, start=1):
         request = Request(
@@ -139,18 +139,31 @@ def probe_conversation(base_url: str, inn: str) -> list[dict]:
             or metadata["synthesis"] != "model"
             or metadata["grounding_status"] == "fallback"
         )
-        expected_grounding = (
-            ("skipped_rewrite",)
-            if index == 4
-            else ("verified", "repaired")
-        )
+        expected_grounding = ("verified", "repaired")
         provider_ok = (
             metadata["model"] == "z-ai/glm-5.3-flash"
             and metadata["tool_calls"] == expected_tool_count
             and 1 <= metadata["model_calls"] <= 5
             and metadata["grounding_status"] in expected_grounding
+            and (index != 7 or "?" in payload["message"])
             and not fallback
         )
+        normalized_answer = payload["message"].casefold()
+        if index == 4:
+            provider_ok = provider_ok and not any(term in normalized_answer for term in (
+                "только по предоплате", "не давать отсрочку", "не платите аванс",
+            ))
+        if index == 6:
+            provider_ok = provider_ok and "подтвержд" in normalized_answer and (
+                "предполага" in normalized_answer or "гипотез" in normalized_answer
+            )
+        if index == 7:
+            provider_ok = provider_ok and len(payload["message"]) <= 700 and not any(
+                term in normalized_answer for term in (
+                    "если вы поставщик", "если вы покупатель", "только по предоплате",
+                    "не давать отсрочку", "не платите аванс",
+                )
+            )
         results.append({
             "turn": index,
             "message": message,
@@ -188,7 +201,7 @@ def main():
         "full_company_check": first["tool"] == "full_company_check" and not first["fallback"],
         "post_tool_master_synthesis": first["synthesis"] == "model" and not first["fallback"],
         "grounding_verifier": first["verifier"] in ("verified", "repaired"),
-        "seven_turn_conversation": all(item["provider_ok"] for item in conversation),
+        "calibrated_deal_context_conversation": all(item["provider_ok"] for item in conversation),
     }
     output = {
         "provider": "openrouter",

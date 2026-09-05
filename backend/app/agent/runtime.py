@@ -44,7 +44,7 @@ MAX_COMPARISON_COMPANIES = 3
 # synthesis, verifier и repair имеют раздельные конечные лимиты.
 ROUTER_MAX_TOKENS = 512
 ANSWER_MAX_TOKENS = 4096
-VERIFIER_MAX_TOKENS = 2048
+VERIFIER_MAX_TOKENS = 4096
 REPAIR_MAX_TOKENS = 4096
 GRAPH_RECURSION_LIMIT = 12
 TOOL_BUNDLE_VERSION = "counterparty-tools-3.0.0"
@@ -89,6 +89,8 @@ class MasterAgentRuntime:
         answer_max_tokens: int = ANSWER_MAX_TOKENS,
         verifier_max_tokens: int = VERIFIER_MAX_TOKENS,
         repair_max_tokens: int = REPAIR_MAX_TOKENS,
+        verifier_timeout_s: Optional[float] = None,
+        verifier_reasoning_effort: Optional[str] = None,
     ):
         self.model = model
         self.model_name = model_name
@@ -100,6 +102,8 @@ class MasterAgentRuntime:
         self.answer_max_tokens = answer_max_tokens
         self.verifier_max_tokens = verifier_max_tokens
         self.repair_max_tokens = repair_max_tokens
+        self.verifier_timeout_s = verifier_timeout_s or model_timeout_s
+        self.verifier_reasoning_effort = verifier_reasoning_effort
         self.conversation_store = conversation_store or ConversationStore()
         self.model_provider = model_provider or ("local" if model is None else "custom")
 
@@ -185,6 +189,7 @@ class MasterAgentRuntime:
             turn_last_topic = "comparison" if reason is None else last_topic
             turn_last_answer_verified = last_answer_verified
             selected_context = None
+            preselected_targeted = False
         else:
             reason, inn = inspect_request(message)
             if reason == "missing_inn" and active:
@@ -215,6 +220,12 @@ class MasterAgentRuntime:
                 and isinstance(comparison_store, dict)
             ):
                 reason, selected_context, turn_last_topic = None, comparison_store, "comparison"
+            preselected_targeted = bool(
+                active
+                and not switching_company
+                and target in {"get_financial_data", "get_legal_data"}
+                and inn == active.get("inn")
+            )
 
         log.info(
             "agent_run_started run_id=%s conversation_id=%s model=%s provider=%s "
@@ -247,6 +258,7 @@ class MasterAgentRuntime:
                         model=model,
                         model_name=model_name,
                         clear_history=switching_company,
+                        preselected_targeted=preselected_targeted,
                     ),
                     timeout=max(0, deadline - time.monotonic()),
                 )
@@ -329,9 +341,38 @@ class MasterAgentRuntime:
         model,
         model_name,
         clear_history,
+        preselected_targeted,
     ):
         contextual = target is None
         candidate = None
+        if preselected_targeted:
+            execution.started = True
+            execution.tool_calls = 1
+            log.info(
+                "agent_tool_call run_id=%s tool=%s inn=%s routing=targeted_backend call=1/1",
+                run_id, target, inn,
+            )
+            execution.result = await self.registry.execute(
+                target, {"inn": inn}, self.tool_context
+            )
+            log.info(
+                "agent_tool_result run_id=%s tool=%s status=%s latency_ms=%s "
+                "routing=targeted_backend",
+                run_id, target, execution.result.status,
+                execution.result.metadata.latency_ms,
+            )
+
+        if execution.result is not None and execution.result.status == "error":
+            return tool_result_to_assistant(
+                execution.result,
+                trusted_context=None,
+                master_answer=None,
+                agent_run_id=run_id,
+                routing="model" if model is not None else "deterministic_fallback",
+                model=model_name,
+                started=started,
+            )
+
         if model is not None:
             tools = [] if contextual else build_langchain_tools(
                 self.registry,
@@ -421,7 +462,10 @@ class MasterAgentRuntime:
                 model,
                 execution,
                 artifacts,
-                skip_verifier=contextual and last_answer_verified and is_simple_rewrite(message),
+                user_context=[*user_context, message],
+                # Даже простой rewrite может усилить утверждение или добавить
+                # условия сделки, поэтому он проходит тот же bounded verifier.
+                skip_verifier=False,
             )
         routing = (
             "deterministic_fallback"
@@ -448,6 +492,7 @@ class MasterAgentRuntime:
         execution: LangChainToolExecution,
         artifacts,
         *,
+        user_context: list[str],
         skip_verifier: bool,
     ) -> tuple[Optional[MasterAnswer], str, int]:
         violations = backend_owned_violations(candidate.message, verified_context)
@@ -460,7 +505,9 @@ class MasterAgentRuntime:
             else:
                 _reserve_model_call(execution)
                 verdict, response = await call_grounding_verifier(
-                    model, candidate, verified_context, timeout_s=self.model_timeout_s,
+                    model, candidate, verified_context, timeout_s=self.verifier_timeout_s,
+                    user_context=user_context,
+                    reasoning_effort=self.verifier_reasoning_effort,
                     max_tokens=self.verifier_max_tokens,
                 )
                 _record_usage(execution, response)
@@ -475,6 +522,7 @@ class MasterAgentRuntime:
                 verdict.unsupported_claims,
                 verified_context,
                 allowed_artifacts=artifacts,
+                user_context=user_context,
                 timeout_s=self.model_timeout_s,
                 max_tokens=self.repair_max_tokens,
             )
@@ -484,7 +532,9 @@ class MasterAgentRuntime:
                 return None, "fallback", 1
             _reserve_model_call(execution)
             second, response = await call_grounding_verifier(
-                model, repaired, verified_context, timeout_s=self.model_timeout_s,
+                model, repaired, verified_context, timeout_s=self.verifier_timeout_s,
+                user_context=user_context,
+                reasoning_effort=self.verifier_reasoning_effort,
                 max_tokens=self.verifier_max_tokens,
             )
             _record_usage(execution, response)
@@ -639,6 +689,8 @@ def build_master_runtime(
         answer_max_tokens=settings.answer_max_tokens(),
         verifier_max_tokens=settings.verifier_max_tokens(),
         repair_max_tokens=settings.repair_max_tokens(),
+        verifier_timeout_s=settings.agent_verifier_timeout_s,
+        verifier_reasoning_effort=settings.openrouter_verifier_reasoning_effort,
         conversation_store=conversation_store,
         model_provider="openrouter" if model else "local",
     )

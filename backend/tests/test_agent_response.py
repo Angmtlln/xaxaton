@@ -1,5 +1,6 @@
 """Full-check ToolResult → AssistantResponse keeps prose and UI ownership separate."""
 import copy
+import json
 import time
 
 import pytest
@@ -156,6 +157,21 @@ def test_prose_answer_is_kept_instead_of_a_canned_fallback():
 
     assert answer.message.startswith("У компании нет финансовой отчётности")
     # Артефакт остаётся за бэкендом: модель его не выбирала.
+    assert answer.artifact == "none"
+
+
+def test_nested_provider_contract_is_unwrapped_once():
+    raw = json.dumps({
+        "message": json.dumps({
+            "message": "Это обычный текст ответа.",
+            "artifact": "none",
+        }, ensure_ascii=False),
+        "artifact": "none",
+    }, ensure_ascii=False)
+
+    answer = parse_master_answer(raw, allowed_artifacts=("none",))
+
+    assert answer.message == "Это обычный текст ответа."
     assert answer.artifact == "none"
 
 

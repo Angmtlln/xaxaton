@@ -26,9 +26,10 @@ def test_openrouter_is_the_only_default_master_profile():
     assert settings.master_model == "z-ai/glm-5.3-flash"
     assert settings.openrouter_base_url == "https://openrouter.ai/api/v1"
     assert settings.openrouter_reasoning_effort == "low"
+    assert settings.openrouter_verifier_reasoning_effort == "low"
     assert settings.agent_router_max_tokens == 512
     assert settings.answer_max_tokens() == 4096
-    assert settings.verifier_max_tokens() == 2048
+    assert settings.verifier_max_tokens() == 4096
     assert settings.repair_max_tokens() == 4096
     assert not hasattr(settings, "master_provider")
 
@@ -109,17 +110,20 @@ def test_openrouter_master_is_not_gated_by_domain_groq_client():
     assert runtime.model_name == "z-ai/glm-5.3-flash"
     assert runtime.model_provider == "openrouter"
     assert runtime.answer_max_tokens == 4096
-    assert runtime.verifier_max_tokens == 2048
+    assert runtime.verifier_max_tokens == 4096
     assert runtime.repair_max_tokens == 4096
+    assert runtime.verifier_timeout_s == 75
+    assert runtime.verifier_reasoning_effort == "low"
 
 
 @pytest.mark.asyncio
 async def test_conversation_keeps_first_master_model_and_provider(monkeypatch, check_payload):
     first_model = _model(
         AIMessage(content="", tool_calls=[_tool_call()]),
-        AIMessage(content='{"finding_ids":[]}'),
-        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
-        AIMessage(content='{"finding_ids":["observation"]}'),
+        AIMessage(content='{"message":"Первичная проверка завершена.","artifact":"none"}'),
+        AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
+        AIMessage(content='{"message":"Финансовые факты получены.","artifact":"none"}'),
+        AIMessage(content='{"supported":true,"unsupported_claims":[]}'),
     )
     replacement_model = _model(
         AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
@@ -152,5 +156,5 @@ async def test_conversation_keeps_first_master_model_and_provider(monkeypatch, c
 
     assert followup.conversation_id == first.conversation_id
     assert followup.metadata.model == "z-ai/glm-5.3-flash"
-    assert first_model.calls == 4
+    assert first_model.calls == 5
     assert replacement_model.calls == 0
