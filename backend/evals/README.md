@@ -178,6 +178,36 @@ PY
 Результат первого парного сравнения:
 [отчёт, все ответы и ограничения](../../docs/evals/2026-09-05/model-comparison/report.md).
 
+## Нулевая выручка и ресурсы для оплаты
+
+`payment_capacity` проверяет текущую GLM на исходных K19 и S15_10. Модель
+фиксирована: другая настройка `MASTER_MODEL` вызывает отказ до live-вызовов.
+Вариант `original` сохраняет реальный контекст и прежнюю историю. Дополнительные
+`fixed_assets` и `cash_rich` используют те же вопросы с контролируемым setup:
+подтверждением получения данных без аналитического вывода.
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evals.payment_capacity --variant original --output evals/results/payment-replay-original
+PYTHONPATH=. .venv/bin/python -m evals.payment_capacity --variant fixed_assets --output evals/results/payment-replay-fixed
+PYTHONPATH=. .venv/bin/python -m evals.payment_capacity --variant cash_rich --output evals/results/payment-replay-cash
+```
+
+Это дополнительные eval-пробы, не новые реальные сведения о компании:
+у АПРЕЛЬ в `cash_rich` взаимно переставлены деньги 49 тыс. ₽ и основные
+средства 7,35 млн ₽. Нулевая выручка, активы 8,046 млн ₽, капитал, обязательства
+и пропуски сохранены. В `fixed_assets` сохранён реальный состав баланса;
+setup всё равно контролируемый. Все расчёты/представления пересобираются
+продуктовым comparison capability из копии snapshot. Repository write и
+доменных LLM-вызовов нет. Source bank не изменяется и исходный replay не
+заменяется этими вариантами.
+
+`variant.json` содержит признак synthetic, изменённую строку баланса и hash
+эффективного набора документов; точные проверки используют именно этот набор.
+Ручная оценка должна отличать отсутствие ресурсов, их неизвестную доступность
+и отсутствие гарантии оплаты. Сумма капитала не прибавляется к активам.
+До/после сравниваются равные frozen inputs, меняется только методология Master.
+[Результаты и все попытки](../../docs/evals/2026-09-05/payment-capacity/report.md).
+
 Подход eval-only дополнительно сверялся с официальными
 [Agents](https://developers.openai.com/api/docs/guides/agents) и
 [Agent evals](https://developers.openai.com/api/docs/guides/agent-evals);

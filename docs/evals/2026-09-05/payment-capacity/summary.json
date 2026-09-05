@@ -1,0 +1,164 @@
+{
+  "status": "PARTIAL_IMPROVEMENT_NOT_RESOLVED",
+  "model": [
+    "z-ai/glm-5.3-flash"
+  ],
+  "turns": 70,
+  "scored": 68,
+  "technical_failed_turns": [
+    "payment-accepted-chain/K15.json.gz"
+  ],
+  "final_turns": 26,
+  "final_scored": 25,
+  "comparability": {
+    "original": {
+      "equal_frozen_inputs": true,
+      "equal_effective_documents": true,
+      "input_hashes": {
+        "K19-0-1.json.gz": "8ad7814570edb651ac8dd5f22524811c5daa55533a3de8b0a44869fa41253455",
+        "K19-0-2.json.gz": "8ad7814570edb651ac8dd5f22524811c5daa55533a3de8b0a44869fa41253455",
+        "K19-0-3.json.gz": "8ad7814570edb651ac8dd5f22524811c5daa55533a3de8b0a44869fa41253455",
+        "S15_10-0-1.json.gz": "3e0408d24ceea8f5151ef64b174e36d51b8b24cb3d2d1cd0fad99f9f29fe8a65",
+        "S15_10-0-2.json.gz": "3e0408d24ceea8f5151ef64b174e36d51b8b24cb3d2d1cd0fad99f9f29fe8a65",
+        "S15_10-0-3.json.gz": "3e0408d24ceea8f5151ef64b174e36d51b8b24cb3d2d1cd0fad99f9f29fe8a65"
+      },
+      "effective_documents_sha256": "ba479a2977ce369a8a79ad2b35e0ce07cd306e6a776f7cbdc13440676b8df4f1"
+    },
+    "cash_rich": {
+      "equal_frozen_inputs": true,
+      "equal_effective_documents": true,
+      "input_hashes": {
+        "K19-0-1.json.gz": "dfa07d2ca203f760bafcef85dbc27735e2359388903fdcf2ab32f4f02c22bce6",
+        "K19-0-2.json.gz": "dfa07d2ca203f760bafcef85dbc27735e2359388903fdcf2ab32f4f02c22bce6",
+        "K19-0-3.json.gz": "dfa07d2ca203f760bafcef85dbc27735e2359388903fdcf2ab32f4f02c22bce6",
+        "S15_10-0-1.json.gz": "55bb2b95f607244f5404e1f582735b62ccb5c7a58eb42124b9b904e6cb3ac00f",
+        "S15_10-0-2.json.gz": "55bb2b95f607244f5404e1f582735b62ccb5c7a58eb42124b9b904e6cb3ac00f",
+        "S15_10-0-3.json.gz": "55bb2b95f607244f5404e1f582735b62ccb5c7a58eb42124b9b904e6cb3ac00f"
+      },
+      "effective_documents_sha256": "1be00da6b4a7f984dd2ab3b2f35b6897839e6bbede770b17e5cd1bc284ecc1a9"
+    },
+    "fixed_assets": {
+      "equal_frozen_inputs": true,
+      "equal_effective_documents": true,
+      "input_hashes": {
+        "K19-0-1.json.gz": "ae2b0aa8af3b0e9a568369c95bcc1cb1d44daff88c345e349d2f7205f9d439f3",
+        "K19-0-2.json.gz": "ae2b0aa8af3b0e9a568369c95bcc1cb1d44daff88c345e349d2f7205f9d439f3",
+        "K19-0-3.json.gz": "ae2b0aa8af3b0e9a568369c95bcc1cb1d44daff88c345e349d2f7205f9d439f3",
+        "S15_10-0-1.json.gz": "e4f1802c6356035bdfe20f263ab0d15a256c88bcf9387ed5a8d436a754a10cd7",
+        "S15_10-0-2.json.gz": "e4f1802c6356035bdfe20f263ab0d15a256c88bcf9387ed5a8d436a754a10cd7",
+        "S15_10-0-3.json.gz": "e4f1802c6356035bdfe20f263ab0d15a256c88bcf9387ed5a8d436a754a10cd7"
+      },
+      "effective_documents_sha256": "ba479a2977ce369a8a79ad2b35e0ce07cd306e6a776f7cbdc13440676b8df4f1"
+    }
+  },
+  "source_hashes": {
+    "payment-accepted-chain": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": null
+    },
+    "payment-accepted-trap": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": null
+    },
+    "payment-after-cash_rich": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "34e4579c0151cd0a1340c15a61343341b2579301085257f65f79c53650bc8539",
+        "backend/app/agent/RISK_PLAYBOOK.md": "9816c8f9ad667888d747a08ca7a137d9d9b845a7e6e30b909e4ca564d032f3ad"
+      }
+    },
+    "payment-after-fixed_assets": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "34e4579c0151cd0a1340c15a61343341b2579301085257f65f79c53650bc8539",
+        "backend/app/agent/RISK_PLAYBOOK.md": "9816c8f9ad667888d747a08ca7a137d9d9b845a7e6e30b909e4ca564d032f3ad"
+      }
+    },
+    "payment-after-original": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "34e4579c0151cd0a1340c15a61343341b2579301085257f65f79c53650bc8539",
+        "backend/app/agent/RISK_PLAYBOOK.md": "9816c8f9ad667888d747a08ca7a137d9d9b845a7e6e30b909e4ca564d032f3ad"
+      }
+    },
+    "payment-before-cash_rich": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "2d715d049b28ad333556c6e63f913cdaf9a6658d98ae5ec921bc1024e4d05237",
+        "backend/app/agent/RISK_PLAYBOOK.md": "bd08dd411e134c0b4d7e8a5938254f32c95642357edd5f019b6d9dc0c2b11450"
+      }
+    },
+    "payment-before-fixed_assets": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "2d715d049b28ad333556c6e63f913cdaf9a6658d98ae5ec921bc1024e4d05237",
+        "backend/app/agent/RISK_PLAYBOOK.md": "bd08dd411e134c0b4d7e8a5938254f32c95642357edd5f019b6d9dc0c2b11450"
+      }
+    },
+    "payment-before-original": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "2d715d049b28ad333556c6e63f913cdaf9a6658d98ae5ec921bc1024e4d05237",
+        "backend/app/agent/RISK_PLAYBOOK.md": "bd08dd411e134c0b4d7e8a5938254f32c95642357edd5f019b6d9dc0c2b11450"
+      }
+    },
+    "payment-final-cash_rich": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "34e4579c0151cd0a1340c15a61343341b2579301085257f65f79c53650bc8539",
+        "backend/app/agent/RISK_PLAYBOOK.md": "a56909bceddf0e410c432fec1b2b2f654b9924725679d25ce057f51c2df62e39"
+      }
+    },
+    "payment-final-chain": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": null
+    },
+    "payment-final-fixed_assets": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "34e4579c0151cd0a1340c15a61343341b2579301085257f65f79c53650bc8539",
+        "backend/app/agent/RISK_PLAYBOOK.md": "a56909bceddf0e410c432fec1b2b2f654b9924725679d25ce057f51c2df62e39"
+      }
+    },
+    "payment-final-original": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": {
+        "backend/app/agent/prompt.py": "34e4579c0151cd0a1340c15a61343341b2579301085257f65f79c53650bc8539",
+        "backend/app/agent/RISK_PLAYBOOK.md": "a56909bceddf0e410c432fec1b2b2f654b9924725679d25ce057f51c2df62e39"
+      }
+    },
+    "payment-final-trap": {
+      "source_sha256": "367a876c994d346c5a21efe50d94e9f0807149466abc68b890ae5609c817cd37",
+      "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+      "bank_sha256": "fea8516fbd758341ca9e9e1975991de3cb448c28ace735a74a54d343c285c48d",
+      "prompt_hashes": null
+    }
+  },
+  "tests": "33 passed",
+  "full_suite_rerun": false,
+  "semantic_acceptance": false
+}

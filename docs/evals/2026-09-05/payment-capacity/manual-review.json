@@ -1,0 +1,759 @@
+{
+  "reviewer": "Codex coding agent; not independent human reviewer",
+  "method": "Qualitative reading; selected supported findings only. Empty findings does not mean semantic PASS. No regex prose grading.",
+  "rows": [
+    {
+      "key": "payment-accepted-chain/K15.json.gz",
+      "case": "K15",
+      "scored": true,
+      "final": true,
+      "technical_failures": [
+        {
+          "name": "no_fallback",
+          "status": "FAIL",
+          "detail": {
+            "synthesis": "fallback",
+            "error_code": null,
+            "grounding_status": "fallback"
+          }
+        }
+      ],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-accepted-chain/K16.json.gz",
+      "case": "K16",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-accepted-chain/K17.json.gz",
+      "case": "K17",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-accepted-chain/K18.json.gz",
+      "case": "K18",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-accepted-chain/K19.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "residual_missing_as_zero",
+          "quote": "Все его дела в роли ответчика завершены",
+          "reason": "Два finished дела не доказывают полноту списка при отсутствующих pending полях."
+        }
+      ]
+    },
+    {
+      "key": "payment-accepted-chain/K20.json.gz",
+      "case": "K20",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "residual_missing_as_zero",
+          "quote": "незавершённых исков к компании нет",
+          "reason": "Ошибочный вывод из K19 продолжился в следующем ответе."
+        }
+      ]
+    },
+    {
+      "key": "payment-accepted-trap/S15_10.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "target_failure",
+          "quote": "но и ресурсов мало: 49 тыс. ₽ денег, нулевая выручка 2025 года",
+          "reason": "Итог сводит ресурсы к деньгам и выручке, игнорируя известные активы/дебиторку."
+        }
+      ]
+    },
+    {
+      "key": "payment-accepted-trap/S15_10.setup1.json.gz",
+      "case": "S15_10.setup1",
+      "scored": false,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-cash_rich/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-cash_rich/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-cash_rich/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-cash_rich/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-cash_rich/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-cash_rich/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-fixed_assets/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-fixed_assets/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-fixed_assets/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-fixed_assets/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-fixed_assets/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-fixed_assets/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-original/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-original/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-original/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-original/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-original/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-after-original/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-cash_rich/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-cash_rich/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-cash_rich/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-cash_rich/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-cash_rich/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-cash_rich/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "target_failure",
+          "quote": "подтверждённых ресурсов для крупных обязательств в отчётности нет",
+          "reason": "Раскрыты 7,35 млн денег; размер конкретного обязательства неизвестен."
+        }
+      ]
+    },
+    {
+      "key": "payment-before-fixed_assets/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-fixed_assets/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-fixed_assets/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-fixed_assets/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-fixed_assets/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-fixed_assets/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-original/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-original/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-before-original/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "target_failure",
+          "quote": "но и ресурсов у компании почти нет",
+          "reason": "Активы 8,046 млн и капитал 6,794 млн раскрыты; нулевая выручка не отменяет ресурсы."
+        }
+      ]
+    },
+    {
+      "key": "payment-before-original/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "payment_overclaim",
+          "quote": "текущие мелкие обязательства закроет",
+          "reason": "Будущий платёж не доказан остатком денег и балансом."
+        }
+      ]
+    },
+    {
+      "key": "payment-before-original/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "payment_overclaim",
+          "quote": "Точную гарантию по любой из них может дать только обеспечение",
+          "reason": "Наличие обеспечения не устанавливает гарантированную оплату."
+        }
+      ]
+    },
+    {
+      "key": "payment-before-original/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "target_failure",
+          "quote": "видимых источников для оплаты в отчётности нет",
+          "reason": "Раскрытые активы не учтены в категорическом выводе."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-cash_rich/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-cash_rich/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "residual_missing_scope",
+          "quote": "оба завершены",
+          "reason": "Не сохранена оговорка о неполных pending данных."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-cash_rich/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-cash_rich/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "payment_overclaim",
+          "quote": "«АПРЕЛЬ» подходит только для небольших сумм",
+          "reason": "Категорическое ограничение без суммы и срока сделки, хотя 7,35 млн денег признаны."
+        },
+        {
+          "category": "positive_cash_recognized",
+          "quote": "7,35 млн ₽",
+          "reason": "Нулевая выручка не скрыла раскрытый денежный остаток. Другие выводы могут быть ошибочными."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-cash_rich/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "positive_cash_recognized",
+          "quote": "7,35 млн ₽",
+          "reason": "Нулевая выручка не скрыла раскрытый денежный остаток. Другие выводы могут быть ошибочными."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-cash_rich/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "positive_cash_recognized",
+          "quote": "7,35 млн ₽",
+          "reason": "Нулевая выручка не скрыла раскрытый денежный остаток. Другие выводы могут быть ошибочными."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-chain/K15.json.gz",
+      "case": "K15",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-chain/K16.json.gz",
+      "case": "K16",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-chain/K17.json.gz",
+      "case": "K17",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-chain/K18.json.gz",
+      "case": "K18",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-chain/K19.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-chain/K20.json.gz",
+      "case": "K20",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-fixed_assets/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "residual_missing_as_zero",
+          "quote": "незавершённых дел к нему нет",
+          "reason": "Pending count/amount у АПРЕЛЬ отсутствуют, не равны нулю."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-fixed_assets/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-fixed_assets/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-fixed_assets/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "target_failure",
+          "quote": "крупных подтверждённых ресурсов в отчётности не видно",
+          "reason": "Активы раскрыты; не определено, что считается крупным относительно обязательства."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-fixed_assets/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-fixed_assets/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "residual_concept_confusion",
+          "quote": "капитал 6,8 млн ₽ — это в основном основные средства (7,35 млн ₽)",
+          "reason": "Капитал и состав активов — разные категории, формулировка смешивает их."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-original/K19-0-1.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-original/K19-0-2.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-original/K19-0-3.json.gz",
+      "case": "K19",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "residual_unbounded_claim",
+          "quote": "любое новое требование для него значимо",
+          "reason": "Значимость зависит от суммы/срока требования."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-original/S15_10-0-1.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "target_failure",
+          "quote": "платить почти нечем и, судя по отчётности, нечем зарабатывать",
+          "reason": "Заголовок противоречит перечисленным ниже основным средствам; размер/срок платежа неизвестны."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-original/S15_10-0-2.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-original/S15_10-0-3.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": true,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "key": "payment-final-trap/S15_10.json.gz",
+      "case": "S15_10",
+      "scored": true,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": [
+        {
+          "category": "payment_overclaim",
+          "quote": "Расплатиться по текущим суммам может",
+          "reason": "Первая правка не устранила переход от баланса к способности платить."
+        }
+      ]
+    },
+    {
+      "key": "payment-final-trap/S15_10.setup1.json.gz",
+      "case": "S15_10.setup1",
+      "scored": false,
+      "final": false,
+      "technical_failures": [],
+      "review_scope": "targeted qualitative review; not full semantic acceptance",
+      "findings": []
+    }
+  ]
+}
