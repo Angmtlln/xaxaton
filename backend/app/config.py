@@ -1,6 +1,6 @@
 """Конфигурация сервиса. Всё читается из окружения или .env."""
 from functools import lru_cache
-from typing import Literal, Optional
+from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,10 +22,9 @@ class Settings(BaseSettings):
 
     # --- Master Agent ---
     # Независимо от Groq-конфигурации доменных агентов ниже.
-    master_provider: Literal["polza", "groq"] = "polza"
-    master_model: Optional[str] = None
-    polza_api_key: Optional[str] = None
-    polza_base_url: str = "https://polza.ai/api/v1"
+    openrouter_api_key: Optional[str] = None
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    master_model: str = "z-ai/glm-5.3-flash"
 
     # --- Groq ---
     groq_api_key: Optional[str] = None
@@ -34,8 +33,6 @@ class Settings(BaseSettings):
     groq_block_model: str = "openai/gpt-oss-20b"
     # Модель summary: вызов один, собирает 4 блока в вывод на экран.
     groq_summary_model: str = "openai/gpt-oss-120b"
-    # Legacy fallback для MASTER_PROVIDER=groq без явного MASTER_MODEL.
-    groq_master_model: str = "openai/gpt-oss-20b"
     # Лимит бесплатного тарифа Groq (TPM) считается ОТДЕЛЬНО ПО КАЖДОЙ
     # МОДЕЛИ, а четыре агента идут параллельно и вместе весят около 8 тыс.
     # токенов. Поэтому блоки разведены по разным моделям: так проход
@@ -70,14 +67,6 @@ class Settings(BaseSettings):
     # Версия детерминированного калькулятора фактов (S2). Меняем при
     # изменении логики расчёта, чтобы кэш audit.snapshot_facts не протух.
     calculator_version: str = "facts-1.0.0"
-
-    def master_model_name(self) -> str:
-        if self.master_model:
-            return self.master_model
-        if self.master_provider == "polza":
-            return "z-ai/glm-5.3-flash"
-        return self.groq_master_model
-
 
     def model_for_block(self, block: str) -> str:
         """Модель конкретного блочного агента."""

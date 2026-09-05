@@ -172,14 +172,16 @@ cd backend
 node --check static/landing.js
 node --check static/report.js
 .venv/bin/python scripts/smoke_multiturn.py --base-url http://localhost:8000 --pause-seconds 60
-.venv/bin/python scripts/smoke_polza_master.py --base-url http://localhost:8000
+.venv/bin/python scripts/smoke_openrouter_master.py --base-url http://localhost:8000
 ```
 
 Live smoke использует одну active company и один `conversation_id`, проходит
 семь реплик acceptance-сценария и требует tools только на turns 1, 2 и 6.
 Он проверяет связность, отсутствие лишних tool calls, grounding metadata,
-evidence и доступность `/` и `/report`. PostgreSQL и реальный Master provider
-должны быть настроены заранее; `PARTIAL` допустим для неполной карточки.
+evidence и доступность `/` и `/report`. PostgreSQL, `OPENROUTER_API_KEY` и
+доменный Groq должны быть настроены заранее; `PARTIAL` допустим для неполной
+карточки. Расширенный smoke перед диалогом последовательно проверяет обычный
+completion, structured output и LangChain tool calling через OpenRouter.
 
 Основные тесты:
 
@@ -195,21 +197,19 @@ evidence и доступность `/` и `/report`. PostgreSQL и реальн�
 
 ## Проверка 05.09.2026
 
-- Полный backend regression: `162 passed`, одно прежнее предупреждение
-  Starlette/AnyIO. `compileall`, оба `node --check` и `git diff --check` прошли.
+- После миграции Master на OpenRouter полный backend regression: `160 passed`,
+  одно прежнее предупреждение Starlette/AnyIO. Профильный agent/grounding набор:
+  `132 passed`. `compileall` и `git diff --check` прошли.
 - Точный семирепличный сценарий прошёл behavioral-тест с одним
   `conversation_id`: tools вызваны только на turns 1, 2 и 6; turn 4 использовал
   rewrite fast path, остальные содержательные ответы прошли verifier.
 - Browser smoke на текущем checkout: чат, компактная сводка, policy-сигналы,
   раскрытие 25 источников и переход в legacy `/report` работают. В консоли нет
   ошибок; при viewport 390 × 844 `scrollWidth=clientWidth=390`.
-- Строгий live smoke со всеми семью ответами внешней модели не завершён.
-  Groq `openai/gpt-oss-20b` получил 429 после full-check, отдельная
-  `qwen/qwen3.6-27b` успешно вызвала native tool, но post-tool запрос получил
-  413; прямой Polza probe завершился `APIConnectionError`. Во всех API-прогонах
-  сработал conservative fallback, факты/evidence/UI сохранились. Повторить
-  provider-проверку можно командами выше после восстановления доступности и
-  лимитов.
+- Строгий OpenRouter smoke остановлен до сетевого вызова: в локальном окружении
+  не задан `OPENROUTER_API_KEY`. Повторить командой выше после добавления ключа;
+  успешным считается только `routing=model`, `synthesis=model` и отсутствие
+  `grounding_status=fallback` на всех семи turns.
 
 ## DB impact
 
@@ -225,5 +225,5 @@ grounding поля живут в process-local LangGraph checkpoint и HTTP meta
 | Grounding | `backend/app/agent/grounding.py`, `synthesis.py` |
 | Domain data | `backend/app/agent/tools.py`, `finance.py`, `legal.py`, `targeted_models.py` |
 | Контракты и hydration | `backend/app/agent/models.py`, `response.py` |
-| Live smoke | `backend/scripts/smoke_multiturn.py`, `smoke_polza_master.py` |
+| Live smoke | `backend/scripts/smoke_multiturn.py`, `smoke_openrouter_master.py` |
 | Регрессии | профильные тесты в `backend/tests/` |

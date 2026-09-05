@@ -45,7 +45,7 @@
 POST /api/v1/chat/messages
   -> MasterAgentRuntime
   -> LangChain create_agent / LangGraph runtime
-  -> configured Master adapter (Polza/ChatOpenAI or Groq/ChatGroq)
+  -> standard ChatOpenAI adapter -> OpenRouter -> z-ai/glm-5.3-flash
   -> LangChain StructuredTool adapter
   -> ToolRegistry: full_company_check | get_financial_data | get_legal_data
   -> run_check() | build_finance() | build_reliability()

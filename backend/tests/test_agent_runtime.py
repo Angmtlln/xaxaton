@@ -8,8 +8,8 @@ from langchain_core.messages import AIMessage, ToolMessage
 from pydantic import PrivateAttr
 
 from app.agent.models import is_valid_inn
-from app.agent.runtime import (MasterAgentRuntime, build_master_model,
-                               inspect_request, is_full_check_request)
+from app.agent.runtime import (MasterAgentRuntime, inspect_request,
+                               is_full_check_request)
 from app.agent.tools import ToolContext, build_tool_registry
 from app.config import Settings
 from app.llm.groq_client import GroqClient
@@ -417,28 +417,3 @@ async def test_registry_enforces_result_size_limit(monkeypatch, check_payload):
 
     assert result.status == "error"
     assert result.error.code == "result_too_large"
-
-
-def test_chat_groq_factory_preserves_master_settings_without_network_call():
-    settings = Settings(
-        llm_mock=False,
-        master_provider="groq",
-        master_model="openai/gpt-oss-20b",
-        groq_api_key="test-key",
-        groq_base_url="https://api.groq.com/openai/v1",
-        groq_reasoning_effort="low",
-        agent_router_max_tokens=321,
-        agent_model_timeout_s=7,
-        database_url="postgresql://localhost/none",
-    )
-
-    model = build_master_model(settings)
-
-    assert model.model_name == "openai/gpt-oss-20b"
-    assert str(model.groq_api_base) == "https://api.groq.com"
-    assert model.max_tokens == 321
-    assert model.request_timeout == 7
-    assert model.max_retries == 0
-    assert model.reasoning_format == "hidden"
-    assert model.reasoning_effort == "low"
-    assert model.model_kwargs["parallel_tool_calls"] is False

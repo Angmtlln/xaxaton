@@ -551,13 +551,13 @@ def build_master_runtime(
     model = build_master_model(settings)
     return MasterAgentRuntime(
         model=model,
-        model_name=settings.master_model_name() if model else None,
+        model_name=settings.master_model if model else None,
         registry=build_tool_registry(settings),
         tool_context=ToolContext(settings=settings, client=client, persist=persist),
         model_timeout_s=settings.agent_model_timeout_s,
         run_timeout_s=settings.agent_run_timeout_s,
         conversation_store=conversation_store,
-        model_provider=settings.master_provider if model else "local",
+        model_provider="openrouter" if model else "local",
     )
 
 
