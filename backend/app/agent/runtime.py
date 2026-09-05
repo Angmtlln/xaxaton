@@ -197,6 +197,7 @@ class MasterAgentRuntime:
                                         and is_direct_request(message, target))
         else:
             reason, inn = inspect_request(message)
+            no_explicit_inn = reason == "missing_inn"
             if reason == "missing_inn" and active:
                 reason, inn = None, active["inn"]
             target = requested_tool(message)
@@ -222,14 +223,20 @@ class MasterAgentRuntime:
             )
             if selected_context is not None and re.search(r"аванс|отсроч|покуп|прода|сделк|работать|услов", message, re.I):
                 selected_context = with_related_domains(selected_context, trusted_store)
-            # Продолжение разговора о сравнении не требует повторных ИНН.
+            # Последняя тема определяет контекст раньше подсказки одиночного tool.
+            # Явные ИНН, обновление и детализация не используют этот shortcut.
             if (
-                target is None
-                and selected_context is None
+                no_explicit_inn
                 and last_topic == "comparison"
                 and isinstance(comparison_store, dict)
+                and target in {None, "get_financial_data", "get_legal_data"}
+                and (requested_topic is None or requested_topic in comparison_store.get("focus", []))
+                and not requests_refresh(message)
+                and not detail_arguments(message)
             ):
-                reason, selected_context, turn_last_topic = None, comparison_store, "comparison"
+                reason, target, inn = None, None, None
+                inns = [company["inn"] for company in comparison_store["companies"]]
+                selected_context, turn_last_topic = comparison_store, "comparison"
             preselected_tool = bool(
                 (self.direct_dispatch and target and is_direct_request(message, target))
                 or (

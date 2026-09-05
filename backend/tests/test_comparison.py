@@ -8,7 +8,7 @@ from app.agent.runtime import comparison_focus, inspect_comparison_request
 from app.agent.targeted_models import ComparisonData
 from app.agent.tools import ToolContext, build_tool_registry
 from app.llm.groq_client import GroqClient
-from test_agent_runtime import _answer, _model, _runtime, _settings, _tool_call, _verified
+from test_agent_runtime import _answer, _model, _runtime, _settings, _tool_call, _verified, _verified_context
 
 RICH = "6165169320"
 EMPTY = "2901324364"
@@ -289,6 +289,103 @@ async def test_follow_up_after_comparison_needs_no_new_tool_call(snapshots):
     assert second.metadata.error_code is None
     assert second.metadata.synthesis == "model"
     assert second.blocks == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("with_active_company", [False, True])
+async def test_k16_to_k20_reuse_comparison_before_single_company_context(snapshots, with_active_company):
+    model = _model(_answer("Данные получены."))
+    runtime = _runtime(model, direct_dispatch=True, grounding_debug=False)
+    cid = None
+    if with_active_company:
+        active = await runtime.run("Финансы %s" % RICH)
+        cid = active.conversation_id
+    first = await runtime.run("Сравни %s и %s" % (RICH, OTHER), cid)
+    config = {"configurable": {"thread_id": first.conversation_id}}
+    checkpoint = await runtime.conversation_store.checkpointer.aget_tuple(config)
+    initial = checkpoint.checkpoint["channel_values"]
+    for question in (
+        "У кого больше кредиторская задолженность?",
+        "У кого кредиторка больше относительно выручки?",
+        "У кого больше всего кредиторов?",
+        "У кого выше судебная нагрузка относительно масштаба бизнеса?",
+        "А теперь главное — минимальный legal risk. Кто лучший?",
+    ):
+        response = await runtime.run(question, first.conversation_id)
+        assert response.metadata.synthesis == "model"
+        assert response.metadata.model_calls == 1
+        assert response.metadata.tool_calls == 0
+        assert response.metadata.error_code is None
+        context = _verified_context(model._messages[-1])
+        assert context == initial["comparison_context"]
+        assert [company["inn"] for company in context["companies"]] == [RICH, OTHER]
+    checkpoint = await runtime.conversation_store.checkpointer.aget_tuple(config)
+    final = checkpoint.checkpoint["channel_values"]
+    for key in ("active_company", "trusted_context", "comparison_context", "last_topic"):
+        assert final.get(key) == initial.get(key)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("question", [
+    "У кого больше кредиторская задолженность?",
+    "У кого кредиторка больше относительно выручки?",
+    "У кого выше судебная нагрузка относительно масштаба бизнеса?",
+])
+async def test_comparison_followup_in_new_chat_requires_identifiers(snapshots, question):
+    model = _model(_answer())
+    runtime = _runtime(model, direct_dispatch=True, grounding_debug=False)
+    await runtime.run("Сравни %s и %s" % (RICH, OTHER))
+    response = await runtime.run(question)
+    assert response.metadata.status == "needs_input"
+    assert response.metadata.model_calls == response.metadata.tool_calls == 0
+
+
+@pytest.mark.asyncio
+async def test_comparison_context_does_not_override_explicit_identifiers(snapshots):
+    model = _model(
+        _answer(),
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data", {"inn": OTHER})]),
+        _answer(), _answer(),
+    )
+    runtime = _runtime(model, direct_dispatch=True, grounding_debug=False)
+    first = await runtime.run("Сравни %s и %s" % (RICH, OTHER))
+    for question in ("Почему? ИНН 123", "Почему 6165169320 и 0278949271?"):
+        response = await runtime.run(question, first.conversation_id)
+        assert response.metadata.status == "needs_input"
+        assert response.metadata.model_calls == response.metadata.tool_calls == 0
+    response = await runtime.run("Финансы %s" % OTHER, first.conversation_id)
+    assert response.metadata.tool_calls == 1
+    assert response.active_company.inn == OTHER
+    assert _verified_context(model._messages[-1])["domain"] == "finance"
+    response = await runtime.run("У кого больше кредиторская задолженность?", first.conversation_id)
+    assert _verified_context(model._messages[-1])["domain"] == "finance"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("question", [
+    "Обнови финансовые данные",
+    "Покажи судебные дела за 2023 год",
+    "Нужна полная проверка",
+])
+async def test_comparison_followup_does_not_replace_explicit_data_requests(snapshots, question):
+    runtime = _runtime(_model(_answer()), direct_dispatch=True, grounding_debug=False)
+    first = await runtime.run("Сравни %s и %s" % (RICH, OTHER))
+    response = await runtime.run(question, first.conversation_id)
+    assert response.metadata.status == "needs_input"
+    assert response.metadata.model_calls == response.metadata.tool_calls == 0
+
+
+@pytest.mark.asyncio
+async def test_finance_only_comparison_is_not_reused_as_legal_context(snapshots):
+    runtime = _runtime(_model(
+        AIMessage(content="", tool_calls=[_tool_call(
+            "compare_companies", {"inns": [RICH, OTHER], "focus": "finance"})]),
+        _answer(),
+    ), grounding_debug=False)
+    first = await runtime.run("Сравни финансы %s и %s" % (RICH, OTHER))
+    response = await runtime.run("У кого выше судебная нагрузка?", first.conversation_id)
+    assert response.metadata.status == "needs_input"
+    assert response.metadata.model_calls == response.metadata.tool_calls == 0
 
 
 @pytest.mark.asyncio
