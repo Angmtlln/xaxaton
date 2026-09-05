@@ -102,6 +102,9 @@ POST /api/v1/chat/messages
 - реализованы четыре блока фактов, итоговая сводка, grounding, guardrails,
   аудит и fallback без LLM;
 - реализованы agent-first чат, legacy-отчёт, диаграммы и паспорт полноты;
+- восстановлен красный лендинг со свободным первым запросом и подставляемыми
+  подсказками; Master уточняет задачу без ИНН и tools, выбирает контекстные кнопки
+  продолжения; frontend поддерживает заголовки и жирный текст ([CHAT_UI.md](CHAT_UI.md));
 - реализован conversation-first full check: сообщение с одним валидным ИНН,
   LangChain `create_agent` + underlying LangGraph, `full_company_check`,
   естественный post-tool ответ Master, structural validation и backend

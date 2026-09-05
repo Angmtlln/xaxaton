@@ -14,6 +14,7 @@ from .synthesis import normalized_tool_context, verified_evidence
 from .comparison import ROW_SPECS, measure_key
 from .targeted_models import ComparisonData, TargetedData
 from .tools import display_fact_value
+from .suggestions import next_actions
 
 
 METRIC_FACT_IDS = (
@@ -64,7 +65,7 @@ GUARD_MESSAGES = {
 def guard_response(reason: str, agent_run_id: str, started: float) -> AssistantResponse:
     return AssistantResponse(
         message=GUARD_MESSAGES.get(reason, GUARD_MESSAGES["unsupported_request"]),
-        suggested_actions=["Проверь контрагента 6165169320"],
+        suggested_actions=next_actions(None, {"domain": "intro"}),
         metadata=AssistantMetadata(
             agent_run_id=agent_run_id,
             status="needs_input",
@@ -135,15 +136,8 @@ def tool_result_to_assistant(
     if domain == "comparison":
         states = [(item.get("coverage") or {}).get("state") for item in context.get("companies", [])]
         coverage_state = "DATA" if states and all(state == "DATA" for state in states) else "PARTIAL"
-        suggested = ["Кого выбрать и почему?", "Что здесь самое рискованное?"]
     else:
         coverage_state = (context.get("coverage") or {}).get("state", "DATA")
-        if domain == "full_check":
-            suggested = ["А что у них с финансами?", "А что у них с судами?"]
-        elif domain == "finance":
-            suggested = ["А что у них с судами?"]
-        else:
-            suggested = ["А что у них с финансами?"]
     partial = (result is not None and result.status == "partial") or coverage_state != "DATA"
 
     return AssistantResponse(
@@ -151,11 +145,11 @@ def tool_result_to_assistant(
         leading_artifact=_company_summary(data, evidence_by_id) if full and not contextual else None,
         blocks=blocks,
         evidence=list(evidence_by_id.values()),
-        suggested_actions=suggested,
+        suggested_actions=next_actions(master_answer, context, contextual=contextual),
         metadata=AssistantMetadata(
             agent_run_id=agent_run_id,
             check_run_id=data.check_run_id if full and not contextual else None,
-            status="partial" if partial else "completed",
+            status="needs_input" if domain == "intro" else "partial" if partial else "completed",
             tool_calls=0 if contextual else 1,
             routing=routing,
             model=model,
@@ -177,6 +171,13 @@ def _result_data(result: ToolResult):
 
 
 def _fallback_message(context: dict) -> str:
+    if context.get("domain") == "intro":
+        return (
+            "**Помогу разобраться в контрагенте:** проверить доступные сведения, "
+            "объяснить финансовые и судебные данные, сравнить две-три компании. "
+            "Сейчас ответ модели недоступен. Напишите задачу и ИНН для проверки "
+            "или два-три ИНН для сравнения."
+        )
     if context.get("domain") == "comparison":
         return _comparison_fallback(context)
     hard_stops = [

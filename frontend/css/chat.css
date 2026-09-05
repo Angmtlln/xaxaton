@@ -949,3 +949,58 @@
   .summary-metric { padding: 8px; }
   .chat-topbar .brand-mark { border-radius: 13px; }
 }
+
+.assistant-lead :is(h2, h3) { max-width: 760px; margin: 12px 0 0; line-height: 1.3; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.assistant-lead h2 { font-size: 22px; }
+.assistant-lead h3 { font-size: 18px; }
+.assistant-lead > :first-child { margin-top: 0; }
+.suggested-action:disabled { opacity: .5; cursor: wait; }
+.landing-footer { display: none; }
+
+/* Restored composition from 43feae0, with the same composer for landing/chat. */
+.landing-mode { background: #ef3124; color: #fff; }
+.landing-mode .chat-app { position: relative; isolation: isolate; overflow: hidden; }
+.landing-mode .chat-app::before {
+  content: 'A'; position: absolute; right: -3vw; bottom: -24vh; z-index: -1;
+  color: rgba(122, 0, 0, .16); font-size: min(72vw, 920px); font-weight: 900;
+  line-height: .75; letter-spacing: -.12em; pointer-events: none;
+}
+.landing-mode .chat-topbar { position: relative; background: transparent; border: 0; backdrop-filter: none; }
+.landing-mode .chat-topbar-inner { min-height: 88px; border-bottom: 1px solid #ffffff52; }
+.landing-mode .brand { color: #fff; }
+.landing-mode .brand :is(b, small) { color: #fff; }
+.landing-mode .brand-mark { color: #ef3124; background: #fff; border-radius: 12px; }
+.landing-mode .runtime-pill { color: #fff; border-color: #ffffff80; background: transparent; }
+.landing-mode .runtime-pill i { background: #fff; }
+.landing-mode .chat-main { width: min(1180px, calc(100% - 48px)); padding: 64px 0; align-self: center; }
+.landing-mode .chat-intro { min-height: auto; display: block; }
+.landing-mode .chat-kicker { color: #fff; font-size: 13px; }
+.landing-mode .chat-intro h1 { max-width: 960px; margin: 18px 0 0; font-size: clamp(48px, 7.2vw, 102px); line-height: .98; letter-spacing: -.065em; }
+.landing-mode .chat-intro > p { max-width: 670px; margin: 28px 0 34px; color: #fff; font-size: clamp(17px, 2vw, 22px); line-height: 1.4; }
+.landing-composer-slot { width: min(900px, 100%); }
+.landing-mode .chat-composer { width: 100%; }
+.landing-mode .composer-control { min-height: 80px; padding: 12px; background: #fff; border: 0; border-radius: 20px; box-shadow: 0 12px 36px #850e1424; }
+.landing-mode #chat-input { color: #25252b; font-size: 18px; }
+.landing-mode .send-button { width: 52px; height: 52px; border-radius: 14px; background: #25252b; }
+.landing-mode .send-button:hover { background: #444; }
+.landing-mode .composer-meta { color: #fff; padding-inline: 4px; }
+.landing-mode .composer-meta > :first-child { display: none; }
+.landing-mode .prompt-examples { width: min(900px, 100%); display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.landing-mode .prompt-example { min-height: 44px; padding: 12px 16px; border: 1px solid #ffffff8a; border-radius: 999px; color: #fff; background: transparent; box-shadow: none; }
+.landing-mode .prompt-example:hover { background: #a11d16; }
+.landing-mode .prompt-example:focus-visible { outline-color: #fff; }
+.landing-mode .chat-composer-shell { display: none; }
+.landing-mode .landing-footer { width: min(1180px, calc(100% - 48px)); margin-inline: auto; padding: 24px 0; display: flex; flex-wrap: wrap; gap: 12px 28px; border-top: 1px solid #ffffff52; font-size: 12px; color: #fff; }
+@media (max-width: 600px) {
+  .landing-mode .chat-topbar-inner, .landing-mode .chat-main, .landing-mode .landing-footer { width: calc(100% - 32px); }
+  .landing-mode .chat-topbar-inner { min-height: 72px; }
+  .landing-mode .runtime-pill { display: none; }
+  .landing-mode .chat-main { padding: 44px 0; }
+  .landing-mode .chat-intro h1 { font-size: clamp(42px, 11.5vw, 66px); }
+  .landing-mode .chat-intro > p { margin: 24px 0 28px; }
+  .landing-mode .composer-control { padding: 8px; min-height: 72px; border-radius: 16px; }
+  .landing-mode #chat-input { font-size: 16px; }
+  .landing-mode .send-button { width: 44px; height: 44px; }
+  .landing-mode .chat-app::before { font-size: 100vw; bottom: 3vh; }
+  .landing-mode .landing-footer { gap: 10px 20px; }
+}

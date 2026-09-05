@@ -337,7 +337,11 @@ async def test_comparison_followup_in_new_chat_requires_identifiers(snapshots, q
     await runtime.run("Сравни %s и %s" % (RICH, OTHER))
     response = await runtime.run(question)
     assert response.metadata.status == "needs_input"
-    assert response.metadata.model_calls == response.metadata.tool_calls == 0
+    assert response.metadata.model_calls == 1
+    assert response.metadata.tool_calls == 0
+    # A new chat can clarify freely, but must not see another chat's companies.
+    assert RICH not in model._messages[-1][0].content
+    assert OTHER not in model._messages[-1][0].content
 
 
 @pytest.mark.asyncio

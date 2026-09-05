@@ -310,7 +310,7 @@ async def test_second_model_policy_has_answer_schema_and_normalized_context(monk
     response = await runtime.run("Финансы 6165169320")
     assert response.metadata.synthesis == "model"
     system = model._messages[1][0].content
-    assert '"required":["message"]' in system
+    assert '"required":["message","suggested_actions"]' in system
     assert '"additionalProperties":false' in system
     assert '"domain":"finance"' in system
     assert '"findings"' not in system

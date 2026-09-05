@@ -17,6 +17,25 @@ const CHAT_STORAGE_KEY = 'counterparty-current-conversation-v1';
 let conversationId = null;
 let activeCompany = null;
 let conversationHistory = [];
+const composerShell = document.querySelector('.chat-composer-shell');
+const landingSlot = document.getElementById('landing-composer-slot');
+
+function syncLayout() {
+  const landing = !conversationHistory.length;
+  document.body.classList.toggle('landing-mode', landing);
+  (landing ? landingSlot : composerShell).appendChild(form);
+  intro.hidden = !landing;
+  thread.hidden = landing;
+  resizeInput();
+}
+
+function updateActions() {
+  const rows = [...thread.querySelectorAll('.suggested-actions')];
+  rows.forEach((row, index) => {
+    row.hidden = index !== rows.length - 1 || row.closest('article') !== thread.lastElementChild;
+    row.querySelectorAll('button').forEach((button) => { button.disabled = form.hasAttribute('aria-busy'); });
+  });
+}
 
 function saveConversation() {
   try {
@@ -29,7 +48,7 @@ function saveConversation() {
 function showActiveCompany() {
   activeCompanyBar.hidden = !conversationId && !conversationHistory.length;
   input.placeholder = activeCompany ? 'Уточните по компании'
-    : 'ИНН или вопрос о компании';
+    : 'Опишите задачу…';
   activeCompanyLabel.textContent = activeCompany
     ? `${activeCompany.name || 'Контрагент'} · ИНН ${activeCompany.inn}`
     : 'Компания ещё не выбрана';
@@ -45,6 +64,8 @@ function resetConversation() {
   thread.hidden = true;
   intro.hidden = false;
   lastReportLink.hidden = true;
+  input.value = '';
+  syncLayout();
   showActiveCompany();
   saveConversation();
   input.focus();
@@ -60,6 +81,7 @@ function setBusy(value) {
   sendButton.disabled = value;
   newConversationButton.disabled = value;
   form.toggleAttribute('aria-busy', value);
+  updateActions();
 }
 
 function scrollToLatest() {
@@ -100,12 +122,15 @@ function appendAssistantMessage(payload) {
       lastReportLink.href = url;
       lastReportLink.hidden = false;
     },
-    onSuggestion: (text) => {
-      input.value = text;
+    onSuggestion: (action) => {
+      if (form.hasAttribute('aria-busy')) return;
+      if (action.mode === 'submit') { sendMessage(action.prompt); return; }
+      input.value = action.prompt;
       resizeInput();
       input.focus();
     },
   }));
+  updateActions();
 }
 
 function appendRequestError(message) {
@@ -128,6 +153,7 @@ async function sendMessage(message) {
   thread.hidden = false;
   appendUserMessage(text);
   conversationHistory.push({ role: 'user', message: text });
+  syncLayout();
   saveConversation();
   showActiveCompany();
   input.value = '';
@@ -174,6 +200,7 @@ form.addEventListener('submit', (event) => {
 });
 
 input.addEventListener('input', resizeInput);
+window.addEventListener('resize', resizeInput);
 input.addEventListener('keydown', (event) => {
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
@@ -187,7 +214,6 @@ document.querySelectorAll('[data-prompt]').forEach((button) => {
     input.value = prompt;
     resizeInput();
     input.focus();
-    if (/\d{10,12}/.test(prompt)) sendMessage(prompt);
   });
 });
 
@@ -209,3 +235,5 @@ try {
     showActiveCompany();
   }
 } catch (error) { /* Некорректный сохранённый диалог не мешает начать новый. */ }
+syncLayout();
+updateActions();

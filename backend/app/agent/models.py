@@ -279,11 +279,20 @@ class FullCompanyCheckData(StrictModel):
         return self
 
 
+class SuggestedAction(StrictModel):
+    """A bounded next question, never executable code or an external action."""
+
+    label: SafeText = Field(min_length=1, max_length=80)
+    prompt: SafeText = Field(min_length=1, max_length=300)
+    mode: Literal["submit", "compose"] = "submit"
+
+
 class MasterAnswer(StrictModel):
     """Natural-language answer authored by Master; UI remains backend-owned."""
 
     message: SafeText = Field(min_length=1, max_length=5000)
     artifact: Literal["none", "metrics", "chart"] = "none"
+    suggested_actions: List[SuggestedAction] = Field(default_factory=list, max_length=4)
     news_selection: Optional[List[NewsSelection]] = Field(default=None, max_length=4)
 
 
@@ -472,7 +481,7 @@ class AssistantResponse(StrictModel):
     leading_artifact: Optional[CompanySummaryBlock] = None
     blocks: List[UIBlock] = Field(default_factory=list, max_length=10)
     evidence: List[Evidence] = Field(default_factory=list, max_length=60)
-    suggested_actions: List[SafeText] = Field(default_factory=list, max_length=4)
+    suggested_actions: List[Union[SafeText, SuggestedAction]] = Field(default_factory=list, max_length=4)
     metadata: AssistantMetadata
     conversation_id: Optional[str] = None
     active_company: Optional[CompanyRef] = None

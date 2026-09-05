@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI-аналитик контрагентов — Альфа-Банк</title>
-<meta name="description" content="Проверка контрагента по ИНН в диалоге с AI-аналитиком.">
+<meta name="description" content="Проверка и сравнение контрагентов в диалоге с AI-аналитиком Альфа-Банка.">
 <link rel="stylesheet" href="/static/css/tokens.css">
 <link rel="stylesheet" href="/static/css/base.css">
 <link rel="stylesheet" href="/static/css/chat.css">
 <link rel="icon" href="/static/assets/chat-favicon.svg">
 </head>
-<body class="chat-page">
+<body class="chat-page landing-mode">
 
 <div class="chat-app">
   <header class="chat-topbar" aria-label="Шапка сервиса">
@@ -38,23 +38,21 @@
     </div>
     <section class="chat-intro" id="chat-intro" aria-labelledby="chat-title">
       <span class="chat-kicker">AI-аналитик контрагентов</span>
-      <h1 id="chat-title">Разберёмся в контрагенте</h1>
+      <h1 id="chat-title">Узнайте, с кем<br>ведёте бизнес</h1>
       <p>
-        Укажите ИНН и задайте вопрос. Я проверю компанию, объясню цифры
-        и помогу оценить, что важно для вашей сделки.
+        Расскажите, что хотите узнать. AI-аналитик проверит контрагента,
+        объяснит данные и поможет разобраться в вашей сделке.
       </p>
+      <div class="landing-composer-slot" id="landing-composer-slot"></div>
       <div class="prompt-examples" aria-label="Примеры запросов">
-        <button type="button" class="prompt-example" data-prompt="Проверь контрагента 6165169320">
-          <span>Проверить демо-контрагента</span>
-          <small>ИНН 6165169320</small>
-        </button>
         <button type="button" class="prompt-example" data-prompt="Проверь контрагента ">
-          <span>Проверить другой ИНН</span>
-          <small>Введите 10 или 12 цифр</small>
+          <span>Проверить контрагента ↗</span>
         </button>
-        <button type="button" class="prompt-example" data-prompt="Какая прибыль у контрагента 6165169320?">
-          <span>Разобраться в прибыли</span>
-          <small>Прибыль, выручка и динамика</small>
+        <button type="button" class="prompt-example" data-prompt="Сравни контрагентов: ">
+          <span>Сравнить контрагентов ↗</span>
+        </button>
+        <button type="button" class="prompt-example" data-prompt="На что обратить внимание перед сделкой с контрагентом?">
+          <span>Подготовиться к сделке ↗</span>
         </button>
       </div>
     </section>
@@ -62,13 +60,16 @@
     <section class="chat-thread" id="chat-thread" aria-label="Диалог с AI-аналитиком"
              aria-live="polite" hidden></section>
   </main>
+  <div class="landing-footer" aria-label="Принципы анализа">
+    <span>Факты и источники</span><span>Оценки банка без пересчёта</span><span>Понятные объяснения</span>
+  </div>
 
   <footer class="chat-composer-shell">
     <form class="chat-composer" id="chat-form" aria-label="Сообщение AI-аналитику">
       <label class="sr-only" for="chat-input">Запрос о контрагенте</label>
       <div class="composer-control">
         <textarea id="chat-input" rows="1" maxlength="1000" autocomplete="off"
-                  placeholder="ИНН или вопрос о компании" aria-describedby="composer-hint"></textarea>
+                  placeholder="Опишите задачу…" aria-describedby="composer-hint"></textarea>
         <button class="send-button" id="send-button" type="submit" aria-label="Отправить запрос">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

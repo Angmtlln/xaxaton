@@ -302,10 +302,13 @@ export function buildAssistantMessage(payload, hooks = {}) {
   if (actions.length) {
     const actionRow = element('div', 'suggested-actions');
     actions.forEach((action) => {
-      const button = element('button', 'suggested-action', action);
+      const suggestion = typeof action === 'string'
+        ? { label: action, prompt: action, mode: 'compose' } : action;
+      if (!suggestion || typeof suggestion.label !== 'string' || typeof suggestion.prompt !== 'string') return;
+      const button = element('button', 'suggested-action', suggestion.label);
       button.type = 'button';
       button.addEventListener('click', () => {
-        if (hooks.onSuggestion) hooks.onSuggestion(action);
+        if (hooks.onSuggestion) hooks.onSuggestion(suggestion);
       });
       actionRow.appendChild(button);
     });

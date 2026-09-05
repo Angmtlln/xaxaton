@@ -201,7 +201,6 @@ async def test_full_check_second_step_receives_normalized_data_and_authors_answe
 @pytest.mark.parametrize(
     ("message", "expected"),
     [
-        ("Проверь контрагента", "missing_inn"),
         ("Проверь контрагента 1234567890", "invalid_inn"),
         ("Какие счета-фактуры у контрагента 6165169320?", "unsupported_request"),
         ("Проверь 6165169320 и 0278949271", "ambiguous_inn"),
