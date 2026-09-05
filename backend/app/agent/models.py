@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 from typing import Annotated, Dict, List, Literal, Optional, Union
 
-from pydantic import (AfterValidator, BaseModel, ConfigDict, Field, JsonValue,
+from pydantic import (AfterValidator, BaseModel, ConfigDict, Field, HttpUrl, JsonValue,
                       field_validator, model_validator)
 
 
@@ -235,6 +236,20 @@ class FullCheckCoverage(StrictModel):
     empty_blocks: List[SafeText] = Field(default_factory=list)
 
 
+class NewsSelection(StrictModel):
+    url: HttpUrl
+    company_match: SafeText = Field(min_length=1, max_length=400)
+    summary: SafeText = Field(min_length=1, max_length=500)
+
+
+class ExternalNews(StrictModel):
+    title: SafeText = Field(min_length=1, max_length=400)
+    date: date
+    source: SafeText = Field(min_length=1, max_length=253)
+    url: HttpUrl
+    summary: SafeText = Field(min_length=1, max_length=500)
+
+
 class FullCompanyCheckData(StrictModel):
     check_run_id: Optional[SafeText] = None
     pipeline_status: Literal["SUCCEEDED", "PARTIAL"]
@@ -269,6 +284,7 @@ class MasterAnswer(StrictModel):
 
     message: SafeText = Field(min_length=1, max_length=5000)
     artifact: Literal["none", "metrics", "chart"] = "none"
+    news_selection: Optional[List[NewsSelection]] = Field(default=None, max_length=4)
 
 
 class GroundingVerification(StrictModel):
@@ -448,6 +464,10 @@ class AssistantMetadata(StrictModel):
 
 class AssistantResponse(StrictModel):
     message: SafeText
+    external_news: List[ExternalNews] = Field(default_factory=list, max_length=4)
+    external_news_status: Optional[Literal[
+        "completed", "not_configured", "unavailable", "selection_unavailable", "partial"
+    ]] = None
     leading_artifact: Optional[CompanySummaryBlock] = None
     blocks: List[UIBlock] = Field(default_factory=list, max_length=10)
     evidence: List[Evidence] = Field(default_factory=list, max_length=60)

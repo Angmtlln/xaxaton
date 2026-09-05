@@ -25,6 +25,9 @@ class LangChainToolExecution:
     output_tokens: Optional[int] = None
     used_fallback: bool = False
     result: Optional[ToolResult] = None
+    # Per-turn external provenance, never part of trusted domain context.
+    news_requested: bool = False
+    news_annotations: list = field(default_factory=list)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
 
 

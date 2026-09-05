@@ -13,6 +13,19 @@ from app.config import Settings
 log = logging.getLogger(__name__)
 
 
+class OpenRouterChatModel(ChatOpenAI):
+    """Preserve provider citations that ChatOpenAI 1.4 otherwise discards."""
+
+    def _create_chat_result(self, response, generation_info=None):
+        result = super()._create_chat_result(response, generation_info)
+        payload = response if isinstance(response, dict) else response.model_dump()
+        for generation, choice in zip(result.generations, payload.get("choices", [])):
+            annotations = choice.get("message", {}).get("annotations")
+            if isinstance(annotations, list):
+                generation.message.additional_kwargs["annotations"] = annotations
+        return result
+
+
 def build_master_model(settings: Settings) -> Optional[BaseChatModel]:
     """Return the OpenRouter-backed Master model, or the offline fallback."""
     if settings.llm_mock or not settings.openrouter_api_key:
@@ -29,7 +42,7 @@ def build_master_model(settings: Settings) -> Optional[BaseChatModel]:
     if provider:
         extra_body["provider"] = provider
 
-    return ChatOpenAI(
+    return OpenRouterChatModel(
         api_key=settings.openrouter_api_key,
         base_url=settings.openrouter_base_url.rstrip("/"),
         model=settings.master_model,

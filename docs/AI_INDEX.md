@@ -21,6 +21,7 @@
 | визуальный React-прототип | [`design/prototype/README.md`](../design/prototype/README.md) | `design/prototype/app/` |
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |
 | содержательные behavioral evals Master | [`AGENT_EVALS.md`](../AGENT_EVALS.md), [`evals/README.md`](../backend/evals/README.md) | `backend/evals/scenarios.json`, `bank.py`, `run_local.py`, `graders.py`, `judge.py` |
+| внешние новости только при full check | [`WEB_NEWS.md`](WEB_NEWS.md) | `backend/app/agent/news.py`, `runtime.py`, `master_model.py`, `tests/test_company_news.py` |
 
 Последняя проверка исправлений structured context без изменения prompt:
 [коэффициенты исков, source commentary и учредители](evals/2026-09-05/structured-scope-fix/report.md).
@@ -116,6 +117,8 @@ POST /api/v1/chat/messages
   компанию;
 - штатный online path Master — `z-ai/glm-5.3-flash` через OpenRouter;
   доменные агенты независимо используют Groq;
+- full-check synthesis включает OpenRouter web plugin: 0–4 новости возвращаются
+  отдельно в `external_news`, без изменения внутренних фактов и оценок;
 - persistent history в БД, name resolution, deal risk и streaming не реализованы;
 - банковские интеграции и большая база не относятся к готовому текущему проходу.
 

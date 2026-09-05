@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     openrouter_preferred_max_latency: Optional[float] = Field(default=None, gt=0)
     # Только eval/debug: дополнительные LLM verifier/repair отключены в chat.
     agent_grounding_debug: bool = False
+    # OpenRouter web plugin only in the full-check Master answer.
+    web_news_days: int = Field(default=90, ge=1, le=365)
+    web_news_timeout_s: float = Field(default=6.0, gt=0, le=30)
     master_model: str = "z-ai/glm-5.3-flash"
     # OpenRouter показывает эти значения в статистике аккаунта; на вызов не влияют.
     openrouter_app_url: Optional[str] = None

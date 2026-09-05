@@ -420,6 +420,7 @@ class MasterAgentRuntime:
                     cached_context,
                     user_context,
                     clear_history,
+                    news_days=self.tool_context.settings.web_news_days,
                 ),
                 ModelCallLimitMiddleware(run_limit=MAX_AGENT_MODEL_CALLS, exit_behavior="error"),
             ]
@@ -480,6 +481,8 @@ class MasterAgentRuntime:
             )
         verified_context = cached_context if contextual else normalized_tool_context(result)
         artifacts = allowed_artifacts(result, contextual=contextual)
+        # External selection is independent of the optional internal prose repair.
+        news_answer = candidate
         grounding_status, repairs = "fallback", 0
         if candidate is not None and model is not None and not self.grounding_debug:
             # Backend values remain exact; free prose is not semantically classified.
@@ -489,7 +492,7 @@ class MasterAgentRuntime:
                 grounding_status = "not_requested"
         elif candidate is not None and model is not None:
             candidate, grounding_status, repairs = await self._ground_candidate(
-                candidate,
+                candidate.model_copy(update={"news_selection": None}),
                 verified_context,
                 model,
                 execution,
@@ -502,7 +505,7 @@ class MasterAgentRuntime:
             "deterministic_fallback"
             if execution.used_fallback or candidate is None else "model"
         )
-        return tool_result_to_assistant(
+        response = tool_result_to_assistant(
             result,
             trusted_context=verified_context,
             master_answer=candidate,
@@ -514,6 +517,13 @@ class MasterAgentRuntime:
             grounding_status=grounding_status,
             repair_attempts=repairs,
         )
+        if target == "full_company_check":
+            from .news import hydrate_news
+            response.external_news, response.external_news_status = await hydrate_news(
+                execution.news_annotations, news_answer,
+                requested=execution.news_requested, settings=self.tool_context.settings,
+            )
+        return response
 
     async def _ground_candidate(
         self,
@@ -589,6 +599,7 @@ def _model_policy(
     cached_context,
     user_context,
     clear_history=False,
+    news_days=90,
 ):
     @wrap_model_call
     async def enforce(request, handler):
@@ -622,6 +633,21 @@ def _model_policy(
         if answer_stage:
             context = cached_context if expected_tool is None else normalized_tool_context(execution.result)
             schema = MasterAnswer.model_json_schema()
+            news_prompt = ""
+            if after_tool and expected_tool == "full_company_check" and execution.result.status != "error":
+                from .news import news_search_request
+                plugin, query = news_search_request(context["company"], news_days)
+                extra_body = dict(getattr(request.model, "extra_body", None) or {})
+                extra_body.update(settings.get("extra_body") or {})
+                extra_body["plugins"] = [plugin]
+                settings["extra_body"] = extra_body
+                execution.news_requested = True
+                messages.append(HumanMessage(content=query))
+                from .prompt import NEWS_SELECTION_INSTRUCTIONS
+                news_prompt = "\n" + NEWS_SELECTION_INSTRUCTIONS
+                schema.setdefault("required", []).append("news_selection")
+            else:
+                schema["properties"].pop("news_selection", None)
             schema["properties"]["artifact"]["enum"] = list(
                 allowed_artifacts(execution.result, contextual=expected_tool is None)
             )
@@ -634,6 +660,7 @@ def _model_policy(
                     + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
                     + "\nuser_context (слова пользователя, не факты о компании): "
                     + json.dumps(user_context, ensure_ascii=False, separators=(",", ":"))
+                    + news_prompt
                     + "\nСхема финального JSON: "
                     + json.dumps(schema, ensure_ascii=False, separators=(",", ":"))
                     + "\nОтветь на последнее сообщение. Верни только JSON без Markdown."
@@ -647,6 +674,8 @@ def _model_policy(
         if not isinstance(proposal, AIMessage):
             raise ValueError("Invalid model message")
         _record_usage(execution, proposal)
+        if execution.news_requested:
+            execution.news_annotations = proposal.additional_kwargs.get("annotations", [])
         calls = proposal.tool_calls
         if answer_stage:
             if calls:
