@@ -1,0 +1,53 @@
+{
+  "experiment": "Frozen contextual replay; all input messages identical per case",
+  "subject_base_commit": "85193b140f8e4a60cf35154bcfca96c496127462",
+  "repetitions_per_case_model": 3,
+  "cases": [
+    "K19",
+    "K21",
+    "S15_12"
+  ],
+  "technical_pass": 18,
+  "technical_fail": 0,
+  "identical_model_messages": true,
+  "production_changed": false,
+  "prompt_hashes": {
+    "backend/app/agent/prompt.py": "2d715d049b28ad333556c6e63f913cdaf9a6658d98ae5ec921bc1024e4d05237",
+    "backend/app/agent/RISK_PLAYBOOK.md": "bd08dd411e134c0b4d7e8a5938254f32c95642357edd5f019b6d9dc0c2b11450"
+  },
+  "models": {
+    "z-ai/glm-5.3-flash": {
+      "manual_pass": 3,
+      "manual_fail": 6,
+      "target_boundary_fail": 4,
+      "missing_or_aggregate_scope_fail_of_6": 3,
+      "conflict_hidden_fail_of_3": 1,
+      "median_wall_ms": 9916,
+      "max_wall_ms": 18521,
+      "input_tokens": 208410,
+      "output_tokens": 4467
+    },
+    "anthropic/claude-sonnet-4.6": {
+      "manual_pass": 2,
+      "manual_fail": 7,
+      "target_boundary_fail": 2,
+      "missing_or_aggregate_scope_fail_of_6": 1,
+      "conflict_hidden_fail_of_3": 1,
+      "median_wall_ms": 12251,
+      "max_wall_ms": 17601,
+      "input_tokens": 252732,
+      "output_tokens": 8281
+    }
+  },
+  "limitations": [
+    "Small targeted sample; no statistical superiority claim",
+    "Manual review by coding agent, not independent human review",
+    "Original GLM history retained for both models, including prior errors",
+    "Frozen replay does not evaluate tool selection, fresh setup or full end-to-end sessions",
+    "Same reasoning effort label and token ceiling do not imply equal internal compute",
+    "actual_model and finish_reason not exposed by this capture point; requested model ids are recorded",
+    "Token usage is reported usage, not a confirmed monetary invoice"
+  ],
+  "decision": "Keep current production model; alternative did not demonstrate overall improvement; no prompt/data/runtime edits",
+  "measurement_correction": "K21 fixture contract attached after live run; 6 source checks NA→PASS by regrading original answers, no new calls. Original checks and runner plus corrected checks/final runner preserved."
+}

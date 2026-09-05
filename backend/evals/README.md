@@ -117,6 +117,67 @@ PYTHONPATH=. .venv/bin/python -m evals.export_report --run evals/results/my-full
 
 Первый сохранённый результат: [report.md](../../docs/evals/2026-09-05/report.md).
 
+## Сравнение моделей на одинаковом контексте
+
+`compare_models` повторяет выбранные **контекстные** реплики завершённых
+`run_local`-прогонов через тот же runtime. Каждая попытка получает отдельный
+ConversationStore с сохранённым trusted state и исходной историей сообщений.
+Ошибки в прежней прозе намеренно сохраняются для обеих моделей; она не
+становится trusted data. Ответы одной попытки не попадают в следующую.
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evals.compare_models \
+  --run evals/results/structured-scope-final-comparison \
+  --run evals/results/structured-scope-final-targets \
+  --case K19 --case K21 --case S15_12 \
+  --model z-ai/glm-5.3-flash --model anthropic/claude-sonnet-4.6 \
+  --repetitions 3 --concurrency 2 --output evals/results/model-comparison-replay
+```
+
+Нужен только настроенный live OpenRouter; `grounding_debug=false`. Доступ к
+domain tools и repository заблокирован внутри eval-процесса: это проверка
+рассуждения по готовому контексту, не end-to-end проверка маршрутизации.
+Источник, банк и snapshot проверяются по hash; заменённый вопрос, потеря
+истории или разрыв trusted state отвергаются. Сохраняются frozen inputs,
+фактические сообщения к модели и их hashes, usage/latency, ответы и точные
+технические проверки. Hidden reasoning в артефакты не пишется.
+
+`identical_model_messages=true` подтверждает равенство сообщений по каждому
+кейсу во всех попытках; это не равенство токенизации или внутреннего reasoning
+у разных провайдеров. Поля модели и лимиты фиксируются в manifest. Semantic
+оценка остаётся отдельной и ручной. Три повтора — малая целевая выборка, не
+оценка качества модели на всём продукте. Настройки сервиса и `.env` не меняются.
+
+Для проверки новой модели в обычной цепочке используйте существующий runner:
+`MASTER_MODEL=anthropic/claude-sonnet-4.6 PYTHONPATH=. .venv/bin/python -m evals.run_local --suite killer --session K-comparison --output evals/results/candidate-comparison`.
+Переменная действует только на этот процесс; новая история при таком прогоне
+у каждой модели своя. Проверки воспроизводимости replay:
+`PYTHONPATH=. .venv/bin/python -m pytest tests/test_compare_models.py tests/test_eval_harness.py -q`.
+
+Если исходных output-каталогов нет после свежего checkout, восстановите их
+из закоммиченного архива (существующие каталоги не перезаписываются):
+
+```bash
+PYTHONPATH=. .venv/bin/python - <<'PY'
+import gzip, json
+from pathlib import Path
+from evals.run_local import save_trace
+archive = Path('../docs/evals/2026-09-05/structured-scope-fix/runs.json.gz')
+runs = json.loads(gzip.decompress(archive.read_bytes()))
+for name in ('structured-scope-final-comparison', 'structured-scope-final-targets'):
+    out = Path('evals/results') / name
+    if out.exists():
+        continue
+    out.mkdir(parents=True)
+    (out / 'latest.json').write_text(json.dumps(runs[name]['manifest'], ensure_ascii=False))
+    for turn in runs[name]['turns']:
+        save_trace(out / (turn['case_id'] + '.json.gz'), turn)
+PY
+```
+
+Результат первого парного сравнения:
+[отчёт, все ответы и ограничения](../../docs/evals/2026-09-05/model-comparison/report.md).
+
 Подход eval-only дополнительно сверялся с официальными
 [Agents](https://developers.openai.com/api/docs/guides/agents) и
 [Agent evals](https://developers.openai.com/api/docs/guides/agent-evals);

@@ -1,0 +1,359 @@
+{
+  "rubric": "AGENT_EVALS.md §0, K19/K21/§15, §19, §20",
+  "target_definition": "For K19/S15_12: unknown Pending remains unknown, no total→Finished join by count. For K21: actual finance prose conflict is not hidden. PASS may mean error not observed, not that missing was explicitly explained. Overall verdict applies to the whole answer.",
+  "reviewer": "coding agent, not independent human",
+  "reviews": [
+    {
+      "trace": "K19-0-1.json.gz",
+      "case_id": "K19",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 1,
+      "target_boundary": "FAIL",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "18 946 690 ₽",
+          "reason": "В trusted court_stages и исходном dpAmount — 18 894 669 ₽. Число в ответе искажено, технический grader прозу не проверяет.",
+          "source_refs": [
+            "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+            "report.arbitrationCases[]",
+            "AGENT_EVALS.md §0: no year/stage join without key"
+          ]
+        },
+        {
+          "category": "aggregate_link_without_key",
+          "quote": "оба дела завершены",
+          "reason": "Годовой total count=2 и Finished count=2 не имеют общего ключа дела; Pending count/amount неизвестны. Нет оговорки о неполноте стадий.",
+          "source_refs": [
+            "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+            "report.arbitrationCases[]",
+            "AGENT_EVALS.md §0: no year/stage join without key"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K19-0-2.json.gz",
+      "case_id": "K19",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 2,
+      "target_boundary": "PASS",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Роль, базы 2025 года, все/pending разделены; невычислимое отношение к нулевой выручке сохранено. Общая фраза «средние по рынку» не является проверенным отраслевым бенчмарком; числовой бенчмарк не выдан."
+    },
+    {
+      "trace": "K19-0-3.json.gz",
+      "case_id": "K19",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 3,
+      "target_boundary": "FAIL",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "aggregate_link_without_key",
+          "quote": "Оба дела завершены",
+          "reason": "Необоснованное сведение годового total к Finished при неизвестной Pending-части.",
+          "source_refs": [
+            "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+            "report.arbitrationCases[]",
+            "AGENT_EVALS.md §0: no year/stage join without key"
+          ]
+        },
+        {
+          "category": "unsupported_causality",
+          "quote": "база для покрытия почти отсутствует",
+          "reason": "Нулевая выручка не означает почти отсутствующие ресурсы покрытия: у АПРЕЛЬ раскрыты активы 8,05 млн и капитал 6,79 млн при требованиях 390 тыс.; ликвидность требует отдельного анализа.",
+          "source_refs": [
+            "report.finReports[0].common.proceeds",
+            "report.finReports[0].assets",
+            "AGENT_EVALS.md §0"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K19-1-1.json.gz",
+      "case_id": "K19",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 1,
+      "target_boundary": "PASS",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Незавершённые прямо обозначены как «не раскрыто». «Все 2 дела завершены» читается как раскрытый Finished-агрегат благодаря соседней оговорке, не доказательство нулевого Pending. Формулировка всё же неидеальна."
+    },
+    {
+      "trace": "K19-1-2.json.gz",
+      "case_id": "K19",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 2,
+      "target_boundary": "FAIL",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "aggregate_link_without_key",
+          "quote": "Все 2 дела завершены",
+          "reason": "Здесь нет соседней оговорки о неизвестном Pending: total связывается со стадией по совпавшему count, без идентификаторов дел.",
+          "source_refs": [
+            "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+            "report.arbitrationCases[]",
+            "AGENT_EVALS.md §0: no year/stage join without key"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K19-1-3.json.gz",
+      "case_id": "K19",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 3,
+      "target_boundary": "PASS",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "при нулевой выручке даже небольшие требования покрывать нечем",
+          "reason": "Отсутствие выручки превращено в отсутствие любых ресурсов. Pending при этом корректно назван нераскрытым.",
+          "source_refs": [
+            "report.finReports[0].common.proceeds",
+            "report.finReports[0].assets",
+            "AGENT_EVALS.md §0"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K21-0-1.json.gz",
+      "case_id": "K21",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 1,
+      "target_boundary": "PASS",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Противоречие «стабильный доход»/0 ₽ явно названо и не отрицается. Обобщение реестровых маркеров слишком широкое, но финансовое исключение прямо разобрано."
+    },
+    {
+      "trace": "K21-0-2.json.gz",
+      "case_id": "K21",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 2,
+      "target_boundary": "PASS",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "срабатывает при любом значении поля, включая ноль",
+          "reason": "У нас есть итоговый текст источника, но нет реализации или теста его генератора. Причина и условие срабатывания выданы как факт.",
+          "source_refs": [
+            "report.reputationalRisks.positive[].code=proceeds",
+            "report.finReports[0].common.proceeds",
+            "AGENT_EVALS.md K21"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K21-0-3.json.gz",
+      "case_id": "K21",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 3,
+      "target_boundary": "FAIL",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "source_narrative_as_fact",
+          "quote": "Итог: противоречия нет",
+          "reason": "После описания расхождения текста с нулём заключение скрывает реальный финансовый конфликт. Основной критерий K21; категория ближайшая из §19.",
+          "source_refs": [
+            "report.reputationalRisks.positive[].code=proceeds",
+            "report.finReports[0].common.proceeds",
+            "AGENT_EVALS.md K21"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K21-1-1.json.gz",
+      "case_id": "K21",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 1,
+      "target_boundary": "PASS",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "триггер сработал на наличие записи, а не на её смысл",
+          "reason": "Механизм генератора источника не раскрыт. Видимый конфликт обнаружен, но причина придумана.",
+          "source_refs": [
+            "report.reputationalRisks.positive[].code=proceeds",
+            "report.finReports[0].common.proceeds",
+            "AGENT_EVALS.md K21"
+          ]
+        },
+        {
+          "category": "factual_fabrication",
+          "quote": "LOW-риск банка — аналогично",
+          "reason": "Ответ приравнивает LOW банка к методике ЗСК/комплаенс-проверок, хотя методика банковского riskLevel в данных не раскрыта.",
+          "source_refs": [
+            "report.baseInfo.riskLevel",
+            "report.zskRiskLevel"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K21-1-2.json.gz",
+      "case_id": "K21",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 2,
+      "target_boundary": "FAIL",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "source_narrative_as_fact",
+          "quote": "Расхождение между ними не ошибка — это два разных измерения",
+          "reason": "Реальный противоречивый finance marker полностью пропущен; позитивные маркеры целиком представлены как реестровые проверки.",
+          "source_refs": [
+            "report.reputationalRisks.positive[].code=proceeds",
+            "report.finReports[0].common.proceeds",
+            "AGENT_EVALS.md K21"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "K21-1-3.json.gz",
+      "case_id": "K21",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 3,
+      "target_boundary": "PASS",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "просто фиксирует наличие строки",
+          "reason": "Из готового комментария нельзя установить механизм генератора. Финансовый конфликт упомянут, но объяснение его происхождения не подтверждено.",
+          "source_refs": [
+            "report.reputationalRisks.positive[].code=proceeds",
+            "report.finReports[0].common.proceeds",
+            "AGENT_EVALS.md K21"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "S15_12-0-1.json.gz",
+      "case_id": "S15_12",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 1,
+      "target_boundary": "PASS",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "мал, но пассивен и почти без долгов — классический риск «затухания»",
+          "reason": "Нулевая выручка не доказывает пассивность компании и сценарий затухания бизнеса. Отказ от гарантированного банкротства правильный.",
+          "source_refs": [
+            "report.finReports[0].common.proceeds",
+            "report.finReports[0].assets",
+            "AGENT_EVALS.md §0"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "S15_12-0-2.json.gz",
+      "case_id": "S15_12",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 2,
+      "target_boundary": "FAIL",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "missing_as_zero",
+          "quote": "незавершённых исков нет",
+          "reason": "В source и trusted context АПРЕЛЬ Pending count/amount имеют missing, не нулевое значение.",
+          "source_refs": [
+            "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+            "report.arbitrationCases[]",
+            "AGENT_EVALS.md §0: no year/stage join without key"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "S15_12-0-3.json.gz",
+      "case_id": "S15_12",
+      "model": "z-ai/glm-5.3-flash",
+      "repetition": 3,
+      "target_boundary": "PASS",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Отказ от прогноза и качественное сравнение уязвимости; отрицания Pending нет. «Признаков неплатёжеспособности нет» ограничено данными, не обещание оплаты."
+    },
+    {
+      "trace": "S15_12-1-1.json.gz",
+      "case_id": "S15_12",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 1,
+      "target_boundary": "PASS",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "компания не генерирует доход",
+          "reason": "Из нулевой выручки в одном отчётном году и нераскрытой прибыли нельзя установить отсутствие любых текущих доходов.",
+          "source_refs": [
+            "report.finReports[0].common.proceeds",
+            "report.finReports[0].assets",
+            "AGENT_EVALS.md §0"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "S15_12-1-2.json.gz",
+      "case_id": "S15_12",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 2,
+      "target_boundary": "PASS",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "Без доходов компания постепенно проедает ресурс",
+          "reason": "Наличие/отсутствие всех доходов и расходование ресурсов не установлены раскрытым балансом; фраза не обозначена как гипотеза.",
+          "source_refs": [
+            "report.finReports[0].common.proceeds",
+            "report.finReports[0].assets",
+            "AGENT_EVALS.md §0"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "trace": "S15_12-1-3.json.gz",
+      "case_id": "S15_12",
+      "model": "anthropic/claude-sonnet-4.6",
+      "repetition": 3,
+      "target_boundary": "PASS",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Прогноз неизбежности отвергнут, Pending не объявлен нулём. Сопоставлены капитал, кредиторка, прибыль и ФНС; пределы данных обозначены."
+    }
+  ]
+}
