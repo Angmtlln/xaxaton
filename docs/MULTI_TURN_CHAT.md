@@ -14,7 +14,14 @@
 
 Узкий вопрос можно задать первым сообщением с явным ИНН. Новый явный ИНН
 становится активным только после успешного или частичного результата tool.
-Comparison, поиск по названию, SSE и persistent history не входят в этот срез.
+Поиск по названию, SSE и persistent history не входят в этот срез.
+
+Сравнение живёт рядом: «Сравни 6165169320 и 2311304742, важнее суды» вызывает
+`compare_companies` один раз на все компании. Ответ содержит таблицу
+`comparison_table`, которую строит backend, а не выбирает модель. Состояние
+сравнения хранится отдельно от `trusted_context`: тот привязан к одной активной
+компании, поэтому сравнение не перезаписывает её. Продолжения вроде «Кого
+выбрать и почему?» отвечают из сохранённого сравнения без нового вызова tool.
 
 ## API и состояние
 
@@ -167,12 +174,14 @@ tools, calls, безопасные аргументы, статусы, latency �
 
 ```bash
 cd backend
-.venv/bin/python -m pytest -q
+.venv/bin/pytest -q
 .venv/bin/python -m compileall -q app tests scripts
-node --check static/landing.js
-node --check static/report.js
+# модули интерфейса: node --check не разрешает импорты, проверяем загрузкой
+cd .. && for f in frontend/js/**/*.js; do node --input-type=module \
+  --eval "await import('./$f')" 2>&1 | grep -qE "SyntaxError|MODULE_NOT_FOUND" \
+  && echo "СЛОМАН: $f"; done; cd backend
 .venv/bin/python scripts/smoke_multiturn.py --base-url http://localhost:8000 --pause-seconds 60
-.venv/bin/python scripts/smoke_polza_master.py --base-url http://localhost:8000
+.venv/bin/python scripts/smoke_master_provider.py --base-url http://localhost:8000
 ```
 
 Live smoke использует одну active company и один `conversation_id`, проходит
@@ -225,5 +234,5 @@ grounding поля живут в process-local LangGraph checkpoint и HTTP meta
 | Grounding | `backend/app/agent/grounding.py`, `synthesis.py` |
 | Domain data | `backend/app/agent/tools.py`, `finance.py`, `legal.py`, `targeted_models.py` |
 | Контракты и hydration | `backend/app/agent/models.py`, `response.py` |
-| Live smoke | `backend/scripts/smoke_multiturn.py`, `smoke_polza_master.py` |
+| Live smoke | `backend/scripts/smoke_multiturn.py`, `smoke_master_provider.py` |
 | Регрессии | профильные тесты в `backend/tests/` |

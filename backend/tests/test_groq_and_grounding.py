@@ -16,11 +16,11 @@ from app.llm.agents import (SUMMARY_POINT_CHAR_LIMIT, SUMMARY_POINT_MAX,
                             run_summary_agent)
 from app.llm.groq_client import GroqClient, LLMError
 from app.llm.prompts import BLOCK_SYSTEM_PROMPTS, SUMMARY_SYSTEM_PROMPT
-from app.pipeline import collect_statements, grounding_metrics, select_key_facts
+from app.domain.pipeline import collect_statements, grounding_metrics, select_key_facts
 
 
 def _settings():
-    return Settings(groq_api_key="test-key", llm_mock=False,
+    return Settings(_env_file=None, groq_api_key="test-key", llm_mock=False,
                     database_url="postgresql://localhost/none")
 
 

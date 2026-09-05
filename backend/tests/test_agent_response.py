@@ -14,7 +14,8 @@ from app.llm.groq_client import GroqClient
 
 
 def _settings():
-    return Settings(llm_mock=True, groq_api_key=None, database_url="postgresql://localhost/none")
+    return Settings(_env_file=None, llm_mock=True, groq_api_key=None,
+                    database_url="postgresql://localhost/none")
 
 
 async def _tool_result(monkeypatch, payload):
@@ -121,7 +122,9 @@ async def test_assistant_contract_rejects_unknown_blocks_html_and_fake_evidence(
 
 
 @pytest.mark.parametrize("proposal", [
-    "not json",
+    "",
+    "   ",
+    "<script>alert(1)</script>",
     {"message": "ok", "artifact": "raw_html"},
     {"message": "ok", "url": "https://invented.test"},
     {"message": "<script>alert(1)</script>"},
@@ -129,6 +132,31 @@ async def test_assistant_contract_rejects_unknown_blocks_html_and_fake_evidence(
 def test_master_contract_rejects_non_answer_fields_and_unsafe_markup(proposal):
     with pytest.raises((ValidationError, ValueError)):
         parse_master_answer(proposal, allowed_artifacts=("none", "metrics", "chart"))
+
+
+@pytest.mark.parametrize("raw", [
+    '{"message":"Данных по финансам нет.","artifact":"none"}',
+    '```json\n{"message":"Данных по финансам нет.","artifact":"none"}\n```',
+    '<think>Надо ответить кратко.</think>{"message":"Данных по финансам нет.","artifact":"none"}',
+    'Вот ответ: {"message":"Данных по финансам нет.","artifact":"none"}',
+])
+def test_master_answer_survives_provider_specific_wrapping(raw):
+    answer = parse_master_answer(raw, allowed_artifacts=("none", "metrics"))
+
+    assert answer.message == "Данных по финансам нет."
+    assert answer.artifact == "none"
+
+
+def test_prose_answer_is_kept_instead_of_a_canned_fallback():
+    """Часть моделей игнорирует JSON-контракт, но текст — это и есть ответ."""
+    answer = parse_master_answer(
+        "У компании нет финансовой отчётности, поэтому оценить устойчивость нельзя.",
+        allowed_artifacts=("none", "metrics"),
+    )
+
+    assert answer.message.startswith("У компании нет финансовой отчётности")
+    # Артефакт остаётся за бэкендом: модель его не выбирала.
+    assert answer.artifact == "none"
 
 
 @pytest.mark.asyncio

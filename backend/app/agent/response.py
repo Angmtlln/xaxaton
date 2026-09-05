@@ -5,12 +5,14 @@ import time
 from typing import Dict, List, Optional
 
 from .models import (AssistantMetadata, AssistantResponse, ChartPoint, ChartSeries,
-                     CompanySummaryBlock, Evidence, FindingItem, FindingListBlock,
-                     FullCompanyCheckData, LineChartBlock, MasterAnswer,
+                     ComparisonCell, ComparisonColumn, ComparisonRow,
+                     ComparisonTableBlock, CompanySummaryBlock, Evidence, FindingItem,
+                     FindingListBlock, FullCompanyCheckData, LineChartBlock, MasterAnswer,
                      MetricGridBlock, MetricItem, ToolResult)
 from .prompt import MASTER_PROMPT_VERSION
 from .synthesis import normalized_tool_context, verified_evidence
-from .targeted_models import TargetedData
+from .comparison import ROW_SPECS, measure_key
+from .targeted_models import ComparisonData, TargetedData
 from .tools import display_fact_value
 
 
@@ -39,9 +41,15 @@ GUARD_MESSAGES = {
     "invalid_inn": "Проверьте ИНН: нужны 10 или 12 цифр с корректными контрольными знаками.",
     "ambiguous_inn": "На этом этапе можно проверить только одного контрагента за запрос. Укажите один ИНН.",
     "unsupported_request": (
-        "Доступны полная проверка, финансовые и юридические вопросы об одном контрагенте. "
-        "Напишите, например: «Проверь контрагента 6165169320», затем «А что у них с финансами?»."
+        "Доступны полная проверка, финансовые и юридические вопросы об одном контрагенте, "
+        "а также сравнение двух-трёх компаний. Напишите, например: «Проверь контрагента "
+        "6165169320», затем «А что у них с финансами?»."
     ),
+    "comparison_needs_two": (
+        "Для сравнения укажите ИНН двух или трёх компаний в одном сообщении, например: "
+        "«Сравни 6165169320 и 2311304742, важнее финансовая устойчивость»."
+    ),
+    "comparison_limit": "За один раз можно сравнить не больше трёх компаний. Оставьте два или три ИНН.",
     "unknown_conversation": "Диалог истёк или не найден. Начните новый диалог и укажите ИНН контрагента.",
 }
 
@@ -108,20 +116,28 @@ def tool_result_to_assistant(
         policy = _policy_block(data, evidence_by_id)
         if policy is not None:
             blocks.append(policy)
+        if isinstance(data, ComparisonData):
+            # Компактная таблица заменяет N отдельных отчётов и всегда гидратируется кодом.
+            blocks.append(_comparison_table(data, evidence_by_id))
         optional = _optional_artifact(data, evidence_by_id, artifact)
         if optional is not None:
             blocks.append(optional)
 
     full = isinstance(data, FullCompanyCheckData)
-    coverage_state = (context.get("coverage") or {}).get("state", "DATA")
-    partial = (result is not None and result.status == "partial") or coverage_state != "DATA"
     domain = context.get("domain")
-    if domain == "full_check":
-        suggested = ["А что у них с финансами?", "А что у них с судами?"]
-    elif domain == "finance":
-        suggested = ["А что у них с судами?"]
+    if domain == "comparison":
+        states = [(item.get("coverage") or {}).get("state") for item in context.get("companies", [])]
+        coverage_state = "DATA" if states and all(state == "DATA" for state in states) else "PARTIAL"
+        suggested = ["Кого выбрать и почему?", "Что здесь самое рискованное?"]
     else:
-        suggested = ["А что у них с финансами?"]
+        coverage_state = (context.get("coverage") or {}).get("state", "DATA")
+        if domain == "full_check":
+            suggested = ["А что у них с финансами?", "А что у них с судами?"]
+        elif domain == "finance":
+            suggested = ["А что у них с судами?"]
+        else:
+            suggested = ["А что у них с финансами?"]
+    partial = (result is not None and result.status == "partial") or coverage_state != "DATA"
 
     return AssistantResponse(
         message=message,
@@ -148,10 +164,14 @@ def tool_result_to_assistant(
 def _result_data(result: ToolResult):
     if result.metadata.tool == "full_company_check":
         return FullCompanyCheckData.model_validate(result.data)
+    if result.metadata.tool == "compare_companies":
+        return ComparisonData.model_validate(result.data)
     return TargetedData.model_validate(result.data)
 
 
 def _fallback_message(context: dict) -> str:
+    if context.get("domain") == "comparison":
+        return _comparison_fallback(context)
     hard_stops = [
         signal for signal in context.get("policy_signals", [])
         if signal.get("kind") == "official_hard_stop"
@@ -177,7 +197,82 @@ def _fallback_message(context: dict) -> str:
     return "Проверенные данные получены, но сформировать аналитическое объяснение сейчас не удалось."
 
 
+def _comparison_names(data: ComparisonData) -> Dict[str, str]:
+    return {
+        item.inn: (item.company.short_name or item.company.full_name or item.inn)
+        for item in data.companies
+    }
+
+
+def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence]):
+    """Одна таблица вместо N отчётов; значения берутся из проверенных фактов."""
+    columns = [
+        ComparisonColumn(
+            inn=item.inn,
+            name=item.company.short_name or item.company.full_name or item.inn,
+            availability=item.availability,
+        )
+        for item in data.companies
+    ]
+    by_company = [
+        {measure_key(fact_id.split(":", 1)[1]): fact_id for fact_id in item.metric_ids}
+        for item in data.companies
+    ]
+    rows = []
+    for key, label, unit in ROW_SPECS:
+        if not any(key in mapping for mapping in by_company):
+            continue
+        cells = []
+        for mapping in by_company:
+            fact_id = mapping.get(key)
+            fact = data.facts.get(fact_id) if fact_id else None
+            if fact is None or fact.value is None:
+                cells.append(ComparisonCell(display_value="Нет данных", state="no_data"))
+            else:
+                cells.append(ComparisonCell(
+                    display_value=display_fact_value(fact),
+                    state="data",
+                    evidence_id=fact.id if fact.id in evidence_by_id else None,
+                ))
+        rows.append(ComparisonRow(id=key, label=label, unit=unit, cells=cells))
+    return ComparisonTableBlock(
+        title="Сравнение контрагентов",
+        columns=columns,
+        rows=rows[:10],
+        empty_message=None if rows else "Сопоставимых показателей в карточках нет.",
+    )
+
+
+def _comparison_fallback(context: dict) -> str:
+    """Без аналитики Master называем только то, что посчитано кодом."""
+    flagged = [
+        item.get("name") or item.get("inn") for item in context.get("companies", [])
+        if any(signal.get("kind") == "official_hard_stop"
+               for signal in item.get("policy_signals", []))
+    ]
+    if flagged:
+        return (
+            "Аналитическое сравнение сейчас недоступно. Официальный стоп-сигнал есть "
+            "у следующих компаний: %s. Проверьте его до сделки." % ", ".join(flagged)
+        )
+    empty = [
+        item.get("name") or item.get("inn") for item in context.get("companies", [])
+        if (item.get("coverage") or {}).get("state") == "NO_DATA"
+    ]
+    if empty:
+        return (
+            "Аналитическое сравнение сейчас недоступно. По этим компаниям данных нет: %s. "
+            "Отсутствие сведений не подтверждает отсутствие событий или риска." % ", ".join(empty)
+        )
+    return (
+        "Аналитическое сравнение сейчас недоступно. Проверенные показатели компаний "
+        "собраны в таблице ниже."
+    )
+
+
 def _policy_block(data, evidence_by_id: Dict[str, Evidence]) -> Optional[FindingListBlock]:
+    if isinstance(data, ComparisonData):
+        return _comparison_policy_block(data, evidence_by_id)
     items = []
     for signal in data.policy_signals:
         if signal.kind not in {"official_hard_stop", "source_attention"}:
@@ -188,6 +283,29 @@ def _policy_block(data, evidence_by_id: Dict[str, Evidence]) -> Optional[Finding
         prefix = "Официальный стоп-сигнал источника" if signal.kind == "official_hard_stop" else "Сигнал источника для уточнения"
         items.append(FindingItem(
             title=signal.label,
+            text="%s: %s." % (prefix, display_fact_value(fact)),
+            evidence_ids=[ref for ref in signal.evidence_ids if ref in evidence_by_id],
+        ))
+    return FindingListBlock(title="Детерминированные сигналы", items=items) if items else None
+
+
+def _comparison_policy_block(data: ComparisonData, evidence_by_id: Dict[str, Evidence]):
+    """Детерминированные сигналы сравнения всегда подписаны компанией."""
+    names = _comparison_names(data)
+    owner = {
+        signal_id: item.inn for item in data.companies for signal_id in item.policy_signal_ids
+    }
+    items = []
+    for signal in data.policy_signals:
+        if signal.kind not in {"official_hard_stop", "source_attention"}:
+            continue
+        fact = data.facts.get(signal.id)
+        if fact is None:
+            continue
+        prefix = ("Официальный стоп-сигнал источника" if signal.kind == "official_hard_stop"
+                  else "Сигнал источника для уточнения")
+        items.append(FindingItem(
+            title="%s — %s" % (names.get(owner.get(signal.id), ""), signal.label),
             text="%s: %s." % (prefix, display_fact_value(fact)),
             evidence_ids=[ref for ref in signal.evidence_ids if ref in evidence_by_id],
         ))

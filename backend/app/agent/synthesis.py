@@ -7,18 +7,43 @@ policy signals. Evidence IDs remain provenance links, not a reasoning whitelist.
 from __future__ import annotations
 
 import json
+import re
 from typing import Iterable
 
 from .models import FullCompanyCheckData, MasterAnswer, ToolFact, ToolResult
-from .targeted_models import TargetedData
+from .targeted_models import ComparisonData, TargetedData
 from .tools import _evidence_from_fact, display_fact_value
 
 
-def _validated_data(result: ToolResult) -> FullCompanyCheckData | TargetedData:
+# Часть провайдеров отдаёт структурный ответ вместе с рассуждением или в
+# Markdown-блоке. Достаём сам объект: это разбор контракта, а не правка прозы.
+THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
+
+
+def clean_model_text(value: str) -> str:
+    """Снимает служебную обёртку провайдера, не трогая сам текст ответа."""
+    text = THINK_BLOCK_RE.sub("", value).strip()
+    fenced = JSON_FENCE_RE.search(text)
+    return fenced.group(1).strip() if fenced else text
+
+
+def json_payload(value: str) -> dict:
+    """Объект из ответа модели; за его смысл отвечает валидация схемы."""
+    text = clean_model_text(value)
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end <= start:
+        raise ValueError("Model response carries no JSON object: %r" % text[:120])
+    return json.loads(text[start:end + 1])
+
+
+def _validated_data(result: ToolResult) -> FullCompanyCheckData | TargetedData | ComparisonData:
     if result.metadata.tool == "full_company_check":
         return FullCompanyCheckData.model_validate(result.data)
     if result.metadata.tool in {"get_financial_data", "get_legal_data"}:
         return TargetedData.model_validate(result.data)
+    if result.metadata.tool == "compare_companies":
+        return ComparisonData.model_validate(result.data)
     raise ValueError("Unsupported ToolResult domain")
 
 
@@ -62,6 +87,9 @@ def normalized_tool_context(result: ToolResult) -> dict:
             raise ValueError("Policy signal has invalid provenance")
         policy_ids.append(signal.id)
 
+    if isinstance(data, ComparisonData):
+        return _comparison_context(data, result, evidence)
+
     full = isinstance(data, FullCompanyCheckData)
     domain = "full_check" if full else data.domain
     coverage = (
@@ -98,18 +126,65 @@ def normalized_tool_context(result: ToolResult) -> dict:
     }
 
 
+def _comparison_context(data: ComparisonData, result: ToolResult, evidence) -> dict:
+    """Компактный контекст сравнения: по компании на запись, без N отчётов."""
+    companies = []
+    for item in data.companies:
+        companies.append({
+            "inn": item.company.inn,
+            "name": item.company.short_name or item.company.full_name,
+            "status": item.company.status,
+            "coverage": {"state": item.availability, "gaps": item.gaps},
+            "metrics": _observations(data, item.metric_ids),
+            "statuses": _observations(data, item.status_ids),
+            "policy_signals": [
+                signal.model_dump(mode="json") for signal in data.policy_signals
+                if signal.id in set(item.policy_signal_ids)
+            ],
+        })
+    return {
+        "schema_version": "verified-context-1",
+        "tool": result.metadata.tool,
+        "domain": "comparison",
+        "status": result.status,
+        "focus": list(data.focus),
+        "companies": companies,
+        "evidence": [item.model_dump(mode="json") for item in evidence.values()],
+        "warnings": list(dict.fromkeys(result.warnings)),
+    }
+
+
 def parse_master_answer(value, *, allowed_artifacts: Iterable[str]) -> MasterAnswer:
     """Validate structure only; natural-language meaning is checked separately."""
     proposal = MasterAnswer.model_validate(
-        json.loads(value) if isinstance(value, str) else value
+        _answer_payload(value) if isinstance(value, str) else value
     )
     if proposal.artifact not in set(allowed_artifacts):
         raise ValueError("Artifact is unavailable for this turn")
     return proposal
 
 
+def _answer_payload(value: str) -> dict:
+    """Часть моделей отвечает прозой вместо контракта.
+
+    Текст — это и есть ответ пользователю, и он проходит ту же валидацию, что и
+    поле message: SafeText, проверка backend-owned значений и заземление.
+    Артефакт при этом остаётся за бэкендом, поэтому подставляется none.
+    """
+    try:
+        return json_payload(value)
+    except ValueError:
+        text = clean_model_text(value)
+        if not text:
+            raise
+        return {"message": text, "artifact": "none"}
+
+
 def allowed_artifacts(result: ToolResult | None, *, contextual: bool) -> tuple[str, ...]:
     if contextual or result is None:
+        return ("none",)
+    if result.metadata.tool == "compare_companies":
+        # Таблицу сравнения бэкенд добавляет сам: это детерминированный артефакт.
         return ("none",)
     if result.metadata.tool in {"full_company_check", "get_financial_data"}:
         return ("none", "metrics", "chart")

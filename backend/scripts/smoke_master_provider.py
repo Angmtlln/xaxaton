@@ -1,4 +1,7 @@
-"""Live Polza probes plus the seven-turn grounded conversation smoke."""
+"""Живая проверка провайдера Master и семиходовый grounded-диалог.
+
+Провайдер берётся из конфигурации: openrouter, polza или groq.
+"""
 from __future__ import annotations
 
 import argparse
@@ -24,13 +27,15 @@ class StructuredProbe(BaseModel):
 
 
 async def probe_provider(settings: Settings) -> list[dict]:
-    if settings.master_provider != "polza":
-        raise RuntimeError("Для smoke задайте MASTER_PROVIDER=polza")
-    if not settings.polza_api_key:
-        raise RuntimeError("POLZA_API_KEY не задан; live Polza smoke не выполнялся")
+    if settings.llm_mock:
+        raise RuntimeError("LLM_MOCK=true отключает Master; live smoke не выполнялся")
+    if not settings.master_api_key():
+        raise RuntimeError(
+            "Ключ провайдера %s не задан; live smoke не выполнялся" % settings.master_provider
+        )
     model = build_master_model(settings)
     if model is None:
-        raise RuntimeError("Polza Master model отключён конфигурацией")
+        raise RuntimeError("Master model отключён конфигурацией")
 
     results = []
     started = time.perf_counter()

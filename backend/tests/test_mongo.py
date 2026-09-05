@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.mongo import as_float, as_int, dig, parse_date, unwrap
+from app.infrastructure.mongo import as_float, as_int, dig, parse_date, unwrap
 
 
 def test_unwrap_number_long():

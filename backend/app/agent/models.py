@@ -86,6 +86,25 @@ class Evidence(StrictModel):
     unit: Optional[SafeText] = Field(default=None, max_length=40)
 
 
+class CompareCompaniesArgs(StrictModel):
+    """Сравнение нескольких контрагентов одним вызовом, без N полных отчётов."""
+
+    inns: List[str] = Field(min_length=2, max_length=3)
+    focus: Literal["finance", "legal", "both"] = "both"
+
+    @field_validator("inns")
+    @classmethod
+    def validate_inns(cls, values: List[str]) -> List[str]:
+        checked: List[str] = []
+        for value in values:
+            if not re.fullmatch(r"\d{10}|\d{12}", value) or not is_valid_inn(value):
+                raise ValueError("Некорректные контрольные цифры ИНН")
+            if value in checked:
+                raise ValueError("Компании в сравнении не должны повторяться")
+            checked.append(value)
+        return checked
+
+
 class ToolError(StrictModel):
     code: Literal[
         "unknown_tool",
@@ -310,6 +329,41 @@ class FindingListBlock(StrictModel):
     empty_message: Optional[SafeText] = None
 
 
+class ComparisonCell(StrictModel):
+    display_value: SafeText
+    state: Literal["data", "no_data"]
+    evidence_id: Optional[SafeText] = None
+
+
+class ComparisonRow(StrictModel):
+    id: SafeText
+    label: SafeText
+    unit: Optional[SafeText] = None
+    cells: List[ComparisonCell] = Field(min_length=2, max_length=3)
+
+
+class ComparisonColumn(StrictModel):
+    inn: SafeText
+    name: SafeText
+    availability: Literal["DATA", "PARTIAL", "NO_DATA"]
+
+
+class ComparisonTableBlock(StrictModel):
+    """Компактное сравнение: значения гидратирует backend, не модель."""
+
+    type: Literal["comparison_table"] = "comparison_table"
+    title: SafeText
+    columns: List[ComparisonColumn] = Field(min_length=2, max_length=3)
+    rows: List[ComparisonRow] = Field(default_factory=list, max_length=10)
+    empty_message: Optional[SafeText] = None
+
+    @model_validator(mode="after")
+    def validate_row_width(self) -> "ComparisonTableBlock":
+        if any(len(row.cells) != len(self.columns) for row in self.rows):
+            raise ValueError("Строка сравнения должна покрывать все компании")
+        return self
+
+
 class EvidenceListBlock(StrictModel):
     type: Literal["evidence_list"] = "evidence_list"
     title: SafeText
@@ -323,6 +377,7 @@ UIBlock = Annotated[
         MetricGridBlock,
         LineChartBlock,
         FindingListBlock,
+        ComparisonTableBlock,
         EvidenceListBlock,
     ],
     Field(discriminator="type"),
@@ -379,6 +434,11 @@ class AssistantResponse(StrictModel):
                 )
             elif isinstance(block, LineChartBlock):
                 referenced.extend(series.evidence_id for series in block.series)
+            elif isinstance(block, ComparisonTableBlock):
+                referenced.extend(
+                    cell.evidence_id for row in block.rows for cell in row.cells
+                    if cell.evidence_id is not None
+                )
             elif isinstance(block, EvidenceListBlock):
                 referenced.extend(block.evidence_ids)
         unknown = sorted(set(referenced) - known)

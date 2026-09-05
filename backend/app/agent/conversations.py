@@ -16,6 +16,8 @@ from langgraph.checkpoint.memory import InMemorySaver
 class ConversationState(AgentState):
     active_company: Optional[dict]
     trusted_context: Optional[dict]
+    # Сравнение хранится отдельно: trusted_context привязан к одной компании.
+    comparison_context: Optional[dict]
     user_context: Optional[list[str]]
     last_topic: Optional[str]
     last_answer_verified: Optional[bool]
@@ -52,6 +54,22 @@ def merge_trusted_context(current: Optional[dict], observation: dict) -> dict:
         )}
         merged = {"company": dict(company), "domains": domains}
     return merged
+
+
+def store_comparison_context(observation: dict) -> dict:
+    """Проверенное наблюдение сравнения; прозу ассистента сюда не кладём."""
+    if observation.get("schema_version") != "verified-context-1":
+        raise ValueError("Unknown trusted context schema")
+    companies = observation.get("companies")
+    if observation.get("domain") != "comparison" or not isinstance(companies, list):
+        raise ValueError("Invalid comparison context")
+    if len(companies) < 2 or any(not isinstance(item, dict) or not item.get("inn")
+                                 for item in companies):
+        raise ValueError("Comparison context needs at least two identified companies")
+    encoded = json.dumps(observation, ensure_ascii=False, separators=(",", ":"))
+    if len(encoded) > TRUSTED_CONTEXT_LIMIT:
+        raise ValueError("Comparison context is too large")
+    return json.loads(encoded)
 
 
 def select_trusted_context(current: Optional[dict], topic: Optional[str]) -> Optional[dict]:

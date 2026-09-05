@@ -12,7 +12,7 @@ POST /api/v1/chat/messages
   → существующий run_check()
   → ToolResult
   → deterministic AssistantResponse
-  → rich chat в backend/static
+  → rich chat в frontend/
 ```
 
 Legacy-проход по-прежнему доступен отдельно:
@@ -167,13 +167,13 @@ curl -s https://api.groq.com/openai/v1/models \
 * `/report?inn=...` — отчёт по контрагенту, ссылка воспроизводимая.
 
 Chat renderer поддерживает только `company_card`, `text`, `metric_grid`,
-`line_chart`, `finding_list` и `evidence_list`. Числа, series и evidence
+`line_chart`, `finding_list`, `comparison_table` и `evidence_list`. Числа, series и evidence
 собираются backend-кодом из фактов `run_check()`; router LLM не получает
 результат tool и не генерирует HTML/SVG или данные графика. Неизвестный тип
 блока отображается безопасным fallback.
 
 Базовый визуальный язык взят из
-[alfa-counterparty-prototype](../alfa-counterparty-prototype), но рабочий
+[design/prototype](../design/prototype), но рабочий
 отчёт адаптирован под плотный сценарий проверки. На первом экране находятся
 компактная сводка, независимые оценки банка и ЗСК, ссылки на четыре направления,
 мини-графики и 2–3 тезиса Summary-агента. Подробные направления остаются
@@ -245,56 +245,99 @@ Summary-агент возвращает `narrative_points`: 2–3 тезиса �
 
 ## Структура
 
+Репозиторий разделён на три верхнеуровневые части: сервис, интерфейс и дизайн.
+
 ```
 backend/
   app/
-    agent/models.py       строгие ToolResult, AssistantResponse и UIBlock schemas
-    agent/langchain_tools.py  LangChain adapter над domain Tool Registry
-    agent/prompt.py       versioned prompt native tool calling
-    agent/tools.py        registry и wrapper full_company_check → run_check()
-    agent/runtime.py      provider-neutral create_agent, budgets, timeout и fallback
-    agent/master_model.py фабрика ChatOpenAI/ChatGroq только для Master
-    agent/response.py     deterministic ToolResult → rich UI adapter
-    main.py              FastAPI и Swagger
-    pipeline.py          один проход: факты → 4 агента → summary → запись
-    config.py            настройки из окружения
-    db.py                пул подключений
-    repository.py        SQL-запросы
-    mongo.py             нормализация $date и $numberLong
-    domain/facts.py      детерминированный слой фактов и паспорт полноты
-    llm/prompts.py       доменные спецификации 4 агентов и Summary-LLM
-    llm/agents.py        вызовы агентов, guardrails, шаблонный режим
-    llm/groq_client.py   клиент Groq
-    api/schemas.py       модели ответов, они же схема Swagger
-  db/schema.sql          схема PostgreSQL
-  db/seed_dictionary.sql справочник кодов меток
-  docs/db_design.md      пояснение к дизайну БД
+    main.py                 сборка приложения: lifespan, CORS, статика, роутеры
+    config.py               настройки из окружения
+    api/
+      routes/chat.py        POST /api/v1/chat/messages — основной путь продукта
+      routes/checks.py      POST/GET /api/v1/checks — полный проход и история
+      routes/companies.py   витрина карточек, факты и полнота данных
+      routes/health.py      GET /health
+      routes/pages.py       отдача / и /report из frontend/
+      schemas.py            модели ответов, они же схема Swagger
+      deps.py               зависимости: настройки, Groq-клиент, стор диалогов
+      serialization.py      приведение строк БД к JSON
+    agent/
+      runtime.py            provider-neutral create_agent, бюджеты, timeout, fallback
+      master_model.py       фабрика модели Master и цепочка запасных моделей
+      tools.py              registry и wrapper full_company_check → run_check()
+      comparison.py         сравнение 2–3 компаний одним вызовом инструмента
+      langchain_tools.py    LangChain adapter над domain Tool Registry
+      models.py             строгие ToolResult, AssistantResponse и UIBlock schemas
+      prompt.py             versioned prompt native tool calling
+      response.py           deterministic ToolResult → rich UI adapter
+      conversations.py      доверенный контекст диалога отдельно от истории
+      grounding.py          проверка заземления и одна попытка ремонта
+      synthesis.py          нормализация проверенных данных и разбор ответа Master
+    domain/
+      facts.py              детерминированный слой фактов и паспорт полноты
+      pipeline.py           один проход: факты → 4 агента → summary → запись
+    llm/
+      prompts.py            доменные спецификации 4 агентов и Summary-LLM
+      agents.py             вызовы агентов, guardrails, шаблонный режим
+      groq_client.py        клиент Groq с запасными моделями и паузами
+    infrastructure/
+      db.py                 пул подключений
+      repository.py         SQL-запросы
+      mongo.py              нормализация $date и $numberLong
+  db/schema.sql             схема PostgreSQL
+  db/seed_dictionary.sql    справочник кодов меток
+  docs/db_design.md         пояснение к дизайну БД
   scripts/load_snapshot.py  загрузка выгрузки в базу
   scripts/demo_offline.py   проход по файлу без базы
-  tests/                 pipeline regression и agent-first routing/API/UI contracts
+  tests/                    pipeline regression и agent-first routing/API/UI contracts
+
+frontend/                   интерфейс, сборка не нужна: браузер грузит ES-модули
+  index.html                чат
+  report.html               отчёт
+  css/tokens.css            палитра и переменные
+  css/base.css              сброс, типографика, общие примитивы
+  css/chat.css              экран диалога и артефакты
+  css/report.css            экран отчёта
+  js/shared/dom.js          создание узлов, общее для обеих страниц
+  js/chat/main.js           состояние диалога и подписки на события
+  js/chat/artifacts.js      рендер allowlisted UIBlock
+  js/chat/chart.js          SVG-график динамики
+  js/chat/api.js            единственная точка обращения к chat API
+  js/report/main.js         запрос прогона и сборка страницы
+  js/report/sections.js     секции отчёта
+  js/report/charts.js       колонки, парные серии, спарклайны
+  js/report/format.js       иконки, словари кодов, форматирование
+  js/report/facts.js        индекс фактов текущего прогона
+
+design/prototype/           исходный Next.js-прототип, в рантайме не участвует
 ```
+
+Интерфейс раздаётся тем же сервисом: `app/api/routes/pages.py` отдаёт
+`index.html` и `report.html`, а `main.py` монтирует `frontend/` на `/static`.
+Каталог переопределяется переменной `FRONTEND_DIR` — в Docker-образе это
+`/srv/frontend`.
 
 ## Тесты
 
 ```bash
 PYTHONPATH=. python -m pytest -q tests/test_agent_runtime.py tests/test_agent_response.py tests/test_chat_api.py
 PYTHONPATH=. python -m pytest -q
-node --check static/landing.js
-node --check static/report.js
 ```
 
-Из корня репозитория JS-проверки эквивалентны:
+Файл `pytest.ini` уже задаёт `pythonpath = .`, поэтому из каталога `backend/`
+достаточно `pytest -q`.
+
+Модули интерфейса проверяются загрузкой: `node --check` не разрешает импорты,
+поэтому из корня репозитория используйте
 
 ```bash
-node --check backend/static/landing.js
-node --check backend/static/report.js
+for f in frontend/js/**/*.js; do node --input-type=module --eval "await import('./$f')" 2>&1 \
+  | grep -qE "SyntaxError|MODULE_NOT_FOUND" && echo "СЛОМАН: $f"; done; echo проверено
 ```
 
-Legacy-команда также остаётся рабочей:
-
-```bash
-pytest -q
-```
+`main.js` обеих страниц обращается к `document`/`window` на верхнем уровне,
+поэтому вне браузера они ожидаемо падают на `ReferenceError` — это не ошибка
+разбора модуля.
 
 Проверяется то же, что записано в критериях приёмки: совпадение вычисленных
 фактов с сырыми полями по всем 100 карточкам, наличие `field_ref` у каждого

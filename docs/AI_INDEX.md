@@ -8,17 +8,17 @@
 
 | Если задача про… | Сначала прочитать | Основные файлы |
 |---|---|---|
-| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/langchain_tools.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/agent/conversations.py`, `backend/app/agent/finance.py`, `backend/app/agent/legal.py`, `backend/app/main.py`, `backend/static/landing.js` |
+| agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/langchain_tools.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/agent/conversations.py`, `backend/app/agent/finance.py`, `backend/app/agent/legal.py`, `backend/app/agent/comparison.py`, `backend/app/api/routes/chat.py`, `frontend/js/chat/main.js` |
 | продукт, скоуп, критерии успеха | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md), [`product_materials.md`](../product_materials.md) | `project_description.md`, `hypotheses.md` |
 | продуктовые гипотезы и приоритеты | [`hypotheses.md`](../hypotheses.md) | `product_materials.md` |
 | состав четырёх блоков анализа | [`blocks_summary_design.md`](../blocks_summary_design.md) | `backend/app/domain/facts.py`, `backend/app/llm/prompts.py` |
-| запуск и общая архитектура backend | [`backend/README.md`](../backend/README.md) | `backend/app/pipeline.py`, `backend/app/main.py` |
-| факты, расчёты, полнота данных | `backend/app/domain/facts.py` | `backend/app/mongo.py`, `backend/tests/test_facts.py` |
+| запуск и общая архитектура backend | [`backend/README.md`](../backend/README.md) | `backend/app/domain/pipeline.py`, `backend/app/main.py`, `backend/app/api/routes/` |
+| факты, расчёты, полнота данных | `backend/app/domain/facts.py` | `backend/app/infrastructure/mongo.py`, `backend/tests/test_facts.py` |
 | LLM, grounding, guardrails | `backend/app/llm/agents.py`, `backend/app/llm/prompts.py` | `backend/app/llm/groq_client.py`, `backend/tests/test_groq_and_grounding.py` |
-| API и формат ответа | `backend/app/main.py`, `backend/app/api/schemas.py` | `backend/app/pipeline.py`, Swagger `/docs` |
-| PostgreSQL и аудит | [`backend/docs/db_design.md`](../backend/docs/db_design.md), `backend/db/schema.sql` | `backend/app/repository.py`, `backend/scripts/load_snapshot.py` |
-| рабочий интерфейс демо | `backend/static/index.html`, `backend/static/report.html` | `backend/static/landing.js`, `backend/static/report.js`, `backend/static/styles.css` |
-| визуальный React-прототип | [`alfa-counterparty-prototype/README.md`](../alfa-counterparty-prototype/README.md) | `alfa-counterparty-prototype/app/` |
+| API и формат ответа | `backend/app/api/routes/`, `backend/app/api/schemas.py` | `backend/app/domain/pipeline.py`, Swagger `/docs` |
+| PostgreSQL и аудит | [`backend/docs/db_design.md`](../backend/docs/db_design.md), `backend/db/schema.sql` | `backend/app/infrastructure/repository.py`, `backend/scripts/load_snapshot.py` |
+| рабочий интерфейс демо | `frontend/index.html`, `frontend/report.html` | `frontend/js/chat/main.js`, `frontend/js/report/main.js`, `frontend/css/chat.css` |
+| визуальный React-прототип | [`design/prototype/README.md`](../design/prototype/README.md) | `design/prototype/app/` |
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |
 
 ## Источники истины и свежесть
@@ -77,8 +77,10 @@ POST /api/v1/chat/messages
 - `prompts.py` отвечает за правила интерпретации и формат ответа модели;
 - `agents.py` отвечает за вызовы, валидацию, fallback, grounding и guardrails;
 - `pipeline.py` отвечает за порядок прохода и сохранение результатов;
-- `repository.py` отвечает за SQL, но не за продуктовые выводы;
-- `backend/static/` отвечает за рабочий интерфейс поверх API.
+- `infrastructure/repository.py` отвечает за SQL, но не за продуктовые выводы;
+- `api/routes/` отвечает за HTTP-контракт, `main.py` — только за сборку приложения;
+- `frontend/` отвечает за рабочий интерфейс поверх API и раздаётся тем же сервисом;
+- `design/prototype/` — источник дизайна, в рантайме не участвует.
 
 ## Текущий функциональный статус
 
@@ -97,9 +99,14 @@ POST /api/v1/chat/messages
 - реализованы multi-turn context в InMemorySaver, одна active_company, targeted
   finance/legal без полного pipeline, отдельный trusted context и контекстные
   follow-up без повторного tool call;
-- persistent history в БД, name resolution, comparison, deal risk и streaming не реализованы;
-- сравнение нескольких контрагентов, банковские интеграции и большая база не
-  относятся к готовому текущему проходу.
+- реализовано сравнение двух-трёх контрагентов: `compare_companies` собирает все
+  компании одним вызовом, таблицу `comparison_table` строит backend, а состояние
+  сравнения хранится отдельно от `trusted_context` и не перезаписывает активную
+  компанию;
+- провайдер Master выбирается конфигурацией: OpenRouter, Polza или Groq;
+  у Groq есть цепочка запасных моделей и пауза, названная провайдером;
+- persistent history в БД, name resolution, deal risk и streaming не реализованы;
+- банковские интеграции и большая база не относятся к готовому текущему проходу.
 
 Перед изменением статуса сверяйся с кодом и обновляй этот раздел в том же
 коммите.
@@ -141,7 +148,7 @@ curl -X POST http://localhost:8000/api/v1/chat/messages \
 UI-прототип:
 
 ```bash
-cd alfa-counterparty-prototype
+cd design/prototype
 npm install
 npm run dev
 ```
@@ -180,6 +187,6 @@ npm run dev
   истории, неизвестные URL/идентификаторы, repair/fallback и rewrite fast path.
 - `tests/test_financial_capability.py`, `tests/test_legal_capability.py`,
   `tests/test_targeted_response.py`, `tests/test_chat_api.py`: данные, grounding и API.
-- Клиент `backend/static/landing.js` передаёт conversation_id и сохраняет текущий
+- Клиент `frontend/js/chat/main.js` передаёт conversation_id и сохраняет текущий
   диалог в sessionStorage вкладки. Новый диалог сбрасывает клиентский контекст.
 - Подробности, API-пример и проверка: [MULTI_TURN_CHAT.md](MULTI_TURN_CHAT.md).

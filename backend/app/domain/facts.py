@@ -15,7 +15,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from app.mongo import as_float, as_int, dig, parse_date
+from app.infrastructure.mongo import as_float, as_int, dig, parse_date
 
 CALCULATOR_VERSION = "facts-1.0.0"
 

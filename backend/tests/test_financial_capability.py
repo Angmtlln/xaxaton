@@ -147,7 +147,7 @@ async def test_executor_reads_snapshot_only_and_returns_exact_evidence(monkeypat
         raise AssertionError("Targeted finance must not execute full pipeline or LLM")
 
     monkeypatch.setattr("app.agent.finance.repository.get_latest_snapshot", snapshot)
-    monkeypatch.setattr("app.pipeline.run_check", forbidden)
+    monkeypatch.setattr("app.domain.pipeline.run_check", forbidden)
     monkeypatch.setattr("app.agent.tools.run_check", forbidden)
     monkeypatch.setattr("app.domain.facts.build_all_blocks", forbidden)
     monkeypatch.setattr("app.llm.agents.run_block_agents", forbidden)

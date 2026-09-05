@@ -13,7 +13,7 @@ from typing import Optional, Tuple
 from langchain.agents import create_agent
 from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware, wrap_model_call
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.outputs import ChatResult
 
 from app.config import Settings
@@ -21,7 +21,7 @@ from app.llm.groq_client import GroqClient
 from .conversations import (ConversationCapacityError, ConversationState,
                             ConversationStore, UnknownConversation,
                             append_user_context, merge_trusted_context,
-                            select_trusted_context)
+                            select_trusted_context, store_comparison_context)
 from .grounding import (backend_owned_violations, call_grounding_verifier,
                         call_master_repair, is_simple_rewrite, message_text)
 from .langchain_tools import LangChainToolExecution, build_langchain_tools
@@ -38,6 +38,12 @@ log = logging.getLogger(__name__)
 MAX_AGENT_MODEL_CALLS = 2
 MAX_TOTAL_MODEL_CALLS = 5
 MAX_TOOL_CALLS = 1
+# Сравнение идёт одним вызовом инструмента, но не более трёх компаний.
+MAX_COMPARISON_COMPANIES = 3
+# Groq списывает с лимита выходных токенов запрошенный max_tokens целиком,
+# а не фактический ответ, поэтому резерв держим близким к реальной длине.
+ANSWER_MAX_TOKENS = 600
+VERIFIER_MAX_TOKENS = 200
 GRAPH_RECURSION_LIMIT = 12
 TOOL_BUNDLE_VERSION = "counterparty-tools-3.0.0"
 DIGIT_SEQUENCE_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
@@ -77,6 +83,8 @@ class MasterAgentRuntime:
         run_timeout_s: float,
         conversation_store: Optional[ConversationStore] = None,
         model_provider: Optional[str] = None,
+        answer_max_tokens: int = ANSWER_MAX_TOKENS,
+        verifier_max_tokens: int = VERIFIER_MAX_TOKENS,
     ):
         self.model = model
         self.model_name = model_name
@@ -84,6 +92,8 @@ class MasterAgentRuntime:
         self.tool_context = tool_context
         self.model_timeout_s = model_timeout_s
         self.run_timeout_s = run_timeout_s
+        self.answer_max_tokens = answer_max_tokens
+        self.verifier_max_tokens = verifier_max_tokens
         self.conversation_store = conversation_store or ConversationStore()
         self.model_provider = model_provider or ("local" if model is None else "custom")
 
@@ -153,45 +163,65 @@ class MasterAgentRuntime:
         previous = (await state_agent.aget_state(config)).values
         active = previous.get("active_company")
         trusted_store = previous.get("trusted_context")
+        comparison_store = previous.get("comparison_context")
         user_context = previous.get("user_context") or []
         last_topic = previous.get("last_topic")
         last_answer_verified = bool(previous.get("last_answer_verified"))
 
-        reason, inn = inspect_request(message)
-        if reason == "missing_inn" and active:
-            reason, inn = None, active["inn"]
-        target = requested_tool(message)
-        switching_company = bool(active and inn and active["inn"] != inn)
-        turn_user_context = [] if switching_company else user_context
-        turn_last_topic = None if switching_company else last_topic
-        turn_last_answer_verified = False if switching_company else last_answer_verified
+        comparison_request = bool(COMPARISON_RE.search(message))
+        inns = None
+        if comparison_request:
+            reason, inns = inspect_comparison_request(message)
+            inn = None
+            target = "compare_companies" if reason is None else None
+            switching_company = False
+            turn_user_context = user_context
+            turn_last_topic = "comparison" if reason is None else last_topic
+            turn_last_answer_verified = last_answer_verified
+            selected_context = None
+        else:
+            reason, inn = inspect_request(message)
+            if reason == "missing_inn" and active:
+                reason, inn = None, active["inn"]
+            target = requested_tool(message)
+            switching_company = bool(active and inn and active["inn"] != inn)
+            turn_user_context = [] if switching_company else user_context
+            turn_last_topic = None if switching_company else last_topic
+            turn_last_answer_verified = False if switching_company else last_answer_verified
 
-        requested_topic = {"get_financial_data": "finance", "get_legal_data": "legal"}.get(target)
-        if (
-            not switching_company
-            and requested_topic
-            and EXPLANATION_RE.search(message)
-            and select_trusted_context(trusted_store, requested_topic) is not None
-        ):
-            target, turn_last_topic = None, requested_topic
-        selected_context = (
-            select_trusted_context(trusted_store, turn_last_topic)
-            if target is None and not switching_company else None
-        )
-        unsupported = bool(COMPARISON_RE.search(message))
+            requested_topic = {"get_financial_data": "finance", "get_legal_data": "legal"}.get(target)
+            if (
+                not switching_company
+                and requested_topic
+                and EXPLANATION_RE.search(message)
+                and select_trusted_context(trusted_store, requested_topic) is not None
+            ):
+                target, turn_last_topic = None, requested_topic
+            selected_context = (
+                select_trusted_context(trusted_store, turn_last_topic)
+                if target is None and not switching_company else None
+            )
+            # Продолжение разговора о сравнении не требует повторных ИНН.
+            if (
+                target is None
+                and selected_context is None
+                and last_topic == "comparison"
+                and isinstance(comparison_store, dict)
+            ):
+                reason, selected_context, turn_last_topic = None, comparison_store, "comparison"
 
         log.info(
             "agent_run_started run_id=%s conversation_id=%s model=%s provider=%s "
             "prompt_version=%s tool_bundle_version=%s tools_visible=%s inn=%s "
             "model_limit=%s tool_limit=%s remaining_ms=%s trusted_topic=%s",
             run_id, cid, model_name, model_provider, MASTER_PROMPT_VERSION,
-            TOOL_BUNDLE_VERSION, [target] if target else [], inn,
+            TOOL_BUNDLE_VERSION, [target] if target else [], inn or inns,
             MAX_TOTAL_MODEL_CALLS, MAX_TOOL_CALLS,
             max(0, int((deadline - time.monotonic()) * 1000)), last_topic,
         )
 
         response = None
-        if reason is not None or unsupported or (target is None and selected_context is None):
+        if reason is not None or (target is None and selected_context is None):
             response = guard_response(reason or "unsupported_request", run_id, started)
         else:
             try:
@@ -199,6 +229,7 @@ class MasterAgentRuntime:
                     self._execute(
                         message=message,
                         inn=inn,
+                        inns=inns,
                         target=target,
                         cached_context=selected_context,
                         user_context=turn_user_context,
@@ -219,13 +250,18 @@ class MasterAgentRuntime:
         result = execution.result
         if result is not None and result.status in {"success", "partial"}:
             observation = normalized_tool_context(result)
-            company = observation["company"]
-            if company.get("inn") == inn and is_valid_inn(inn):
-                if switching_company:
-                    trusted_store, user_context, last_topic = None, [], None
-                active = CompanyRef(inn=inn, name=company.get("name")).model_dump(mode="json")
-                trusted_store = merge_trusted_context(trusted_store, observation)
-                last_topic = observation["domain"]
+            if observation["domain"] == "comparison":
+                # Сравнение живёт отдельно: trusted_context привязан к одной компании.
+                comparison_store = store_comparison_context(observation)
+                last_topic = "comparison"
+            else:
+                company = observation["company"]
+                if company.get("inn") == inn and is_valid_inn(inn):
+                    if switching_company:
+                        trusted_store, user_context, last_topic = None, [], None
+                    active = CompanyRef(inn=inn, name=company.get("name")).model_dump(mode="json")
+                    trusted_store = merge_trusted_context(trusted_store, observation)
+                    last_topic = observation["domain"]
 
         response.conversation_id = cid
         response.active_company = CompanyRef.model_validate(active) if active else None
@@ -252,6 +288,7 @@ class MasterAgentRuntime:
                 "active_company": active,
                 "trusted_context": trusted_store,
                 "user_context": user_context,
+                "comparison_context": comparison_store,
                 "last_topic": last_topic,
                 "last_answer_verified": answer_verified,
             },
@@ -274,6 +311,7 @@ class MasterAgentRuntime:
         *,
         message,
         inn,
+        inns,
         target,
         cached_context,
         user_context,
@@ -294,12 +332,14 @@ class MasterAgentRuntime:
                 self.tool_context,
                 agent_run_id=run_id,
                 expected_inn=inn,
+                expected_inns=inns,
                 execution=execution,
                 expected_tool=target,
             )
             middleware = [
                 _model_policy(
                     self.model_timeout_s,
+                    self.answer_max_tokens,
                     execution,
                     target,
                     self.registry,
@@ -314,7 +354,7 @@ class MasterAgentRuntime:
             agent = create_agent(
                 model=model,
                 tools=tools,
-                system_prompt=MASTER_SYSTEM_PROMPT + "\nДоверенный ИНН активной компании: " + inn,
+                system_prompt=MASTER_SYSTEM_PROMPT + _trusted_subject(inn, inns),
                 state_schema=ConversationState,
                 checkpointer=self.conversation_store.checkpointer,
                 middleware=middleware,
@@ -331,7 +371,7 @@ class MasterAgentRuntime:
                         allowed_artifacts=allowed_artifacts(execution.result, contextual=contextual),
                     )
             except Exception as exc:  # noqa: BLE001
-                log.info("agent_model_fallback run_id=%s reason=%s", run_id, type(exc).__name__)
+                log.info("agent_model_fallback run_id=%s reason=%s detail=%s", run_id, type(exc).__name__, str(exc)[:400])
 
         if not contextual and execution.result is None:
             if execution.started:
@@ -339,11 +379,15 @@ class MasterAgentRuntime:
             execution.started = True
             execution.tool_calls = 1
             execution.used_fallback = True
+            arguments = (
+                {"inns": list(inns or []), "focus": comparison_focus(message)}
+                if target == "compare_companies" else {"inn": inn}
+            )
             log.info(
                 "agent_tool_call run_id=%s tool=%s inn=%s routing=deterministic_fallback call=1/1",
-                run_id, target, inn,
+                run_id, target, inn or ", ".join(inns or []),
             )
-            execution.result = await self.registry.execute(target, {"inn": inn}, self.tool_context)
+            execution.result = await self.registry.execute(target, arguments, self.tool_context)
             log.info(
                 "agent_tool_result run_id=%s tool=%s status=%s latency_ms=%s routing=deterministic_fallback",
                 run_id, target, execution.result.status, execution.result.metadata.latency_ms,
@@ -409,7 +453,8 @@ class MasterAgentRuntime:
             else:
                 _reserve_model_call(execution)
                 verdict, response = await call_grounding_verifier(
-                    model, candidate, verified_context, timeout_s=self.model_timeout_s
+                    model, candidate, verified_context, timeout_s=self.model_timeout_s,
+                    max_tokens=self.verifier_max_tokens,
                 )
                 _record_usage(execution, response)
             if verdict.supported:
@@ -424,6 +469,7 @@ class MasterAgentRuntime:
                 verified_context,
                 allowed_artifacts=artifacts,
                 timeout_s=self.model_timeout_s,
+                max_tokens=self.answer_max_tokens,
             )
             _record_usage(execution, response)
             repaired_violations = backend_owned_violations(repaired.message, verified_context)
@@ -431,7 +477,8 @@ class MasterAgentRuntime:
                 return None, "fallback", 1
             _reserve_model_call(execution)
             second, response = await call_grounding_verifier(
-                model, repaired, verified_context, timeout_s=self.model_timeout_s
+                model, repaired, verified_context, timeout_s=self.model_timeout_s,
+                max_tokens=self.verifier_max_tokens,
             )
             _record_usage(execution, response)
             if second.supported:
@@ -443,6 +490,7 @@ class MasterAgentRuntime:
 
 def _model_policy(
     timeout_s,
+    answer_max_tokens,
     execution,
     expected_tool,
     registry,
@@ -458,8 +506,14 @@ def _model_policy(
         answer_stage = expected_tool is None or after_tool
         settings = dict(request.model_settings)
         settings["parallel_tool_calls"] = False
-        settings["max_tokens"] = 900 if answer_stage else 256
+        settings["max_tokens"] = answer_max_tokens if answer_stage else 256
+        if answer_stage:
+            # Ответ Master разбирается по схеме, поэтому JSON требуем у провайдера.
+            # Инструменты на этом шаге не нужны: с ними OpenAI-совместимые
+            # адаптеры пытаются превратить response_format в описание функции.
+            settings["response_format"] = {"type": "json_object"}
         overrides = {
+            "tools": [] if answer_stage else request.tools,
             "tool_choice": "none" if answer_stage else "required",
             "model_settings": settings,
         }
@@ -467,6 +521,10 @@ def _model_policy(
         if clear_history:
             last_user = max(index for index, item in enumerate(messages) if isinstance(item, HumanMessage))
             messages = messages[last_user:]
+        if answer_stage:
+            # Тот же ToolResult уходит в системное сообщение как verified_context.
+            # Второй экземпляр в истории удваивал запрос и упирался в лимит Groq.
+            messages = [_without_tool_payload(item) for item in messages]
         overrides["messages"] = messages
 
         if answer_stage:
@@ -502,12 +560,22 @@ def _model_policy(
                 raise ValueError("Repeated or contextual tool call")
         else:
             if len(calls) != 1 or calls[0]["name"] != expected_tool:
-                raise ValueError("Invalid native tool proposal")
+                raise ValueError("Invalid native tool proposal: expected=%s got=%s" % (
+                    expected_tool, [call.get("name") for call in calls]))
             definition = registry.get_definition(expected_tool)
             definition.input_model.model_validate(calls[0]["args"])
         return response
 
     return enforce
+
+
+def _without_tool_payload(message):
+    """Ответ инструмента уже разобран бэкендом; в истории остаётся только метка."""
+    if not isinstance(message, ToolMessage):
+        return message
+    return message.model_copy(
+        update={"content": "Результат инструмента разобран: см. verified_context."}
+    )
 
 
 def _reserve_model_call(execution: LangChainToolExecution) -> None:
@@ -556,6 +624,8 @@ def build_master_runtime(
         tool_context=ToolContext(settings=settings, client=client, persist=persist),
         model_timeout_s=settings.agent_model_timeout_s,
         run_timeout_s=settings.agent_run_timeout_s,
+        answer_max_tokens=settings.answer_max_tokens(),
+        verifier_max_tokens=settings.verifier_max_tokens(),
         conversation_store=conversation_store,
         model_provider=settings.master_provider if model else "local",
     )
@@ -575,6 +645,39 @@ def inspect_request(message: str) -> Tuple[Optional[str], Optional[str]]:
     if len(valid) != len(candidates):
         return "invalid_inn", None
     return None, valid[0]
+
+
+def _trusted_subject(inn, inns) -> str:
+    """Доверенные идентификаторы приходят от бэкенда, не из текста модели."""
+    if inns:
+        return "\nДоверенные ИНН для сравнения: " + ", ".join(inns)
+    return "\nДоверенный ИНН активной компании: " + str(inn)
+
+
+def inspect_comparison_request(message: str) -> Tuple[Optional[str], Optional[list]]:
+    """ИНН для сравнения в порядке упоминания; идентификаторы остаются за бэкендом."""
+    text = message or ""
+    sequences = [value for value in DIGIT_SEQUENCE_RE.findall(text) if len(value) >= 8]
+    explicit = re.findall(r"\bинн\s*[:№#-]?\s*([0-9]+)", text, re.I)
+    ordered = list(dict.fromkeys(sequences + explicit))
+    if len(ordered) < 2:
+        return "comparison_needs_two", None
+    if any(not is_valid_inn(value) for value in ordered):
+        return "invalid_inn", None
+    if len(ordered) > MAX_COMPARISON_COMPANIES:
+        return "comparison_limit", None
+    return None, ordered
+
+
+def comparison_focus(message: str) -> str:
+    """Приоритет пользователя сужает сбор данных, но не придумывает выводы."""
+    finance = bool(FINANCE_TOPIC_RE.search(message))
+    legal = bool(LEGAL_TOPIC_RE.search(message))
+    if finance and not legal:
+        return "finance"
+    if legal and not finance:
+        return "legal"
+    return "both"
 
 
 def is_full_check_request(message: str) -> bool:

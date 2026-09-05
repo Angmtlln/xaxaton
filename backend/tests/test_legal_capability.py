@@ -9,7 +9,7 @@ from app.agent.models import FullCompanyCheckArgs
 from app.agent.targeted_models import TargetedData
 from app.agent.tools import ToolContext
 from app.config import Settings
-from app.pipeline import CompanyNotFound
+from app.domain.pipeline import CompanyNotFound
 
 
 INN = "6165169320"
@@ -19,7 +19,7 @@ def run_legal(monkeypatch, report):
     snapshot = {"inn": INN, "short_name": "Компания", "document": {"report": report}}
     monkeypatch.setattr("app.agent.legal.repository.get_latest_snapshot", AsyncMock(return_value=snapshot))
     prohibited = AsyncMock(side_effect=AssertionError("targeted legal called full check"))
-    monkeypatch.setattr("app.pipeline.run_check", prohibited)
+    monkeypatch.setattr("app.domain.pipeline.run_check", prohibited)
     monkeypatch.setattr("app.agent.tools.run_check", prohibited)
     context = ToolContext(Settings(llm_mock=True), client=None, persist=False)
     result = asyncio.run(execute_legal_data(context, FullCompanyCheckArgs(inn=INN)))

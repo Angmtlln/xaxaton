@@ -19,7 +19,10 @@ services:
       retries: 10
 
   api:
-    build: .
+    # Образу нужны обе части проекта, поэтому контекст — корень репозитория.
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
     container_name: contractors-api
     env_file: .env
     environment:

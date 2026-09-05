@@ -6,10 +6,10 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from app import repository
+from app.infrastructure import repository
 from app.domain.facts import CALCULATOR_VERSION, build_reliability
-from app.mongo import as_float, parse_date
-from app.pipeline import CompanyNotFound, _company_card
+from app.infrastructure.mongo import as_float, parse_date
+from app.domain.pipeline import CompanyNotFound, _company_card
 
 from .models import (FullCheckCompany, FullCompanyCheckArgs, PolicySignal,
                      ToolFact, ToolFreshness, ToolResult, ToolResultMetadata)
@@ -142,6 +142,19 @@ async def execute_legal_data(context: ToolContext, args: BaseModel) -> ToolResul
     snapshot = await repository.get_latest_snapshot(parsed.inn)
     if snapshot is None or not snapshot.get("document"):
         raise CompanyNotFound(parsed.inn)
+    data = build_legal_data(snapshot)
+    return ToolResult(
+        status="success" if data.availability == "DATA" else "partial",
+        data=data.model_dump(mode="json"),
+        evidence=[_evidence_from_fact(fact) for fact in data.facts.values()],
+        warnings=data.gaps, freshness=ToolFreshness(report_date=data.company.report_date),
+        metadata=ToolResultMetadata(tool="get_legal_data", latency_ms=0,
+                                    calculator_version=CALCULATOR_VERSION),
+    )
+
+
+def build_legal_data(snapshot: dict) -> TargetedData:
+    """Пересобирает только legal facts; та же логика нужна и в сравнении."""
     document = snapshot["document"]
     report, gaps = _safe_report(document)
     index = build_reliability(report).index()
@@ -250,16 +263,8 @@ async def execute_legal_data(context: ToolContext, args: BaseModel) -> ToolResul
         if isinstance(value, str):
             company_payload[key] = _clean_text(value, 800)
     company = FullCheckCompany.model_validate(company_payload)
-    data = TargetedData(
+    return TargetedData(
         domain="legal", company=company, availability=availability, facts=facts,
         metric_ids=[item for item in METRIC_IDS if item in facts][:8],
         policy_signals=policy_signals, gaps=gaps[:10],
-    )
-    return ToolResult(
-        status="success" if availability == "DATA" else "partial",
-        data=data.model_dump(mode="json"),
-        evidence=[_evidence_from_fact(fact) for fact in facts.values()],
-        warnings=gaps[:10], freshness=ToolFreshness(report_date=company.report_date),
-        metadata=ToolResultMetadata(tool="get_legal_data", latency_ms=0,
-                                    calculator_version=CALCULATOR_VERSION),
     )

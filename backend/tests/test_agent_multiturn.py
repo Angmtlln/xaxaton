@@ -9,7 +9,7 @@ from app.agent.conversations import ConversationStore
 from app.agent.models import ToolError, ToolFact, ToolResult, ToolResultMetadata
 from app.agent.runtime import MasterAgentRuntime
 from app.agent.tools import _evidence_from_fact
-from test_agent_runtime import _runtime, _model, _tool_call
+from test_agent_runtime import _runtime, _model, _tool_call, _verified_context
 
 
 def targeted_result(domain="finance", inn="6165169320", availability="DATA"):
@@ -65,8 +65,7 @@ async def test_full_check_then_finance_and_legal_use_active_company_and_second_m
     assert second.metadata.model_calls == third.metadata.model_calls == 3
     assert second.metadata.synthesis == third.metadata.synthesis == "model"
     for index, domain in ((4, "finance"), (7, "legal")):
-        observation = next(m for m in model._messages[index] if isinstance(m, ToolMessage))
-        payload = json.loads(observation.content)
+        payload = _verified_context(model._messages[index])
         assert payload["domain"] == domain
         assert payload["evidence"][0]["field_ref"] == "report.test"
 
