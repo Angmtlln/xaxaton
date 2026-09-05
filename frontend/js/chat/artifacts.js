@@ -1,7 +1,10 @@
 /* Рендер allowlisted UIBlock из ответа агента. Модуль не знает о состоянии
    диалога: всё, что нужно снаружи, приходит через context и hooks. */
 import { element, safeArray, numericValue } from '../shared/dom.js';
-import { buildChart, compactNumber, formatChartValue } from './chart.js';
+import { buildChart } from './chart.js';
+import { renderDashboard } from './dashboard.js';
+import { renderNews } from './news.js';
+import { appendProse } from './prose.js';
 
 const STATUS_LABELS = {
   completed: 'Проверка завершена',
@@ -55,55 +58,6 @@ function appendEvidenceButtons(parent, context, ids) {
   const row = element('div', 'block-evidence-links');
   buttons.forEach((button) => row.appendChild(button));
   parent.appendChild(row);
-}
-
-function safeReportUrl(block) {
-  // Only local report navigation is allowed, including restored session data.
-  const url = String(block.report_url || '');
-  if (/^\/report\?inn=\d{10}(?:\d{2})?$/.test(url)) return url;
-  return /^\d{10}(?:\d{2})?$/.test(String(block.inn || ''))
-    ? `/report?inn=${block.inn}` : null;
-}
-
-// Fixed source-code labels only; bank and ZSK remain independent values.
-const COMPANY_STATUS_LABELS = { CURRENT: 'Действующая' };
-const BANK_LEVEL_LABELS = { LOW: 'Низкий', MEDIUM: 'Средний', HIGH: 'Высокий', UNKNOWN: 'Неизвестно' };
-const ZSK_LEVEL_LABELS = { GREEN: 'Зелёный', YELLOW: 'Жёлтый', RED: 'Красный', UNKNOWN: 'Неизвестно' };
-
-function sourceLabel(value, labels) {
-  if (value === null || value === undefined || value === '') return 'Нет данных';
-  return Object.hasOwn(labels, value) ? labels[value] : String(value);
-}
-
-function renderCompanySummary(block, context) {
-  const card = element('section', 'rich-block company-summary');
-  card.setAttribute('aria-label', 'Кратко о компании');
-  const identity = element('div', 'company-summary-identity');
-  identity.append(
-    element('h2', null, block.name || 'Контрагент'),
-    element('span', 'company-summary-inn', `ИНН ${block.inn || 'не указан'}`),
-  );
-  const reportUrl = safeReportUrl(block);
-  if (reportUrl) {
-    const link = element('a', 'company-report-link', 'Полный анализ ↗');
-    link.href = reportUrl;
-    identity.appendChild(link);
-    if (context.onReportUrl) context.onReportUrl(reportUrl);
-  }
-  const facts = element('dl', 'company-summary-facts');
-  addDefinition(facts, 'Статус', sourceLabel(block.status, COMPANY_STATUS_LABELS));
-  addDefinition(facts, 'Возраст, лет', block.years_from_registration == null
-    ? 'Нет данных' : block.years_from_registration);
-  addDefinition(facts, 'Оценка банка', sourceLabel(block.bank_risk_level, BANK_LEVEL_LABELS));
-  addDefinition(facts, 'Светофор ЗСК', sourceLabel(block.zsk_risk_level, ZSK_LEVEL_LABELS));
-  card.append(identity, facts);
-  return card;
-}
-
-function addDefinition(list, label, value, wide = false) {
-  const group = element('div', `company-data-item${wide ? ' company-data-wide' : ''}`);
-  group.append(element('dt', null, label), element('dd', null, value));
-  list.appendChild(group);
 }
 
 function renderTextBlock(block, context) {
@@ -162,6 +116,7 @@ function renderLineChart(block, context) {
 
 function renderFindingList(block, context) {
   const card = element('section', 'rich-block finding-block');
+  if (block.title === 'Метки источника') card.classList.add('policy-block');
   card.appendChild(element('h3', null, block.title || 'Наблюдения'));
   const items = safeArray(block.items);
   if (!items.length) {
@@ -287,7 +242,7 @@ function renderComparisonTable(block, context) {
 }
 
 const BLOCK_RENDERERS = {
-  company_card: renderCompanySummary,
+  company_card: renderDashboard,
   text: renderTextBlock,
   metric_grid: renderMetricGrid,
   line_chart: renderLineChart,
@@ -320,14 +275,14 @@ export function buildAssistantMessage(payload, hooks = {}) {
       .map((item) => [item.id, item])),
     onReportUrl: hooks.onReportUrl,
   };
+  context.evidenceButton = (id) => evidenceButton(context, id);
   if (payload.leading_artifact) {
     body.appendChild(payload.leading_artifact.type === 'company_summary'
-      ? renderCompanySummary(payload.leading_artifact, context) : renderUnsupportedBlock());
+      ? renderDashboard(payload.leading_artifact, context) : renderUnsupportedBlock());
   }
   const lead = element('div', 'assistant-lead');
   if (metadata.status && metadata.status !== 'completed') lead.appendChild(statusBadge(metadata.status));
-  String(payload.message || 'Ответ не сформирован.').split(/\n\s*\n/).filter(Boolean)
-    .forEach((paragraph) => lead.appendChild(element('p', null, paragraph)));
+  appendProse(lead, payload.message || 'Ответ не сформирован.');
   body.appendChild(lead);
 
   const blocks = safeArray(payload.blocks).filter((block) => !block || block.type !== 'evidence_list');
@@ -356,6 +311,9 @@ export function buildAssistantMessage(payload, hooks = {}) {
     });
     body.appendChild(actionRow);
   }
+
+  const news = renderNews(payload, prefix);
+  if (news) body.appendChild(news);
 
   article.append(avatar, body);
   return article;

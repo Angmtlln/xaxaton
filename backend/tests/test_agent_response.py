@@ -59,6 +59,18 @@ async def test_response_hydrates_metrics_chart_and_evidence_from_tool(monkeypatc
     for item in metric_block.items:
         if item.id in facts:
             assert item.value == facts[item.id]["value"]
+    summary_metrics = response.leading_artifact.metrics
+    assert [item.id for item in summary_metrics] == [
+        "fin.proceeds_last", "fin.profit_last", "court.defendant_count", "execproc.active_count",
+    ]
+    assert not {item.id for item in summary_metrics} & {item.id for item in metric_block.items}
+    for item in summary_metrics:
+        assert item.value == facts[item.id]["value"]
+        assert item.evidence_id in {evidence.id for evidence in response.evidence}
+    latest_year = str(max(row["year"] for row in facts["fin.series"]["value"]))
+    assert summary_metrics[0].label == "Выручка · " + latest_year
+    assert summary_metrics[1].label == "Прибыль · " + latest_year
+    assert "fin.series" in response.leading_artifact.evidence_ids
 
     chart_response = _assistant(result, MasterAnswer(message="На графике видна проверенная динамика.", artifact="chart"))
     chart = next(block for block in chart_response.blocks if block.type == "line_chart")
@@ -115,6 +127,15 @@ async def test_assistant_contract_rejects_unknown_blocks_html_and_fake_evidence(
     fake_evidence["leading_artifact"]["evidence_ids"] = ["fact.does.not.exist"]
     with pytest.raises(ValidationError):
         AssistantResponse.model_validate(fake_evidence)
+
+    fake_metric = copy.deepcopy(payload)
+    fake_metric["leading_artifact"]["metrics"][0]["evidence_id"] = "unknown.metric"
+    with pytest.raises(ValidationError):
+        AssistantResponse.model_validate(fake_metric)
+
+    old_payload = copy.deepcopy(payload)
+    del old_payload["leading_artifact"]["metrics"]
+    assert AssistantResponse.model_validate(old_payload).leading_artifact.metrics == []
 
     unsafe_report_link = copy.deepcopy(payload)
     unsafe_report_link["leading_artifact"]["report_url"] = "javascript:alert(1)"
@@ -193,6 +214,25 @@ async def test_company_summary_fields_come_from_facts_not_legacy_company(monkeyp
     original = _assistant(result).leading_artifact
     result.data["company"].update(short_name="Выдуманное название", status="НЕИЗВЕСТНО", risk_level="FAKE")
     assert _assistant(result).leading_artifact == original
+
+
+@pytest.mark.asyncio
+async def test_summary_distinguishes_zero_null_and_absent_metrics(monkeypatch, check_payload):
+    payload = copy.deepcopy(check_payload)
+    for block in payload["blocks"]:
+        block["facts"] = [fact for fact in block["facts"] if fact["id"] != "fin.profit_last"]
+        for fact in block["facts"]:
+            if fact["id"] == "fin.proceeds_last":
+                fact["value"] = None
+            if fact["id"] == "court.defendant_count":
+                fact["value"] = 0
+    response = _assistant(await _tool_result(monkeypatch, payload))
+    metrics = {item.id: item for item in response.leading_artifact.metrics}
+    assert metrics["fin.proceeds_last"].state == "no_data"
+    assert metrics["fin.profit_last"].state == "no_data"
+    assert metrics["fin.profit_last"].evidence_id is None
+    assert metrics["court.defendant_count"].state == "data"
+    assert metrics["court.defendant_count"].value == 0
 
 
 @pytest.mark.asyncio

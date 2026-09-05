@@ -1,6 +1,6 @@
 /* Экран диалога: состояние беседы, отправка сообщений и подписки на события.
    Рендер артефактов живёт в artifacts.js, сетевой вызов — в api.js. */
-import { element, safeArray } from '../shared/dom.js';
+import { element } from '../shared/dom.js';
 import { buildAssistantMessage } from './artifacts.js';
 import { requestErrorText, sendChatMessage } from './api.js';
 
@@ -28,8 +28,8 @@ function saveConversation() {
 
 function showActiveCompany() {
   activeCompanyBar.hidden = !conversationId && !conversationHistory.length;
-  input.placeholder = activeCompany ? 'Продолжите: а что с прибылью или судами?'
-    : 'Спросите о контрагенте или укажите ИНН';
+  input.placeholder = activeCompany ? 'Уточните по компании'
+    : 'ИНН или вопрос о компании';
   activeCompanyLabel.textContent = activeCompany
     ? `${activeCompany.name || 'Контрагент'} · ИНН ${activeCompany.inn}`
     : 'Компания ещё не выбрана';
@@ -40,6 +40,7 @@ function resetConversation() {
   conversationId = null;
   activeCompany = null;
   conversationHistory = [];
+  thread.querySelectorAll('.news-section').forEach((section) => section.dispose?.());
   thread.replaceChildren();
   thread.hidden = true;
   intro.hidden = false;
@@ -63,7 +64,7 @@ function setBusy(value) {
 
 function scrollToLatest() {
   window.requestAnimationFrame(() => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    window.scrollTo({ top: document.body.scrollHeight, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   });
 }
 
@@ -161,7 +162,9 @@ async function sendMessage(message) {
     setBusy(false);
     input.focus({ preventScroll: true });
     const latest = thread.lastElementChild;
-    if (latest) latest.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (latest) window.requestAnimationFrame(() => latest.scrollIntoView({
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start',
+    }));
   }
 }
 

@@ -23,7 +23,7 @@
         </span>
       </a>
       <div class="chat-topbar-actions">
-        <span class="runtime-pill"><i aria-hidden="true"></i>Только проверенные данные</span>
+        <span class="runtime-pill"><i aria-hidden="true"></i>Данные и источники</span>
         <a class="last-report-link" id="last-report-link" href="/report" hidden>
           Полный анализ
         </a>
@@ -38,10 +38,10 @@
     </div>
     <section class="chat-intro" id="chat-intro" aria-labelledby="chat-title">
       <span class="chat-kicker">AI-аналитик контрагентов</span>
-      <h1 id="chat-title">Что хотите узнать о контрагенте?</h1>
+      <h1 id="chat-title">Разберёмся в контрагенте</h1>
       <p>
-        Укажите ИНН и задайте вопрос. Я помогу разобраться в финансах, судах
-        или проведу полную проверку. Обсуждение можно продолжить без повторного ИНН.
+        Укажите ИНН и задайте вопрос. Я проверю компанию, объясню цифры
+        и помогу оценить, что важно для вашей сделки.
       </p>
       <div class="prompt-examples" aria-label="Примеры запросов">
         <button type="button" class="prompt-example" data-prompt="Проверь контрагента 6165169320">
@@ -54,7 +54,7 @@
         </button>
         <button type="button" class="prompt-example" data-prompt="Какая прибыль у контрагента 6165169320?">
           <span>Разобраться в прибыли</span>
-          <small>Только финансовые данные</small>
+          <small>Прибыль, выручка и динамика</small>
         </button>
       </div>
     </section>
@@ -68,7 +68,7 @@
       <label class="sr-only" for="chat-input">Запрос о контрагенте</label>
       <div class="composer-control">
         <textarea id="chat-input" rows="1" maxlength="1000" autocomplete="off"
-                  placeholder="Спросите о контрагенте или укажите ИНН" aria-describedby="composer-hint"></textarea>
+                  placeholder="ИНН или вопрос о компании" aria-describedby="composer-hint"></textarea>
         <button class="send-button" id="send-button" type="submit" aria-label="Отправить запрос">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

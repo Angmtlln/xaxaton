@@ -36,6 +36,13 @@ COMPANY_EVIDENCE_IDS = (
     "bank.zsk_level",
 )
 
+SUMMARY_METRICS = {
+    "fin.proceeds_last": "Выручка · последний год",
+    "fin.profit_last": "Прибыль · последний год",
+    "court.defendant_count": "Дел в роли ответчика",
+    "execproc.active_count": "Действующих производств",
+}
+
 GUARD_MESSAGES = {
     "missing_inn": "Укажите ИНН контрагента. После выбора компании можно задавать вопросы без повторного ИНН.",
     "invalid_inn": "Проверьте ИНН: нужны 10 или 12 цифр с корректными контрольными знаками.",
@@ -329,6 +336,9 @@ def _optional_artifact(data, evidence_by_id: Dict[str, Evidence], artifact: str)
             return chart
     if artifact == "metrics":
         block = _metric_block(data, evidence_by_id) if isinstance(data, FullCompanyCheckData) else _targeted_metrics(data)
+        if block is not None and isinstance(data, FullCompanyCheckData):
+            remaining = [item for item in block.items if item.id not in SUMMARY_METRICS]
+            block = block.model_copy(update={"items": remaining}) if remaining else None
         if block is not None and any(item.state == "data" for item in block.items):
             return block
     return None
@@ -369,8 +379,27 @@ def _company_summary(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evide
         bank_risk_level=value("bank.risk_level"),
         zsk_risk_level=value("bank.zsk_level"),
         report_url="/report?inn=%s" % inn,
-        evidence_ids=[key for key in COMPANY_EVIDENCE_IDS if key in evidence_by_id],
+        evidence_ids=[key for key in (*COMPANY_EVIDENCE_IDS, "fin.series") if key in evidence_by_id],
+        metrics=_summary_metrics(data, evidence_by_id),
     )
+
+
+def _summary_metrics(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence]):
+    available = {item.id: item for item in _metric_block(data, evidence_by_id).items}
+    labels = dict(SUMMARY_METRICS)
+    series = data.facts.get("fin.series")
+    rows = series.value if series is not None and isinstance(series.value, list) else []
+    years = [str(row.get("year")) for row in rows
+             if isinstance(row, dict) and str(row.get("year", "")).isdigit()]
+    if years:
+        year = max(years, key=int)
+        labels.update({"fin.proceeds_last": "Выручка · %s" % year,
+                       "fin.profit_last": "Прибыль · %s" % year})
+    return [
+        available[key].model_copy(update={"label": label}) if key in available else
+        MetricItem(id=key, label=label, display_value="Нет данных", state="no_data")
+        for key, label in labels.items()
+    ]
 
 
 def runtime_timeout_response(agent_run_id: str, started: float, *, tool_calls: int = 0) -> AssistantResponse:

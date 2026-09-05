@@ -17,7 +17,7 @@
 | LLM, grounding, guardrails | `backend/app/llm/agents.py`, `backend/app/llm/prompts.py` | `backend/app/llm/groq_client.py`, `backend/tests/test_groq_and_grounding.py` |
 | API и формат ответа | `backend/app/api/routes/`, `backend/app/api/schemas.py` | `backend/app/domain/pipeline.py`, Swagger `/docs` |
 | PostgreSQL и аудит | [`backend/docs/db_design.md`](../backend/docs/db_design.md), `backend/db/schema.sql` | `backend/app/infrastructure/repository.py`, `backend/scripts/load_snapshot.py` |
-| рабочий интерфейс демо | `frontend/index.html`, `frontend/report.html` | `frontend/js/chat/main.js`, `frontend/js/report/main.js`, `frontend/css/chat.css` |
+| рабочий интерфейс демо | [`CHAT_UI.md`](CHAT_UI.md), `frontend/index.html`, `frontend/report.html` | `frontend/js/chat/main.js`, `frontend/js/report/main.js`, `frontend/css/chat.css` |
 | визуальный React-прототип | [`design/prototype/README.md`](../design/prototype/README.md) | `design/prototype/app/` |
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |
 | содержательные behavioral evals Master | [`AGENT_EVALS.md`](../AGENT_EVALS.md), [`evals/README.md`](../backend/evals/README.md) | `backend/evals/scenarios.json`, `bank.py`, `run_local.py`, `graders.py`, `judge.py` |
@@ -119,6 +119,9 @@ POST /api/v1/chat/messages
   доменные агенты независимо используют Groq;
 - full-check synthesis включает OpenRouter web plugin: 0–4 новости возвращаются
   отдельно в `external_news`, без изменения внутренних фактов и оценок;
+  frontend показывает их горизонтальной полосой внизу полного ответа;
+- компактный `company_summary` содержит четыре проверенные метрики, банк/ЗСК
+  и незаполненную схему профиля рисков; новых оценок по направлениям нет;
 - persistent history в БД, name resolution, deal risk и streaming не реализованы;
 - банковские интеграции и большая база не относятся к готовому текущему проходу.
 

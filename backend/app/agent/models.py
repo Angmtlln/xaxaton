@@ -335,6 +335,7 @@ class CompanySummaryBlock(StrictModel):
     zsk_risk_level: Optional[SafeText] = None
     report_url: SafeText = Field(pattern=r"^/report\?inn=(?:\d{10}|\d{12})$")
     evidence_ids: List[SafeText] = Field(default_factory=list)
+    metrics: List["MetricItem"] = Field(default_factory=list, max_length=4)
 
 
 class MetricItem(StrictModel):
@@ -485,6 +486,10 @@ class AssistantResponse(StrictModel):
         referenced: List[str] = []
         if self.leading_artifact is not None:
             referenced.extend(self.leading_artifact.evidence_ids)
+            referenced.extend(
+                item.evidence_id for item in self.leading_artifact.metrics
+                if item.evidence_id is not None
+            )
         for block in self.blocks:
             if isinstance(block, (CompanyCardBlock, TextBlock, FindingListBlock)):
                 if isinstance(block, FindingListBlock):
