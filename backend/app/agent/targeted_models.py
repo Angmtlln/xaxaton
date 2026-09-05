@@ -3,7 +3,7 @@ from typing import Dict, List, Literal
 
 from pydantic import Field, model_validator
 
-from .models import FullCheckCompany, PolicySignal, SafeText, StrictModel, ToolFact
+from .models import DataSection, FullCheckCompany, PolicySignal, SafeText, StrictModel, ToolFact
 
 
 class TargetedData(StrictModel):
@@ -11,6 +11,7 @@ class TargetedData(StrictModel):
     company: FullCheckCompany
     availability: Literal["DATA", "PARTIAL", "NO_DATA"]
     facts: Dict[str, ToolFact]
+    sections: Dict[str, DataSection] = Field(default_factory=dict)
     metric_ids: List[SafeText] = Field(default_factory=list, max_length=8)
     series_ids: List[SafeText] = Field(default_factory=list, max_length=4)
     event_ids: List[SafeText] = Field(default_factory=list, max_length=8)
@@ -33,6 +34,8 @@ class ComparisonCompanyData(StrictModel):
     """Наблюдения по одной компании внутри сравнения; id фактов префиксованы ИНН."""
 
     inn: SafeText
+    sections: Dict[str, DataSection] = Field(default_factory=dict)
+    comparison_periods: Dict[str, int | None] = Field(default_factory=dict)
     company: FullCheckCompany
     availability: Literal["DATA", "PARTIAL", "NO_DATA"]
     metric_ids: List[SafeText] = Field(default_factory=list, max_length=16)
@@ -48,6 +51,7 @@ class ComparisonData(StrictModel):
     focus: List[Literal["finance", "legal"]] = Field(min_length=1, max_length=2)
     companies: List[ComparisonCompanyData] = Field(min_length=2, max_length=3)
     facts: Dict[str, ToolFact]
+    sections: Dict[str, DataSection] = Field(default_factory=dict)
     policy_signals: List[PolicySignal] = Field(default_factory=list, max_length=24)
 
     @model_validator(mode="after")

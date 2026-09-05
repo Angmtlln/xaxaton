@@ -103,18 +103,16 @@ def normalized_tool_context(result: ToolResult) -> dict:
         if full
         else {"state": data.availability, "gaps": data.gaps}
     )
-    company = {
-        "inn": data.company.inn,
-        "ogrn": data.company.ogrn,
-        "name": data.company.short_name or data.company.full_name,
-        "status": data.company.status,
-    }
+    company = data.company.model_dump(mode="json")
+    company["name"] = data.company.short_name or data.company.full_name
     return {
         "schema_version": "verified-context-1",
         "tool": result.metadata.tool,
         "domain": domain,
         "status": result.status,
         "company": company,
+        "freshness": result.freshness.model_dump(mode="json") if result.freshness else None,
+        "sections": {key: section.model_dump(mode="json") for key, section in data.sections.items()},
         "metrics": _observations(data, data.metric_ids),
         "series": _observations(data, data.series_ids),
         "events": _observations(data, data.event_ids),
@@ -134,6 +132,9 @@ def _comparison_context(data: ComparisonData, result: ToolResult, evidence) -> d
             "inn": item.company.inn,
             "name": item.company.short_name or item.company.full_name,
             "status": item.company.status,
+            "company": item.company.model_dump(mode="json"),
+            "sections": {key: section.model_dump(mode="json") for key, section in item.sections.items()},
+            "comparison_periods": item.comparison_periods,
             "coverage": {"state": item.availability, "gaps": item.gaps},
             "metrics": _observations(data, item.metric_ids),
             "statuses": _observations(data, item.status_ids),
@@ -148,6 +149,7 @@ def _comparison_context(data: ComparisonData, result: ToolResult, evidence) -> d
         "domain": "comparison",
         "status": result.status,
         "focus": list(data.focus),
+        "freshness": result.freshness.model_dump(mode="json") if result.freshness else None,
         "companies": companies,
         "evidence": [item.model_dump(mode="json") for item in evidence.values()],
         "warnings": list(dict.fromkeys(result.warnings)),

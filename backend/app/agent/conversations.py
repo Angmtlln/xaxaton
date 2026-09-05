@@ -41,10 +41,27 @@ def merge_trusted_context(current: Optional[dict], observation: dict) -> dict:
         raise ValueError("Trusted domain context is invalid or too large")
 
     previous = current if isinstance(current, dict) else {}
-    if (previous.get("company") or {}).get("inn") != inn:
+    previous_company = previous.get("company") or {}
+    if previous_company.get("inn") != inn or any(
+        previous_company.get(key) is not None and company.get(key) is not None
+        and previous_company[key] != company[key] for key in ("snapshot_id", "report_date")
+    ):
         previous = {}
     domains = dict(previous.get("domains") or {})
     domains[domain] = json.loads(encoded)
+    if domain == "full_check" and observation.get("sections"):
+        for topic, prefixes, section_names in (
+            ("finance", ("fin.",), {"finance_scope", "calculations", "coefficients"}),
+            ("legal", ("court.", "execproc.", "inspections."), {"court_years", "court_stages", "proceedings", "inspections", "legal_aggregates"}),
+        ):
+            projected = json.loads(encoded)
+            projected["domain"] = topic
+            for group in ("metrics", "series", "events"):
+                projected[group] = [item for item in projected[group] if item["id"].startswith(prefixes)]
+            projected["sections"] = {key: value for key, value in projected["sections"].items()
+                                     if key in section_names | {"source_dates", "available_sections", "data_gaps"}}
+            projected["evidence"] = [item for item in projected["evidence"] if item["fact_id"].startswith(prefixes + ("bank.", "flags.", "company."))]
+            domains[topic] = projected
     merged = {"company": dict(company), "domains": domains}
     if len(json.dumps(merged, ensure_ascii=False, separators=(",", ":"))) > TRUSTED_CONTEXT_LIMIT:
         # Preserve the new domain and the broad policy context, if available.

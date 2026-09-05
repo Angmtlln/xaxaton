@@ -41,7 +41,7 @@ def test_finance_reuses_builder_and_preserves_original_row_references(monkeypatc
     data = build_financial_data(snapshot, INN)
     assert len(calls) == 1
     assert set(calls[0]["report"]) == {"finReports"}
-    assert data.availability == "DATA"
+    assert data.availability == "PARTIAL"  # fixture does not disclose the extended balance
     assert data.facts["fin.proceeds.2024"].value == 150
     assert data.facts["fin.proceeds.2024"].field_ref == "report.finReports[0].common.proceeds"
     assert data.facts["fin.proceeds_change_pct"].value == 50
@@ -156,7 +156,7 @@ async def test_executor_reads_snapshot_only_and_returns_exact_evidence(monkeypat
     context = ToolContext(settings=settings, client=GroqClient(settings), persist=False)
     result = await execute_financial_data(context, FullCompanyCheckArgs(inn=INN))
     assert calls == [INN]
-    assert result.status == "success"
+    assert result.status == "partial"  # source omits balance items
     data = TargetedData.model_validate(result.data)
     for evidence in result.evidence:
         assert evidence.fact_id in data.facts

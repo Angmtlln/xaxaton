@@ -33,6 +33,7 @@ def build_langchain_tools(
     expected_inn: Optional[str] = None, execution: LangChainToolExecution,
     expected_tool: str = "full_company_check",
     expected_inns: Optional[List[str]] = None,
+    detail_args: Optional[dict] = None,
 ) -> List[StructuredTool]:
     """Идентификаторы компаний остаются за бэкендом: аргумент модели только сверяется."""
     definition = registry.get_definition(expected_tool)
@@ -56,11 +57,17 @@ def build_langchain_tools(
                  agent_run_id, expected_tool, result.status, result.metadata.latency_ms)
         return _observation(result)
 
-    async def execute(inn: str) -> tuple[str, Dict[str, object]]:
+    async def execute(inn: str, section: str = "default", year: Optional[int] = None, offset: int = 0) -> tuple[str, Dict[str, object]]:
         await reserve()
         if inn != expected_inn:
             execution.used_fallback = True
-        return await run({"inn": expected_inn}, expected_inn)
+        arguments = {"inn": expected_inn}
+        if expected_tool != "full_company_check":
+            if section != "default": arguments["section"] = section
+            if year is not None: arguments["year"] = year
+            if offset: arguments["offset"] = offset
+            arguments.update(detail_args or {})
+        return await run(arguments, expected_inn)
 
     async def execute_comparison(
         inns: List[str], focus: str = "both"

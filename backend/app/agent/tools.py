@@ -15,7 +15,7 @@ from app.config import Settings
 from app.llm.groq_client import GroqClient
 from app.domain.pipeline import CompanyNotFound, run_check
 
-from .models import (CompareCompaniesArgs, Evidence, FullCheckCompany,
+from .models import (CompareCompaniesArgs, FinancialDataArgs, LegalDataArgs, Evidence, FullCheckCompany,
                      FullCheckCoverage,
                      FullCompanyCheckArgs, FullCompanyCheckData, PolicySignal,
                      ToolError, ToolFact, ToolFreshness, ToolResult,
@@ -216,7 +216,7 @@ def build_tool_registry(settings: Settings) -> ToolRegistry:
             ToolDefinition(
                 name=name,
                 description=description,
-                input_model=FullCompanyCheckArgs,
+                input_model=FinancialDataArgs if name == "get_financial_data" else LegalDataArgs,
                 output_model=TargetedData,
                 risk_class="read_only",
                 side_effects="none",
@@ -259,10 +259,12 @@ async def _execute_full_company_check(context: ToolContext, args: BaseModel) -> 
         include_summary=False,
     )
     check = CheckResponse.model_validate(check_payload)
-    data, evidence = _compact_check(check)
+    data, evidence = _compact_check(check, snapshot=check_payload.get("_agent_snapshot"))
     warnings: List[str] = []
     if check.status == "PARTIAL":
         warnings.append("Некоторые разделы удалось оценить только по фактам исходной карточки.")
+    warnings.extend(data.sections.get("data_gaps").value if "data_gaps" in data.sections else [])
+    warnings = list(dict.fromkeys(warnings))[:20]
     if check.grounding.unverified:
         warnings.append(
             "Часть утверждений не удалось подтвердить по источникам; они не включены в ответ."
@@ -282,7 +284,7 @@ async def _execute_full_company_check(context: ToolContext, args: BaseModel) -> 
     )
 
 
-def _compact_check(check: CheckResponse) -> tuple[FullCompanyCheckData, List[Evidence]]:
+def _compact_check(check: CheckResponse, *, snapshot=None) -> tuple[FullCompanyCheckData, List[Evidence]]:
     fact_index = {
         fact.id: fact
         for block in check.blocks
@@ -361,7 +363,44 @@ def _compact_check(check: CheckResponse) -> tuple[FullCompanyCheckData, List[Evi
         policy_signals=policy_signals,
         calculator_version=_clean_text(check.llm.calculator_version, 120),
     )
+    if snapshot is not None:
+        data = _expanded_check(data, snapshot)
+        evidence = [_evidence_from_fact(fact) for fact in data.facts.values()]
     return data, evidence
+
+
+def _expanded_check(data, snapshot):
+    from .finance import build_financial_data
+    from .legal import build_legal_data
+    from .data_sections import company_from_snapshot, profile_sections, claim_scale
+    from .models import DataSection
+    finance = build_financial_data(snapshot, data.inn)
+    legal = build_legal_data(snapshot)
+    facts = {key: fact for key, fact in data.facts.items()
+             if not key.startswith(("fin.", "court.", "execproc.", "inspections."))}
+    # A single set of null/zero/year rules for FC and targeted paths.
+    facts.update(legal.facts)
+    facts["fin.series"] = finance.facts["fin.series"]
+    rows = facts["fin.series"].value
+    aliases = {"proceeds": "fin.proceeds_last", "profit": "fin.profit_last", "capitals": "fin.capitals_last"}
+    if rows:
+        for key, alias in aliases.items():
+            fact = finance.facts["fin.%s.%s" % (key, rows[-1]["year"])]
+            facts[alias] = fact.model_copy(update={"id": alias})
+    if "fin.proceeds_change_pct" in finance.facts:
+        facts["fin.proceeds_change_pct"] = finance.facts["fin.proceeds_change_pct"]
+    sections = {**profile_sections(snapshot, "profile"), **finance.sections, **legal.sections}
+    sections["claim_scale"] = claim_scale(finance, legal)
+    gaps = list(dict.fromkeys(finance.gaps + legal.gaps))
+    sections["data_gaps"] = DataSection(field_ref="report", value=gaps)
+    availability = "NO_DATA" if finance.availability == legal.availability == "NO_DATA" and data.availability == "NO_DATA" else (
+        "PARTIAL" if gaps or data.availability != "DATA" else "DATA")
+    return data.model_copy(update={
+        "company": company_from_snapshot(snapshot, data.inn), "facts": facts, "sections": sections,
+        "availability": availability,
+        "metric_ids": [key for key in FULL_CHECK_METRIC_IDS if key in facts],
+        "series_ids": ["fin.series"] if rows else [], "event_ids": [],
+    })
 
 
 def display_fact_value(fact: ToolFact) -> str:

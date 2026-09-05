@@ -192,6 +192,13 @@ npm run dev
   диалог в sessionStorage вкладки. Новый диалог сбрасывает клиентский контекст.
 - Подробности, API-пример и проверка: [MULTI_TURN_CHAT.md](MULTI_TURN_CHAT.md).
 
+## Доступность исходных данных
+
+- [DATA_COVERAGE.md](DATA_COVERAGE.md): source → ToolResult → Master, формулы,
+  тематические разделы и страницы существующих tools.
+- [DATA_SOURCE_INVENTORY.md](DATA_SOURCE_INVENTORY.md): все 19 разделов 100 снимков.
+- [GET_FULL_REPORT_FIELDS.md](GET_FULL_REPORT_FIELDS.md): предоставленная расшифровка.
+
 ## Latency chat path
 
 - [CHAT_LATENCY.md](CHAT_LATENCY.md): before/after waterfall, provider routing и

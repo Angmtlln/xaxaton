@@ -172,6 +172,45 @@ class PolicySignal(StrictModel):
     evidence_ids: List[SafeText] = Field(default_factory=list, max_length=8)
 
 
+class DataSection(StrictModel):
+    """Bounded source section; paths refer to the enclosing company's snapshot."""
+    field_ref: SafeText
+    inputs: Dict[str, JsonValue] = Field(default_factory=dict)
+    state: Literal["data", "missing", "null", "invalid", "empty", "not_calculable"] = "data"
+    value: JsonValue = None
+    total: Optional[int] = Field(default=None, ge=0)
+    offset: int = Field(default=0, ge=0)
+    included: Optional[int] = Field(default=None, ge=0)
+    truncated: bool = False
+    scope: SafeText = "source snapshot"
+    next_offset: Optional[int] = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def validate_section(self):
+        if self.included is not None and isinstance(self.value, list) and self.included != len(self.value):
+            raise ValueError("Section included count must match records")
+        if isinstance(self.value, list):
+            for item in self.value:
+                if isinstance(item, dict) and "input_refs" in item:
+                    if set(item["input_refs"]) - self.inputs.keys():
+                        raise ValueError("Unknown calculation input")
+        return self
+
+
+class DomainDataArgs(FullCompanyCheckArgs):
+    section: Literal["default", "profile", "finance", "legal", "proceedings", "inspections", "licenses", "procurements", "signals", "activity", "connections"] = "default"
+    year: Optional[int] = Field(default=None, ge=1900, le=2100)
+    offset: int = Field(default=0, ge=0, le=100000)
+
+
+class FinancialDataArgs(DomainDataArgs):
+    section: Literal["default", "finance", "profile", "inspections", "licenses", "procurements", "signals", "activity", "connections"] = "default"
+
+
+class LegalDataArgs(DomainDataArgs):
+    section: Literal["default", "legal", "profile", "proceedings", "inspections", "licenses", "procurements", "signals", "activity", "connections"] = "default"
+
+
 class FullCheckCompany(StrictModel):
     inn: SafeText
     ogrn: Optional[SafeText] = None
@@ -180,6 +219,9 @@ class FullCheckCompany(StrictModel):
     address: Optional[SafeText] = None
     status: Optional[SafeText] = None
     registration_date: Optional[SafeText] = None
+    status_reason: Optional[SafeText] = None
+    status_date: Optional[SafeText] = None
+    snapshot_id: Optional[SafeText] = None
     years_from_registration: Optional[int] = None
     risk_level: Optional[SafeText] = None
     zsk_risk_level: Optional[SafeText] = None
@@ -207,6 +249,7 @@ class FullCompanyCheckData(StrictModel):
     status_ids: List[SafeText] = Field(default_factory=list, max_length=8)
     policy_signals: List[PolicySignal] = Field(default_factory=list, max_length=12)
     calculator_version: SafeText
+    sections: Dict[str, DataSection] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_verified_links(self) -> "FullCompanyCheckData":

@@ -59,7 +59,7 @@ def test_chat_api_runs_complete_vertical_slice_once(
     [
         "Проверь контрагента",
         "Проверь контрагента 1234567890",
-        "Какие тендеры у 6165169320?",
+        "Какие счета-фактуры у 6165169320?",
     ],
 )
 def test_chat_api_does_not_run_check_without_valid_broad_request(

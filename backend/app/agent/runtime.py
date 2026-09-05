@@ -47,7 +47,7 @@ ANSWER_MAX_TOKENS = 4096
 VERIFIER_MAX_TOKENS = 4096
 REPAIR_MAX_TOKENS = 4096
 GRAPH_RECURSION_LIMIT = 12
-TOOL_BUNDLE_VERSION = "counterparty-tools-3.0.0"
+TOOL_BUNDLE_VERSION = "counterparty-tools-3.1.0"
 DIGIT_SEQUENCE_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
 CHECK_WORD_RE = re.compile(r"\bпров(?:ерь(?:те)?|ер(?:ить|ка|ку|ьте))\b", re.I)
 BROAD_TARGET_RE = re.compile(r"\b(?:контрагент\w*|компан\w*|организац\w*|юрлиц\w*|инн)\b", re.I)
@@ -210,8 +210,10 @@ class MasterAgentRuntime:
                 not switching_company
                 and requested_topic
                 and not requests_refresh(message)
+                and not detail_arguments(message)
                 and not re.search(r"\b(?:19|20)[0-9]{2}\b", message)
                 and (trusted_store or {}).get("domains", {}).get(requested_topic) is not None
+                and is_default_projection((trusted_store or {})["domains"][requested_topic])
             ):
                 target, turn_last_topic = None, requested_topic
             selected_context = (
@@ -366,7 +368,7 @@ class MasterAgentRuntime:
             execution.result = await self.registry.execute(
                 target,
                 {"inns": list(inns), "focus": comparison_focus(message)}
-                if target == "compare_companies" else {"inn": inn},
+                if target == "compare_companies" else {"inn": inn, **(detail_arguments(message) if target != "full_company_check" else {})},
                 self.tool_context
             )
             log.info(
@@ -396,6 +398,7 @@ class MasterAgentRuntime:
                 expected_inns=inns,
                 execution=execution,
                 expected_tool=target,
+                detail_args=detail_arguments(message) if target != "full_company_check" else {},
             )
             middleware = [
                 _model_policy(
@@ -443,7 +446,7 @@ class MasterAgentRuntime:
             execution.used_fallback = True
             arguments = (
                 {"inns": list(inns or []), "focus": comparison_focus(message)}
-                if target == "compare_companies" else {"inn": inn}
+                if target == "compare_companies" else {"inn": inn, **(detail_arguments(message) if target != "full_company_check" else {})}
             )
             log.info(
                 "agent_tool_call run_id=%s tool=%s inn=%s routing=deterministic_fallback call=1/1",
@@ -692,13 +695,39 @@ def requests_refresh(message: str) -> bool:
     return bool(re.search(r"\b(?:обнови\w*|перепроверь\w*|свеж\w*|актуальн\w*|заново|повторно)\b", message, re.I))
 
 
+def is_default_projection(context: dict) -> bool:
+    request = (context.get("sections", {}).get("request") or {}).get("value") or {}
+    return request.get("section", "default") == "default" and request.get("year") is None and not request.get("offset")
+
+
+def detail_arguments(message: str) -> dict:
+    """Named domain/page routing only; never a verifier of model prose."""
+    result = {}
+    for pattern, section in ((r"лиценз", "licenses"), (r"закуп|тендер", "procurements"),
+                             (r"надзор|инспекц", "inspections"), (r"оквэд|вид.*деятельност", "activity"),
+                             (r"положительн.*(?:метк|сведен)|маркер", "signals"),
+                             (r"связанн.*компан|учредител|филиал", "connections"),
+                             (r"профиль|сайт", "profile"), (r"производств", "proceedings")):
+        if re.search(pattern, message, re.I):
+            result["section"] = section
+            break
+    year = re.search(r"\b(19[0-9]{2}|20[0-9]{2})\b", message)
+    if year: result["year"] = int(year.group(1))
+    page = re.search(r"страниц[ауы]?\s*(\d+)", message, re.I)
+    if page: result["offset"] = max(0, min(100000, (int(page.group(1)) - 1) * 5))
+    return result
+
+
 def requested_tool(message: str) -> Optional[str]:
     """Small deterministic admission/router; it never validates answer prose."""
     if COMPARISON_RE.search(message):
         return None
     if FULL_PHRASE_RE.search(message):
         return "full_company_check"
-    finance = bool(FINANCE_TOPIC_RE.search(message))
+    section = detail_arguments(message).get("section")
+    if section in {"profile", "activity", "signals", "licenses", "procurements", "inspections", "connections", "proceedings"}:
+        return "get_legal_data"
+    finance = bool(FINANCE_TOPIC_RE.search(message)) or bool(re.search(r"ликвид|дебитор|актив|денежн|запас", message, re.I))
     legal = bool(LEGAL_TOPIC_RE.search(message))
     if finance and legal:
         return None

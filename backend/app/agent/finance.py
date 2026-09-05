@@ -12,6 +12,8 @@ from app.domain.pipeline import CompanyNotFound
 from .models import (FullCheckCompany, FullCompanyCheckArgs, ToolFact,
                      ToolFreshness, ToolResult, ToolResultMetadata)
 from .targeted_models import TargetedData
+from .data_sections import (numeric, company_from_snapshot, profile_sections, finance_calculations)
+from .models import DataSection, FinancialDataArgs
 from .tools import ToolContext, _clean_text, _evidence_from_fact
 
 
@@ -25,16 +27,33 @@ FIELDS = {
 }
 
 
+BALANCE_FIELDS = {
+    "total_assets": "assets.totalAssets",
+    "current_assets": "assets.currentAssets.total",
+    "receivables": "assets.currentAssets.receivables",
+    "bankroll": "assets.currentAssets.bankroll",
+    "stocks": "assets.currentAssets.stocks",
+    "noncurrent_assets": "assets.uncurrentAssets.total",
+    "fixed_assets": "assets.uncurrentAssets.fixedAssets",
+    "total_liabilities": "liabilities.totalLiabilities",
+    "short_term_total": "liabilities.shortTermLiabilities.total",
+    "borrowed_funds": "liabilities.shortTermLiabilities.borrowedFunds",
+    "long_term_total": "liabilities.longTermDuties.total",
+    "long_term_others": "liabilities.longTermDuties.others",
+}
+ALL_PATHS = {**{key: path for key, (_, path) in FIELDS.items()}, **BALANCE_FIELDS}
+
+
 def _number(value):
     return value if isinstance(value, (float, int)) and not isinstance(value, bool) and math.isfinite(value) else None
 
 
 async def execute_financial_data(context: ToolContext, args: FullCompanyCheckArgs) -> ToolResult:
-    parsed = FullCompanyCheckArgs.model_validate(args)
+    parsed = FinancialDataArgs.model_validate(args.model_dump())
     snapshot = await repository.get_latest_snapshot(parsed.inn)
     if snapshot is None:
         raise CompanyNotFound(parsed.inn)
-    data = build_financial_data(snapshot, parsed.inn)
+    data = build_financial_data(snapshot, parsed.inn, year=parsed.year, offset=parsed.offset, section=parsed.section)
     return ToolResult(
         status="success" if data.availability == "DATA" else "partial",
         data=data.model_dump(mode="json"),
@@ -48,8 +67,9 @@ async def execute_financial_data(context: ToolContext, args: FullCompanyCheckArg
     )
 
 
-def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
+def build_financial_data(snapshot: dict, inn: str, *, year=None, offset=0, section="default", limit=5) -> TargetedData:
     """Пересобирает только finance facts и сохраняет точные пути исходных строк."""
+    requested_year = year
     document = snapshot.get("document") or {}
     report = document.get("report", document) if isinstance(document, dict) else {}
     report = report if isinstance(report, dict) else {}
@@ -80,24 +100,35 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
     counts = Counter(year for year, _, _ in candidates)
     if any(count > 1 for count in counts.values()):
         gaps.append("Повторяющиеся отчётные годы исключены: значения требуют уточнения источника.")
-    selected = sorted((row for row in candidates if counts[row[0]] == 1), key=lambda row: row[0])[-5:]
+    all_selected = sorted((row for row in candidates if counts[row[0]] == 1), key=lambda row: row[0])
+    filtered = [row for row in all_selected if requested_year is None or row[0] == requested_year]
+    selected = list(reversed(list(reversed(filtered))[offset:offset + limit if limit is not None else None]))
     # Убираем чужие домены до вызова существующего builder.
     prepared = []
-    for year, _, item in selected:
-        prepared.append({
-            "common": {**item["common"], "year": year},
-            "assets": item.get("assets") if isinstance(item.get("assets"), dict) else {},
-            "liabilities": item.get("liabilities") if isinstance(item.get("liabilities"), dict) else {},
-        })
+    for row_year, _, item in selected:
+        clean = {"common": {"year": row_year}}
+        for path in ALL_PATHS.values():
+            node = clean
+            keys = path.split(".")
+            for key in keys[:-1]:
+                node = node.setdefault(key, {})
+            node[keys[-1]] = numeric(item, path)[0]
+        prepared.append(clean)
     finance = build_finance({"report": {"finReports": prepared}}).index()
     built_rows = finance["fin.series"].value if "fin.series" in finance else []
     facts = {}
     series = []
-    for row, (_, index, _) in zip(built_rows, selected):
+    for row, (_, index, raw) in zip(built_rows, selected):
         year = row["year"]
-        compact_row = {"year": year}
+        compact_row = {"year": year, "source_index": index}
+        states = {}
+        for key, path in ALL_PATHS.items():
+            compact_row[key], state = numeric(raw, path)
+            if state != "data":
+                states[key] = state
+        compact_row["field_states"] = states
         for key, (label, path) in FIELDS.items():
-            value = _number(row.get(key))
+            value = compact_row[key]
             compact_row[key] = value
             fact_id = "fin.%s.%s" % (key, year)
             facts[fact_id] = ToolFact(
@@ -113,6 +144,8 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
     metrics = []
     if series:
         last = series[-1]
+        if any(last[key] is None for key in BALANCE_FIELDS):
+            gaps.append("Часть балансовых статей последнего года не раскрыта; ограничения каждого расчёта указаны отдельно.")
         for key, (label, _) in FIELDS.items():
             fact_id = "fin.%s.%s" % (key, last["year"])
             metrics.append(fact_id)
@@ -122,7 +155,7 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
             gaps.append("В финансовом ряду есть пропуски выручки или прибыли; они не заменены нулями.")
         if len(series) >= 2 and series[-2]["year"] + 1 == last["year"]:
             prev = series[-2]
-            if prev["proceeds"] not in (None, 0) and last["proceeds"] is not None:
+            if prev["proceeds"] is not None and prev["proceeds"] > 0 and last["proceeds"] is not None:
                 change = round((last["proceeds"] - prev["proceeds"]) / abs(prev["proceeds"]) * 100, 1)
                 if math.isfinite(change):
                     fact_id = "fin.proceeds_change_pct"
@@ -136,21 +169,26 @@ def build_financial_data(snapshot: dict, inn: str) -> TargetedData:
                 else:
                     gaps.append("Динамика выручки не рассчитана: значения выходят за поддерживаемый диапазон.")
             else:
-                gaps.append("Динамика выручки не рассчитана: отсутствует значение или базовая выручка равна нулю.")
+                gaps.append("Динамика выручки не рассчитана: отсутствует значение или базовая выручка неположительна.")
         else:
             gaps.append("Для годовой динамики нужны два последовательных года отчётности.")
-    has_values = any(row[key] is not None for row in series for key in FIELDS)
+    has_values = any(row[key] is not None for row in series for key in ALL_PATHS)
     if not has_values:
         gaps.insert(0, "NO_DATA: невозможно оценить финансовое состояние по доступным данным.")
     gaps = list(dict.fromkeys(gaps))[:10]
-    company_values = {}
-    for key in ("short_name", "full_name", "report_date", "ogrn"):
-        value = snapshot.get(key)
-        if value is not None:
-            company_values[key] = _clean_text(value.isoformat() if hasattr(value, "isoformat") else str(value), 800)
+    sections = profile_sections(snapshot, section if section != "default" else "finance", offset)
+    sections["finance_scope"] = DataSection(field_ref="report.finReports[]", total=len(filtered),
+        included=len(series), offset=offset, truncated=len(series) < len(filtered),
+        next_offset=offset + len(series) if offset + len(series) < len(filtered) else None,
+        value={"years_available": [row[0] for row in all_selected], "paths": ALL_PATHS,
+               "year_filter": requested_year, "unit": "руб", "profit_definition": "прибыль (убыток), не обязательно чистая",
+               "bankroll_definition": "денежные средства и эквиваленты"},
+        scope="latest five unique years, ascending; missing fields retain individual states")
+    sections["calculations"] = finance_calculations(series, ALL_PATHS)
+    sections["request"] = DataSection(field_ref="report", value={"section": section, "year": requested_year, "offset": offset}, scope="requested projection, not source data")
     return TargetedData(
-        domain="finance", company=FullCheckCompany(inn=inn, **company_values),
+        domain="finance", company=company_from_snapshot(snapshot, inn),
         availability="NO_DATA" if not has_values else ("PARTIAL" if gaps else "DATA"),
         facts=facts, metric_ids=metrics,
-        series_ids=["fin.series"] if series else [], gaps=gaps,
+        series_ids=["fin.series"] if series else [], gaps=gaps, sections=sections,
     )

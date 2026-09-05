@@ -194,6 +194,7 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
                                     error="; ".join(sorted(set(errors))) or None)
 
     return {
+        **({"_agent_snapshot": snapshot} if not include_summary else {}),
         "run_id": run_id,
         "status": status,
         "inn": inn,

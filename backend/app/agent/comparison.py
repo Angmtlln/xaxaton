@@ -15,7 +15,7 @@ from app.infrastructure import repository
 
 from .finance import build_financial_data
 from .legal import build_legal_data
-from .models import (CompareCompaniesArgs, PolicySignal, ToolFact, ToolFreshness,
+from .models import (CompareCompaniesArgs, DataSection, PolicySignal, ToolFact, ToolFreshness,
                      ToolResult, ToolResultMetadata)
 from .targeted_models import ComparisonCompanyData, ComparisonData, TargetedData
 from .tools import ToolContext, _evidence_from_fact
@@ -64,7 +64,11 @@ def _collect(inn: str, parts: list[TargetedData]) -> tuple[ComparisonCompanyData
     status_ids: list[str] = []
     signal_ids: list[str] = []
     gaps: list[str] = []
+    sections = {}
     for part in parts:
+        sections.update(part.sections)
+        if part.domain == "finance":
+            sections["finance_series"] = DataSection(field_ref="report.finReports[]", value=part.facts["fin.series"].value)
         for fact in part.facts.values():
             renamed = fact.model_copy(update={"id": _prefixed(inn, fact.id)})
             facts[renamed.id] = renamed
@@ -98,7 +102,7 @@ def _collect(inn: str, parts: list[TargetedData]) -> tuple[ComparisonCompanyData
     facts = {fact_id: fact for fact_id, fact in facts.items() if fact_id in referenced}
 
     company = ComparisonCompanyData(
-        inn=inn,
+        inn=inn, sections=sections,
         company=parts[0].company,
         availability=_worst_availability([part.availability for part in parts]),
         metric_ids=metric_ids,
@@ -118,6 +122,8 @@ async def execute_comparison(context: ToolContext, args: BaseModel) -> ToolResul
     warnings: list[str] = []
     report_dates: list[str] = []
 
+    all_parts = []
+    complete_finances = []
     for inn in parsed.inns:
         snapshot = await repository.get_latest_snapshot(inn)
         if snapshot is None or not snapshot.get("document"):
@@ -127,7 +133,12 @@ async def execute_comparison(context: ToolContext, args: BaseModel) -> ToolResul
             parts.append(build_financial_data(snapshot, inn))
         if "legal" in focus:
             parts.append(build_legal_data(snapshot))
+        all_parts.append(parts)
+        complete_finances.append(build_financial_data(snapshot, inn, limit=None) if "finance" in focus else None)
         company, company_facts, company_signals = _collect(inn, parts)
+        if len(parts) == 2:
+            from .data_sections import claim_scale
+            company.sections["claim_scale"] = claim_scale(parts[0], parts[1])
         companies.append(company)
         facts.update(company_facts)
         signals.extend(company_signals)
@@ -135,6 +146,29 @@ async def execute_comparison(context: ToolContext, args: BaseModel) -> ToolResul
         warnings.extend("%s: %s" % (name, gap) for gap in company.gaps)
         if company.company.report_date:
             report_dates.append(company.company.report_date)
+
+    for measure in ("proceeds", "profit", "capitals", "accounts_payable"):
+        by_company = []
+        for finance in complete_finances:
+            rows = finance.facts["fin.series"].value if finance else []
+            by_company.append({row["year"]: row for row in rows if row.get(measure) is not None})
+        common = set.intersection(*(set(rows) for rows in by_company))
+        year = max(common) if common else None
+        for company, finance in zip(companies, complete_finances):
+            company.comparison_periods[measure] = year
+            if year is not None:
+                fact = finance.facts["fin.%s.%s" % (measure, year)]
+                renamed = fact.model_copy(update={"id": _prefixed(company.inn, fact.id)})
+                for i, current in enumerate(company.metric_ids):
+                    if measure_key(current.split(":", 1)[1]) == measure:
+                        facts.pop(current, None)
+                        company.metric_ids[i] = renamed.id
+                facts[renamed.id] = renamed
+            elif "finance" in focus:
+                gap = "%s: нет общего заполненного года; показаны индивидуальные годы." % measure
+                company.gaps = list(dict.fromkeys(company.gaps + [gap]))[:10]
+    if "finance" in focus and any(v is None for c in companies for v in c.comparison_periods.values()):
+        warnings.append("Не все финансовые строки имеют общий заполненный год; сравнение ограничено.")
 
     data = ComparisonData(
         focus=focus, companies=companies, facts=facts, policy_signals=signals[:24],

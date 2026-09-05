@@ -277,7 +277,7 @@ async def test_rewrite_with_new_fact_request_still_runs_grounding(monkeypatch):
     model = _model(
         AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
         answer("Одна прибыль не доказывает устойчивость будущего платежа."), SUPPORTED,
-        answer("Проще: у компании 99 филиалов."), UNSUPPORTED,
+        answer("Проще: у компании 99 сотрудников."), UNSUPPORTED,
         answer("Проще: одной цифры прибыли недостаточно для вывода об устойчивости."),
         SUPPORTED,
     )
@@ -287,11 +287,11 @@ async def test_rewrite_with_new_fact_request_still_runs_grounding(monkeypatch):
 
     first = await runtime.run("Финансы 6165169320")
     second = await runtime.run(
-        "Объясни проще и добавь, сколько у них филиалов", first.conversation_id
+        "Объясни проще и добавь, сколько у них сотрудников", first.conversation_id
     )
 
     assert len(calls) == 1
-    assert "99 филиалов" not in second.message
+    assert "99 сотрудников" not in second.message
     assert second.metadata.tool_calls == 0
     assert second.metadata.model_calls == 4
     assert second.metadata.grounding_status == "repaired"

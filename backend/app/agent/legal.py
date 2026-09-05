@@ -14,6 +14,8 @@ from app.domain.pipeline import CompanyNotFound, _company_card
 from .models import (FullCheckCompany, FullCompanyCheckArgs, PolicySignal,
                      ToolFact, ToolFreshness, ToolResult, ToolResultMetadata)
 from .targeted_models import TargetedData
+from .data_sections import company_from_snapshot, legal_sections
+from .models import LegalDataArgs, DataSection
 from .tools import ToolContext, _clean_text, _evidence_from_fact
 
 
@@ -138,11 +140,11 @@ def _safe_report(document: Any) -> tuple[dict, list[str]]:
 
 
 async def execute_legal_data(context: ToolContext, args: BaseModel) -> ToolResult:
-    parsed = FullCompanyCheckArgs.model_validate(args)
+    parsed = LegalDataArgs.model_validate(args.model_dump())
     snapshot = await repository.get_latest_snapshot(parsed.inn)
     if snapshot is None or not snapshot.get("document"):
         raise CompanyNotFound(parsed.inn)
-    data = build_legal_data(snapshot)
+    data = build_legal_data(snapshot, year=parsed.year, offset=parsed.offset, section=parsed.section)
     return ToolResult(
         status="success" if data.availability == "DATA" else "partial",
         data=data.model_dump(mode="json"),
@@ -153,7 +155,7 @@ async def execute_legal_data(context: ToolContext, args: BaseModel) -> ToolResul
     )
 
 
-def build_legal_data(snapshot: dict) -> TargetedData:
+def build_legal_data(snapshot: dict, *, year=None, offset=0, section="default") -> TargetedData:
     """Пересобирает только legal facts; та же логика нужна и в сравнении."""
     document = snapshot["document"]
     report, gaps = _safe_report(document)
@@ -258,13 +260,15 @@ def build_legal_data(snapshot: dict) -> TargetedData:
     availability = "NO_DATA" if not facts else ("PARTIAL" if gaps else "DATA")
     if availability == "NO_DATA":
         gaps.insert(0, "Правовое положение невозможно оценить по доступным данным.")
-    company_payload = _company_card(snapshot)
-    for key, value in company_payload.items():
-        if isinstance(value, str):
-            company_payload[key] = _clean_text(value, 800)
-    company = FullCheckCompany.model_validate(company_payload)
+    company = company_from_snapshot(snapshot)
+    sections = legal_sections(snapshot, year=year, offset=offset, section=section)
+    sections["legal_aggregates"] = DataSection(field_ref="report.arbitrationCases[]; report.executionProceedings[]; report.inspections[]",
+        value={key: {"value": fact.value, "unit": fact.unit, "field_ref": fact.field_ref}
+               for key, fact in facts.items() if not key.startswith("flags.")},
+        scope="all disclosed snapshot records; incomplete aggregates omitted")
+    sections["request"] = DataSection(field_ref="report", value={"section": section, "year": year, "offset": offset}, scope="requested projection, not source data")
     return TargetedData(
         domain="legal", company=company, availability=availability, facts=facts,
         metric_ids=[item for item in METRIC_IDS if item in facts][:8],
-        policy_signals=policy_signals, gaps=gaps[:10],
+        policy_signals=policy_signals, gaps=gaps[:10], sections=sections,
     )
