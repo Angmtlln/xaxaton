@@ -182,6 +182,8 @@ def build_financial_data(snapshot: dict, inn: str, *, year=None, offset=0, secti
         next_offset=offset + len(series) if offset + len(series) < len(filtered) else None,
         value={"years_available": [row[0] for row in all_selected], "paths": ALL_PATHS,
                "year_filter": requested_year, "unit": "руб", "profit_definition": "прибыль (убыток), не обязательно чистая",
+               "total_liabilities_definition": "Все пассивы: капитал и обязательства вместе; не сумма долгов",
+               "capitals_definition": "Капитал и резервы по балансу; не сумма взносов собственников",
                "bankroll_definition": "денежные средства и эквиваленты"},
         scope="latest five unique years, ascending; missing fields retain individual states")
     sections["calculations"] = finance_calculations(series, ALL_PATHS)

@@ -51,8 +51,8 @@ def merge_trusted_context(current: Optional[dict], observation: dict) -> dict:
     domains[domain] = json.loads(encoded)
     if domain == "full_check" and observation.get("sections"):
         for topic, prefixes, section_names in (
-            ("finance", ("fin.",), {"finance_scope", "calculations", "coefficients"}),
-            ("legal", ("court.", "execproc.", "inspections."), {"court_years", "court_stages", "proceedings", "inspections", "legal_aggregates"}),
+            ("finance", ("fin.",), {"finance_scope", "calculations", "coefficients", "finance_source_commentary", "founders", "cofounders"}),
+            ("legal", ("court.", "execproc.", "inspections."), {"court_years", "court_stages", "proceedings", "inspections", "legal_aggregates", "claim_scale"}),
         ):
             projected = json.loads(encoded)
             projected["domain"] = topic

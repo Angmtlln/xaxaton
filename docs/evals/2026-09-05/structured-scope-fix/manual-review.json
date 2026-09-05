@@ -1,0 +1,215 @@
+{
+  "reviewer": "coding agent; not independent human review",
+  "rubric": "AGENT_EVALS.md §0, case expectations, §19, §20",
+  "coverage": "All 10 final scored turns; 5 selected initial scored turns. Setup turns not semantically graded.",
+  "reviews": [
+    {
+      "run": "structured-scope-final-comparison",
+      "case_id": "K15",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Сопоставлены финансы и legal, раскрыты ограничения; pending около 500%, нулевая выручка не объявлена бездействием. Обобщение «по всем ключевым измерениям» слишком широкое: PASS по K15 не означает превосходство по каждому коэффициенту."
+    },
+    {
+      "run": "structured-scope-final-comparison",
+      "case_id": "K16",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "но и деятельности почти нет (выручка 0 ₽)",
+          "reason": "Нулевая отчётная выручка сама по себе не устанавливает фактическую деятельность. Целевое сравнение сумм за 2025 год верно, но общий §0 применяется ко всему ответу.",
+          "source_refs": [
+            "report.finReports[0].common.proceeds",
+            "AGENT_EVALS.md §0, K16"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-final-comparison",
+      "case_id": "K17",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "57% > 33,3%; нулевая база АПРЕЛЬ исключена из числового рейтинга; период 2025 указан."
+    },
+    {
+      "run": "structured-scope-final-comparison",
+      "case_id": "K18",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Число кредиторов не выведено из сумм или событий; предложен доступный proxy — сумма кредиторки."
+    },
+    {
+      "run": "structured-scope-final-comparison",
+      "case_id": "K19",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "missing_as_zero",
+          "quote": "активных исков к компании в карточке нет",
+          "reason": "У АПРЕЛЬ Pending.count и Pending.amount имеют state=missing, не zero. Наличие двух Finished не доказывает полноту всех стадий. Все/pending коэффициенты ГДК при этом указаны правильно.",
+          "source_refs": [
+            "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+            "AGENT_EVALS.md §0, K19"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-final-comparison",
+      "case_id": "K20",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "Но это следствие микромасштаба бизнеса",
+          "reason": "Причина небольшой юридической нагрузки в источнике не установлена. Ответ по legal снова обосновывает исключение АПРЕЛЬ главным образом масштабом и нулевой выручкой. Сам выбор ЛИДЕРТЕКС не является ошибкой; оценивалось обоснование.",
+          "source_refs": [
+            "report.arbitrationCases[]",
+            "report.finReports[]",
+            "AGENT_EVALS.md §0, K20"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-final-targets",
+      "case_id": "K21",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "source_narrative_as_fact",
+          "quote": "Итог: противоречия нет",
+          "reason": "В пункте 3 модель уже заметила «стабильный доход» при нулевой выручке, но в итоговом выводе снова отрицает конфликт. Финансовые source markers также нельзя целиком описывать как проверки реестров. Категория ближайшая из §19; основной критерий — K21: конфликт не скрывается.",
+          "source_refs": [
+            "report.reputationalRisks.positive[].code=proceeds",
+            "report.finReports[0].common.proceeds",
+            "AGENT_EVALS.md K21"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-final-targets",
+      "case_id": "S15_10",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Отказ от гарантии оплаты сохранён до конца; сравнение текущих возможностей и практическое уточнение условий. Прежней фразы «Расплатиться по текущим суммам сможет» в этой попытке нет. Это наблюдение, не доказательство устойчивого исправления future_guarantee."
+    },
+    {
+      "run": "structured-scope-final-targets",
+      "case_id": "S15_12",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "missing_as_zero",
+          "quote": "незавершённых исков нет",
+          "reason": "Для АПРЕЛЬ значения Pending неизвестны. Прогноз банкротства не выдан, отношение pending ГДК к капиталу около 500% верно; соседний вывод всё равно нарушает missing ≠ zero.",
+          "source_refs": [
+            "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+            "AGENT_EVALS.md §0, §15"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-final-targets",
+      "case_id": "S15_18",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "поэтому собственные средства участников не являются источником финансирования бизнеса",
+          "reason": "10 000 ₽ уставного капитала и раскрытый участник не определяют все взносы, займы и потоки финансирования. Учредитель теперь доступен и назван верно; ошибка totalLiabilities=долг не повторилась, причинный вывод остался.",
+          "source_refs": [
+            "report.foundersInfo.shareCapital",
+            "report.foundersInfo.cofounders",
+            "report.finReports[0].liabilities",
+            "AGENT_EVALS.md §0, §15"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-comparison",
+      "case_id": "K20",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "unsupported_causality",
+          "quote": "способное помешать любым платежам",
+          "reason": "Метка ФНС не раскрывает охват операций и счетов. В ответе также звучит «все дела завершены» при missing Pending.",
+          "source_refs": [
+            "report.reputationalRisks.negative[].code=fnsBlocking",
+            "AGENT_EVALS.md §0"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-targets",
+      "case_id": "K21",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "В этой попытке конфликт финансового source commentary явно назван. В повторной попытке итог снова его отрицает: устойчивое исправление K21 не подтверждено."
+    },
+    {
+      "run": "structured-scope-targets",
+      "case_id": "S15_10",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "future_guarantee",
+          "quote": "Расплатиться по текущим суммам сможет",
+          "reason": "Гарантия оплаты АПРЕЛЬ не следует из балансовых данных.",
+          "source_refs": [
+            "report.finReports[]",
+            "AGENT_EVALS.md §19"
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "run": "structured-scope-targets",
+      "case_id": "S15_12",
+      "verdict": "PASS",
+      "findings": [],
+      "note": "Отказ от прогноза банкротства, качественное сравнение уязвимости; pending ГДК почти пятикратный капитал, а не 551%."
+    },
+    {
+      "run": "structured-scope-targets",
+      "case_id": "S15_18",
+      "verdict": "FAIL",
+      "findings": [
+        {
+          "category": "factual_fabrication",
+          "quote": "обязательства почти полностью покрывают баланс (253,1 из 253,1 млн ₽ активов",
+          "reason": "totalLiabilities — все пассивы, включая капитал; это не сумма обязательств. После этого наблюдения добавлены определения полей в finance_scope.",
+          "source_refs": [
+            "report.finReports[0].liabilities.totalLiabilities",
+            "docs/GET_FULL_REPORT_FIELDS.md"
+          ]
+        },
+        {
+          "category": "unsupported_causality",
+          "quote": "компания финансируется собственником лишь минимально",
+          "reason": "Размер капитала не определяет фактические потоки финансирования собственника.",
+          "source_refs": [
+            "report.foundersInfo",
+            "report.finReports[].liabilities.capitals"
+          ]
+        }
+      ],
+      "note": ""
+    }
+  ]
+}

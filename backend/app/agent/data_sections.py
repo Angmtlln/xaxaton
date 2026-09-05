@@ -113,6 +113,7 @@ def source_section(report, key, fields, offset=0):
 SECTION_FIELDS = {
     "connections": ("relatedCompanies", ("inn", "ogrn", "name", "registrationDate")),
     "founders": ("foundersInfo", ("shareCapital",)),
+    "cofounders": ("foundersInfo.cofounders", ("name", "inn", "amount", "share", "dateFrom", "active")),
     "parents": ("foundersInfo.parentOrganizations", ("inn", "ogrn", "fullName", "parentDate")),
     "branches": ("branchesInfo.branches", ("name", "address")),
     "tax": ("taxSystem", ("shortName", "fullName")),
@@ -132,8 +133,8 @@ def profile_sections(snapshot, section="default", offset=0):
     report = report_of(snapshot)
     keys = {
         "default": ("profile", "activity", "positive", "negative"),
-        "profile": ("profile", "activity", "positive", "negative", "licenses", "procurements", "founders", "tax"),
-        "connections": ("connections", "parents", "branches", "founders"),
+        "profile": ("profile", "activity", "positive", "negative", "licenses", "procurements", "founders", "cofounders", "tax"),
+        "connections": ("connections", "parents", "branches", "founders", "cofounders"),
         "finance": ("coefficients",),
         "activity": ("activity", "activity_other"),
         "signals": ("positive", "negative"),
@@ -181,7 +182,7 @@ def profile_sections(snapshot, section="default", offset=0):
     for name, (path, fields) in SECTION_FIELDS.items():
         item = source_section(report, path, fields)
         available[name] = {"state": item.state, "records": item.total,
-                           "section": "signals" if name in {"positive", "negative"} else "activity" if name == "activity_other" else "connections" if name in {"parents", "branches", "founders"} else "profile" if name == "tax" else "finance" if name == "coefficients" else name}
+                           "section": "signals" if name in {"positive", "negative"} else "activity" if name == "activity_other" else "connections" if name in {"parents", "branches", "founders", "cofounders"} else "profile" if name == "tax" else "finance" if name == "coefficients" else name}
     sections["available_sections"] = DataSection(field_ref="report", value=available,
         scope="read via existing get_financial_data/get_legal_data: section, year, offset; page size 5; full source remains in repository")
     return sections
@@ -326,13 +327,43 @@ def claim_scale(finance, legal):
     if rows:
         last = rows[-1]
         paths = finance.sections["finance_scope"].value["paths"]
-        for numerator in ("court.defendant_amount", "execproc.active_amount"):
+        numerators = []
+        for numerator, role, stage in (("court.defendant_amount", "defendant", "all_disclosed_years"),
+                                        ("execproc.active_amount", None, "active")):
             fact = legal.facts.get(numerator)
+            numerators.append((numerator, dict(value=fact.value if fact else None,
+                field_ref=fact.field_ref if fact else numerator, unit="руб",
+                report_date=legal.company.report_date, role=role, stage=stage)))
+        # Stage amounts have no year key; never join them to arbitrationCases years.
+        pending = next((row for row in legal.sections["court_stages"].value
+                        if row["role"] == "defendant" and row["stage"] == "Pending"), None)
+        numerators.append(("court.defendant_pending_amount", dict(
+            value=pending["amount"] if pending else None,
+            field_ref="report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+            unit="руб", report_date=legal.company.report_date, role="defendant", stage="Pending")))
+        for numerator, source in numerators:
             for base in ("total_assets", "capitals", "proceeds"):
-                inputs = [dict(value=fact.value if fact else None, field_ref=fact.field_ref if fact else numerator,
-                               unit="руб", report_date=legal.company.report_date, period="all disclosed legal records"),
+                inputs = [source,
                           dict(value=last.get(base), field_ref="report.finReports[%s].%s" % (last["source_index"], paths[base]),
                                unit="руб", year=last["year"])]
                 calculations.append(calculation(numerator + "_to_" + base + "_pct", "a/b*100", inputs, "%"))
-    return calculated_section(calculations, field_ref="report.arbitrationCases[]; report.executionProceedings[]; report.finReports[]",
-        scope="scale only, legal snapshot aggregates vs annual balance/revenue; separate obligations may overlap")
+    return calculated_section(calculations, field_ref="report.arbitrationCases[]; report.arbitrationByStatus; report.executionProceedings[]; report.finReports[]",
+        scope="scale only; numerator role/stage in inputs; annual denominator year is not the case year; claims/proceedings may overlap")
+
+
+def finance_source_commentary(snapshot):
+    """Expose source finance prose alongside numbers, without endorsing or rewriting it."""
+    report = report_of(snapshot)
+    risks = report.get("reputationalRisks") or {}
+    rows = []
+    for polarity in ("positive", "negative"):
+        raw = risks.get(polarity) if isinstance(risks, dict) else None
+        for index, item in enumerate(raw if isinstance(raw, list) else []):
+            if isinstance(item, dict) and item.get("chapter") == "finance":
+                rows.append({"field_ref": "report.reputationalRisks.%s[%s]" % (polarity, index),
+                             "polarity": polarity,
+                             **{key: safe_value(item.get(key)) for key in ("code", "name", "chapter")}})
+    return DataSection(field_ref="report.reputationalRisks", value=rows[:PAGE_SIZE],
+        state="data" if rows else "empty", total=len(rows), included=min(len(rows), PAGE_SIZE),
+        truncated=len(rows) > PAGE_SIZE,
+        scope="source commentary, not verified conclusions; filtered by chapter=finance; original paths preserved")

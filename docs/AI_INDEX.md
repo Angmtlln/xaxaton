@@ -22,6 +22,10 @@
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |
 | содержательные behavioral evals Master | [`AGENT_EVALS.md`](../AGENT_EVALS.md), [`evals/README.md`](../backend/evals/README.md) | `backend/evals/scenarios.json`, `bank.py`, `run_local.py`, `graders.py`, `judge.py` |
 
+Последняя проверка исправлений structured context без изменения prompt:
+[коэффициенты исков, source commentary и учредители](evals/2026-09-05/structured-scope-fix/report.md).
+В отчёте технические результаты отделены от оставшихся ошибок рассуждения.
+
 ## Источники истины и свежесть
 
 1. `AGENTS.md` — обязательные рабочие правила и AI-инварианты.

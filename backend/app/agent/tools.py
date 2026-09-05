@@ -375,7 +375,7 @@ def _compact_check(check: CheckResponse, *, snapshot=None) -> tuple[FullCompanyC
 def _expanded_check(data, snapshot):
     from .finance import build_financial_data
     from .legal import build_legal_data
-    from .data_sections import company_from_snapshot, profile_sections, claim_scale
+    from .data_sections import company_from_snapshot, profile_sections, claim_scale, finance_source_commentary
     from .models import DataSection
     finance = build_financial_data(snapshot, data.inn)
     legal = build_legal_data(snapshot)
@@ -394,6 +394,7 @@ def _expanded_check(data, snapshot):
         facts["fin.proceeds_change_pct"] = finance.facts["fin.proceeds_change_pct"]
     sections = {**profile_sections(snapshot, "profile"), **finance.sections, **legal.sections}
     sections["claim_scale"] = claim_scale(finance, legal)
+    sections["finance_source_commentary"] = finance_source_commentary(snapshot)
     gaps = list(dict.fromkeys(finance.gaps + legal.gaps))
     sections["data_gaps"] = DataSection(field_ref="report", value=gaps)
     availability = "NO_DATA" if finance.availability == legal.availability == "NO_DATA" and data.availability == "NO_DATA" else (
