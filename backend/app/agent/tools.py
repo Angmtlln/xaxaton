@@ -256,6 +256,7 @@ async def _execute_full_company_check(context: ToolContext, args: BaseModel) -> 
         context.settings,
         context.client,
         persist=context.persist,
+        include_summary=False,
     )
     check = CheckResponse.model_validate(check_payload)
     data, evidence = _compact_check(check)

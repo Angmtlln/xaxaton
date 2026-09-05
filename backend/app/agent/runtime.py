@@ -91,7 +91,11 @@ class MasterAgentRuntime:
         repair_max_tokens: int = REPAIR_MAX_TOKENS,
         verifier_timeout_s: Optional[float] = None,
         verifier_reasoning_effort: Optional[str] = None,
+        grounding_debug: bool = False,
+        direct_dispatch: bool = True,
     ):
+        self.grounding_debug = grounding_debug
+        self.direct_dispatch = direct_dispatch
         self.model = model
         self.model_name = model_name
         self.registry = registry
@@ -189,7 +193,8 @@ class MasterAgentRuntime:
             turn_last_topic = "comparison" if reason is None else last_topic
             turn_last_answer_verified = last_answer_verified
             selected_context = None
-            preselected_targeted = False
+            preselected_tool = bool(self.direct_dispatch and reason is None
+                                        and is_direct_request(message, target))
         else:
             reason, inn = inspect_request(message)
             if reason == "missing_inn" and active:
@@ -204,8 +209,9 @@ class MasterAgentRuntime:
             if (
                 not switching_company
                 and requested_topic
-                and EXPLANATION_RE.search(message)
-                and select_trusted_context(trusted_store, requested_topic) is not None
+                and not requests_refresh(message)
+                and not re.search(r"\b(?:19|20)[0-9]{2}\b", message)
+                and (trusted_store or {}).get("domains", {}).get(requested_topic) is not None
             ):
                 target, turn_last_topic = None, requested_topic
             selected_context = (
@@ -220,11 +226,14 @@ class MasterAgentRuntime:
                 and isinstance(comparison_store, dict)
             ):
                 reason, selected_context, turn_last_topic = None, comparison_store, "comparison"
-            preselected_targeted = bool(
-                active
-                and not switching_company
-                and target in {"get_financial_data", "get_legal_data"}
-                and inn == active.get("inn")
+            preselected_tool = bool(
+                (self.direct_dispatch and target and is_direct_request(message, target))
+                or (
+                    active
+                    and not switching_company
+                    and target in {"get_financial_data", "get_legal_data"}
+                    and inn == active.get("inn")
+                )
             )
 
         log.info(
@@ -258,13 +267,15 @@ class MasterAgentRuntime:
                         model=model,
                         model_name=model_name,
                         clear_history=switching_company,
-                        preselected_targeted=preselected_targeted,
+                        preselected_tool=preselected_tool,
                     ),
                     timeout=max(0, deadline - time.monotonic()),
                 )
             except asyncio.TimeoutError:
                 response = runtime_timeout_response(run_id, started, tool_calls=execution.tool_calls)
 
+        if reason is None and target is None and selected_context is not None:
+            last_topic = turn_last_topic
         result = execution.result
         if result is not None and result.status in {"success", "partial"}:
             observation = normalized_tool_context(result)
@@ -341,23 +352,26 @@ class MasterAgentRuntime:
         model,
         model_name,
         clear_history,
-        preselected_targeted,
+        preselected_tool,
     ):
         contextual = target is None
         candidate = None
-        if preselected_targeted:
+        if preselected_tool:
             execution.started = True
             execution.tool_calls = 1
             log.info(
-                "agent_tool_call run_id=%s tool=%s inn=%s routing=targeted_backend call=1/1",
+                "agent_tool_call run_id=%s tool=%s inn=%s routing=backend_dispatch call=1/1",
                 run_id, target, inn,
             )
             execution.result = await self.registry.execute(
-                target, {"inn": inn}, self.tool_context
+                target,
+                {"inns": list(inns), "focus": comparison_focus(message)}
+                if target == "compare_companies" else {"inn": inn},
+                self.tool_context
             )
             log.info(
                 "agent_tool_result run_id=%s tool=%s status=%s latency_ms=%s "
-                "routing=targeted_backend",
+                "routing=backend_dispatch",
                 run_id, target, execution.result.status,
                 execution.result.metadata.latency_ms,
             )
@@ -455,7 +469,13 @@ class MasterAgentRuntime:
         verified_context = cached_context if contextual else normalized_tool_context(result)
         artifacts = allowed_artifacts(result, contextual=contextual)
         grounding_status, repairs = "fallback", 0
-        if candidate is not None and model is not None:
+        if candidate is not None and model is not None and not self.grounding_debug:
+            # Backend values remain exact; free prose is not semantically classified.
+            if backend_owned_violations(candidate.message, verified_context):
+                candidate = None
+            else:
+                grounding_status = "not_requested"
+        elif candidate is not None and model is not None:
             candidate, grounding_status, repairs = await self._ground_candidate(
                 candidate,
                 verified_context,
@@ -463,8 +483,7 @@ class MasterAgentRuntime:
                 execution,
                 artifacts,
                 user_context=[*user_context, message],
-                # Даже простой rewrite может усилить утверждение или добавить
-                # условия сделки, поэтому он проходит тот же bounded verifier.
+                # В debug проверяем и rewrite; production эту ветку не вызывает.
                 skip_verifier=False,
             )
         routing = (
@@ -653,6 +672,26 @@ def _record_usage(execution: LangChainToolExecution, message: AIMessage) -> None
             setattr(execution, key, (getattr(execution, key) or 0) + value)
 
 
+def is_direct_request(message: str, target: Optional[str]) -> bool:
+    """Only whole explicit commands; mixed/conditional language stays with Master."""
+    text = " ".join(message.casefold().split()).strip(" .!?…")
+    if target == "full_company_check":
+        return bool(re.fullmatch(
+            r"(?:проверь(?:те)?|проверить)\s+(?:(?:контрагента|компанию|инн)\s+)?[0-9]{10,12}", text
+        ))
+    if target == "compare_companies":
+        return bool(re.fullmatch(
+            r"сравни(?:те)?\s+(?:компании\s+|контрагентов\s+)?[0-9]{10,12}"
+            r"(?:\s*(?:,|и)\s*[0-9]{10,12}){1,2}", text
+        ))
+    return False
+
+
+def requests_refresh(message: str) -> bool:
+    """Explicit request for new data bypasses process-local trusted observations."""
+    return bool(re.search(r"\b(?:обнови\w*|перепроверь\w*|свеж\w*|актуальн\w*|заново|повторно)\b", message, re.I))
+
+
 def requested_tool(message: str) -> Optional[str]:
     """Small deterministic admission/router; it never validates answer prose."""
     if COMPARISON_RE.search(message):
@@ -680,6 +719,7 @@ def build_master_runtime(
     model = build_master_model(settings)
     return MasterAgentRuntime(
         model=model,
+        grounding_debug=settings.agent_grounding_debug,
         model_name=settings.master_model if model else None,
         registry=build_tool_registry(settings),
         tool_context=ToolContext(settings=settings, client=client, persist=persist),

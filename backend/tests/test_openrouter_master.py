@@ -55,7 +55,7 @@ def test_openrouter_factory_uses_standard_openai_compatible_adapter_without_netw
     assert model.model_kwargs["parallel_tool_calls"] is False
     assert model.default_headers["HTTP-Referer"] == "https://example.test"
     assert model.default_headers["X-Title"] == "Counterparty Agent"
-    assert model.extra_body == {"reasoning": {"effort": "low"}}
+    assert model.extra_body == {"reasoning": {"effort": "low"}, "provider": {"sort": "throughput"}}
 
 
 def test_openrouter_key_is_required_and_mock_disables_master():
@@ -82,7 +82,7 @@ def test_reasoning_effort_can_be_disabled():
         _settings(openrouter_api_key="test-key", openrouter_reasoning_effort="")
     )
 
-    assert model.extra_body is None
+    assert model.extra_body == {"provider": {"sort": "throughput"}}
 
 
 def test_documented_master_environment_names(monkeypatch):

@@ -48,7 +48,7 @@ def main():
         assert meta["tool_calls"] == expected_tools, meta
         assert 1 <= meta["model_calls"] <= 5, meta
         assert meta["routing"] == "model", meta
-        assert meta["grounding_status"] in ("verified", "repaired"), meta
+        assert meta["grounding_status"] in ("not_requested", "verified", "repaired"), meta
         total_tool_calls += meta["tool_calls"]
         if conversation_id:
             assert payload["conversation_id"] == conversation_id

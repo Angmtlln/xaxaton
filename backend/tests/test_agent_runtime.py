@@ -85,11 +85,15 @@ def _settings(**overrides):
     )
 
 
-def _runtime(model, settings=None):
+def _runtime(model, settings=None, *, direct_dispatch=False, grounding_debug=True):
+    # Existing routing/grounding suites cover the optional debug path explicitly.
+    # Production defaults are tested separately in test_agent_latency.py.
     settings = settings or _settings()
     client = GroqClient(settings)
     return MasterAgentRuntime(
         model=model,
+        direct_dispatch=direct_dispatch,
+        grounding_debug=grounding_debug,
         model_name="fake-router" if model is not None else None,
         registry=build_tool_registry(settings),
         tool_context=ToolContext(settings=settings, client=client, persist=False),
@@ -104,7 +108,7 @@ async def test_broad_request_routes_through_create_agent_to_single_full_check(
 ):
     calls = []
 
-    async def fake_run_check(inn, settings, client, persist):
+    async def fake_run_check(inn, settings, client, persist, **kwargs):
         calls.append({"inn": inn, "persist": persist})
         return check_payload
 

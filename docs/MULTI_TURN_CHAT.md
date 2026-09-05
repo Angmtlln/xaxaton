@@ -44,7 +44,7 @@
   "metadata": {
     "model_calls": 3,
     "tool_calls": 1,
-    "grounding_status": "verified",
+    "grounding_status": "not_requested",
     "repair_attempts": 0
   }
 }
@@ -92,20 +92,25 @@ message + conversation_id
   → domain ToolResult
   → backend нормализует metrics / series / events / statuses / coverage
   → Master формирует естественный ответ + необязательный allowlisted artifact
-  → отдельная LLM-проверка company-specific утверждений
-  → при ошибке: одна repair-попытка, затем conservative fallback
+  → deterministic structural validation (схема, identifiers, URLs)
+  → при структурной ошибке: conservative fallback без дополнительной LLM
   → backend гидратирует identifiers / числа / evidence / UI
   → trusted state checkpoint
 ```
 
-На turn разрешён один domain tool call и не более пяти model calls. Первичный
-full-check использует три: routing/tool call, ответ Master и verifier. Уже
-однозначно определённый finance/legal follow-up активной компании выполняет
-targeted tool без повторного model-routing, затем использует ответ Master и
-verifier. Repair добавляет два вызова: переписывание и повторную проверку.
-Контекстный follow-up обычно использует два вызова — ответ и verifier. Даже
-простая переформулировка проходит verifier: live acceptance показал, что модель
-может усилить утверждение или добавить условия сделки на «Объясни проще».
+На turn разрешён один domain tool call. Простой full-check, comparison с 2–3
+явными ИНН и finance/legal follow-up активной компании обходят model routing.
+Обычный успешный turn использует один Master synthesis; сложные допустимые
+команды сохраняют model routing. Contextual follow-up и «Объясни проще» используют
+один synthesis без tools. Повторный finance/legal переиспользует **свой** раздел
+trusted context; явное обновление или вопрос с указанным годом вызывает tool.
+Legacy Summary отсутствует в chat full check, четыре domain LLM сохранены.
+
+Verifier/repair выключены: `AGENT_GROUNDING_DEBUG=false`,
+`grounding_status=not_requested`, `repair_attempts=0`. Это не положительный
+вердикт о groundedness. Только явный debug-флаг включает прежний verifier,
+один repair и повторную проверку с общим пределом в пять вызовов модели.
+[Замеры и воспроизведение](CHAT_LATENCY.md).
 
 Неверный routing, невалидные аргументы, timeout или недоступная модель приводят
 к ограниченному deterministic fallback. Уже полученная capability не
@@ -135,7 +140,7 @@ allowlisted UI и состояниями неполноты. Master сам вы�
 `zskRiskLevel`, а также строгая схема/ИНН/evidence/UI-валидация. Финансовые
 коэффициенты и динамика передаются как данные, а не как backend-owned выводы.
 
-Grounding verifier получает черновик ответа и нормализованный контекст. Он
+Только в optional eval/debug режиме grounding verifier получает черновик ответа и нормализованный контекст. Он
 проверяет только substantive company-specific утверждения: есть ли опора в
 данных и нет ли противоречия. Стиль, степень упрощения и осторожная бизнес-
 интерпретация разрешены. После одной неуспешной repair-попытки пользователь
@@ -197,7 +202,8 @@ completion, structured output и LangChain tool calling через OpenRouter.
 Основные тесты:
 
 - `test_agent_runtime.py`, `test_agent_multiturn.py`, `test_conversations.py`;
-- `test_grounding_behavior.py` — выдуманный факт, URL/идентификатор,
+- `test_agent_latency.py` — default path без verifier/repair, прямой dispatch, reuse и legacy Summary boundary.
+- `test_grounding_behavior.py` (debug включён явно) — выдуманный факт, URL/идентификатор,
   противоречие, repair/fallback и простая переформулировка;
 - `test_financial_capability.py`, `test_legal_capability.py`;
 - `test_agent_response.py`, `test_targeted_response.py`, `test_chat_api.py`.
@@ -214,7 +220,8 @@ completion, structured output и LangChain tool calling через OpenRouter.
   прошли.
 - Точный восьмиходовый сценарий покрыт behavioral-тестом с одним
   `conversation_id`: tools вызываются только на turns 1 и 5, включая targeted
-  finance; каждый естественный ответ, в том числе rewrite, проходит verifier.
+  finance; в том baseline каждый естественный ответ проходил verifier. Текущий
+  default path изменён: см. CHAT_LATENCY.md.
 - Docker API пересобран; `/health`, `/` и `/report` отвечают `200`. Live
   comparison трёх компаний прошёл одним tool call: `routing=model`,
   `synthesis=model`, `grounding_status=verified`, таблица из 9 строк и 14

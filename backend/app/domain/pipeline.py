@@ -129,8 +129,8 @@ def _iso(value: Any) -> Optional[str]:
 
 
 async def run_check(inn: str, settings: Settings, client: GroqClient,
-                    persist: bool = True) -> Dict[str, Any]:
-    """Полный проход по одному ИНН. Возвращает готовый ответ API."""
+                    persist: bool = True, *, include_summary: bool = True) -> Dict[str, Any]:
+    """Полный проход; chat пропускает только legacy Summary, сохраняя аудит блоков."""
     started = time.perf_counter()
 
     snapshot = await repository.get_latest_snapshot(inn)
@@ -152,7 +152,7 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
     if persist:
         run_id = await repository.create_run(
             inn=inn, company_id=snapshot.get("company_id"), snapshot_id=snapshot.get("snapshot_id"),
-            block_model=settings.groq_block_model, summary_model=settings.groq_summary_model,
+            block_model=settings.groq_block_model, summary_model=settings.groq_summary_model if include_summary else "not_requested",
             calculator_ver=settings.calculator_version, llm_mode=llm_mode)
         await repository.save_facts(
             snapshot["snapshot_id"], settings.calculator_version,
@@ -163,8 +163,11 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
 
     # 3. Summary-LLM поверх блочных резюме.
     all_fact_ids = {f.id for blk in blocks.values() for f in blk.facts}
-    summary = await run_summary_agent(client, settings, company, block_results, key_facts,
-                                      coverage, all_fact_ids=all_fact_ids)
+    summary = (
+        await run_summary_agent(client, settings, company, block_results, key_facts,
+                                coverage, all_fact_ids=all_fact_ids)
+        if include_summary else SummaryResult(model="not_requested")
+    )
 
     # 4. Защитные слои.
     block_results, summary, guardrail_notes = enforce_guardrails(blocks, block_results, summary)
@@ -184,7 +187,8 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
     if persist and run_id:
         for res in block_results.values():
             await repository.save_block_result(run_id, _block_payload(res))
-        await repository.save_summary(run_id, _summary_payload(summary))
+        if include_summary:
+            await repository.save_summary(run_id, _summary_payload(summary))
         await repository.save_statements(run_id, statements)
         await repository.finish_run(run_id, status, latency_ms, total_prompt, total_completion,
                                     error="; ".join(sorted(set(errors))) or None)
@@ -204,7 +208,8 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
             "mode": llm_mode,
             "block_model": settings.groq_block_model if llm_mode == "groq" else "deterministic",
             "block_models": settings.block_models() if llm_mode == "groq" else {},
-            "summary_model": settings.groq_summary_model if llm_mode == "groq" else "deterministic",
+            "summary_model": (settings.groq_summary_model if llm_mode == "groq" else "deterministic")
+            if include_summary else "not_requested",
             "calculator_version": settings.calculator_version,
             "prompt_tokens": total_prompt,
             "completion_tokens": total_completion,

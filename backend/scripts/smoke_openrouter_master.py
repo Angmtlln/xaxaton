@@ -100,7 +100,7 @@ async def probe_provider(settings: Settings) -> list[dict]:
     return results
 
 
-def probe_conversation(base_url: str, inn: str) -> list[dict]:
+def probe_conversation(base_url: str, inn: str, *, grounding_debug: bool = False) -> list[dict]:
     conversation_id = None
     results = []
     messages = [
@@ -139,7 +139,7 @@ def probe_conversation(base_url: str, inn: str) -> list[dict]:
             or metadata["synthesis"] != "model"
             or metadata["grounding_status"] == "fallback"
         )
-        expected_grounding = ("verified", "repaired")
+        expected_grounding = ("verified", "repaired") if grounding_debug else ("not_requested",)
         provider_ok = (
             metadata["model"] == "z-ai/glm-5.3-flash"
             and metadata["tool_calls"] == expected_tool_count
@@ -195,12 +195,14 @@ def main():
 
     settings = Settings()
     provider = asyncio.run(probe_provider(settings))
-    conversation = probe_conversation(args.base_url, args.inn)
+    conversation = probe_conversation(args.base_url, args.inn, grounding_debug=settings.agent_grounding_debug)
     first = conversation[0]
     checks = {
         "full_company_check": first["tool"] == "full_company_check" and not first["fallback"],
         "post_tool_master_synthesis": first["synthesis"] == "model" and not first["fallback"],
-        "grounding_verifier": first["verifier"] in ("verified", "repaired"),
+        "grounding_policy": first["verifier"] in (
+            ("verified", "repaired") if settings.agent_grounding_debug else ("not_requested",)
+        ),
         "calibrated_deal_context_conversation": all(item["provider_ok"] for item in conversation),
     }
     output = {

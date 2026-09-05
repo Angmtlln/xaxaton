@@ -103,7 +103,8 @@ async def test_new_session_unknown_id_and_missing_context_do_not_reuse_another_c
     assert fresh.active_company is None and fresh.metadata.tool_calls == 0
     assert unknown.metadata.error_code == "unknown_conversation"
     assert unknown.conversation_id is None
-    assert len(calls) == 3
+    assert len(calls) == 2
+    assert follow.metadata.tool_calls == 0
 
 
 @pytest.mark.asyncio
@@ -185,7 +186,8 @@ async def test_unavailable_routing_fallback_stays_targeted(monkeypatch, domain, 
     first = await runtime.run(question + " 6165169320")
     second = await runtime.run(question, first.conversation_id)
     expected = "get_financial_data" if domain == "finance" else "get_legal_data"
-    assert calls == [expected, expected]
+    assert calls == [expected]
+    assert second.metadata.tool_calls == 0
     assert second.metadata.routing == "deterministic_fallback"
     assert second.metadata.status == "partial"
     assert "содержательный вывод сделать нельзя" in second.message.lower()

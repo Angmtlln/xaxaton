@@ -1,6 +1,6 @@
 """Конфигурация сервиса. Всё читается из окружения или .env."""
 from functools import lru_cache
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     # Независимо от Groq-конфигурации доменных агентов ниже.
     openrouter_api_key: Optional[str] = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_provider_sort: Optional[Literal["latency", "throughput"]] = "throughput"
+    openrouter_preferred_max_latency: Optional[float] = Field(default=None, gt=0)
+    # Только eval/debug: дополнительные LLM verifier/repair отключены в chat.
+    agent_grounding_debug: bool = False
     master_model: str = "z-ai/glm-5.3-flash"
     # OpenRouter показывает эти значения в статистике аккаунта; на вызов не влияют.
     openrouter_app_url: Optional[str] = None

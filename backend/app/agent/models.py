@@ -397,6 +397,7 @@ class AssistantMetadata(StrictModel):
     model_calls: int = Field(default=0, ge=0, le=5)
     synthesis: Literal["deterministic", "model", "fallback"] = "deterministic"
     grounding_status: Literal[
+        "not_requested",
         "not_required", "verified", "repaired", "skipped_rewrite", "fallback"
     ] = "not_required"
     repair_attempts: int = Field(default=0, ge=0, le=1)

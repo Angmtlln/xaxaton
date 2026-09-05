@@ -1,0 +1,1693 @@
+{
+  "before": [
+    {
+      "turn": 1,
+      "question": "Проверь контрагента 6165169320",
+      "summary": {
+        "wall_ms": 87793,
+        "master_calls": 3,
+        "domain_http_attempts": 5,
+        "tool_calls": 1,
+        "verifier_calls": 1,
+        "repair_attempts": 0,
+        "fallback": true,
+        "known_reasoning_tokens": 277
+      },
+      "answer": "В проверенных данных есть официальный стоп-сигнал. Аналитический ответ сейчас недоступен; проверьте сигнал и первичные сведения до сделки.",
+      "metadata": {
+        "agent_run_id": "7291d58c-b00a-4eae-8b92-346ce8aa8e1d",
+        "check_run_id": "d1210239-88b2-42cb-b34a-e0ae831e69f0",
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 87764,
+        "error_code": null,
+        "model_calls": 3,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "routing",
+          "start_ms": 85,
+          "latency_ms": 1654,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 2049,
+          "output_tokens": 19,
+          "reasoning_tokens": 0,
+          "finish_reason": "tool_calls"
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 1763,
+          "latency_ms": 121
+        },
+        {
+          "stage": "tool",
+          "start_ms": 1763,
+          "latency_ms": 5182,
+          "tool": "full_company_check",
+          "status": "success"
+        },
+        {
+          "stage": "db.create_run",
+          "start_ms": 1886,
+          "latency_ms": 55
+        },
+        {
+          "stage": "db.save_facts",
+          "start_ms": 1942,
+          "latency_ms": 25
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 1967,
+          "latency_ms": 1865,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "input_tokens": 2658,
+          "output_tokens": 350,
+          "reasoning_tokens": 5,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_identity",
+          "start_ms": 1967,
+          "latency_ms": 1865,
+          "model": "openai/gpt-oss-20b",
+          "error": null
+        },
+        {
+          "stage": "domain_reliability",
+          "start_ms": 1979,
+          "latency_ms": 1861,
+          "model": "openai/gpt-oss-120b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 1980,
+          "latency_ms": 1793,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "input_tokens": 1546,
+          "output_tokens": 392,
+          "reasoning_tokens": 127,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_experience",
+          "start_ms": 1980,
+          "latency_ms": 1794,
+          "model": "openai/gpt-oss-20b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 1980,
+          "latency_ms": 1861,
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 4373,
+          "output_tokens": 380,
+          "reasoning_tokens": 79,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 1980,
+          "latency_ms": 2514,
+          "provider": "groq",
+          "model": "qwen/qwen3.8-27b",
+          "input_tokens": 2338,
+          "output_tokens": 603,
+          "reasoning_tokens": null,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_finance",
+          "start_ms": 1980,
+          "latency_ms": 2514,
+          "model": "qwen/qwen3.8-27b",
+          "error": null
+        },
+        {
+          "stage": "legacy_summary",
+          "start_ms": 4494,
+          "latency_ms": 2128
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 4496,
+          "latency_ms": 2126,
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 3732,
+          "output_tokens": 702,
+          "reasoning_tokens": 66,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 6624,
+          "latency_ms": 143
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 6768,
+          "latency_ms": 26
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 6793,
+          "latency_ms": 16
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 6809,
+          "latency_ms": 13
+        },
+        {
+          "stage": "db.save_summary",
+          "start_ms": 6822,
+          "latency_ms": 48
+        },
+        {
+          "stage": "db.save_statements",
+          "start_ms": 6870,
+          "latency_ms": 56
+        },
+        {
+          "stage": "db.finish_run",
+          "start_ms": 6926,
+          "latency_ms": 5
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 6972,
+          "latency_ms": 5737,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5201,
+          "output_tokens": 324,
+          "reasoning_tokens": 0,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "question": "Почему это вообще плохо?",
+      "summary": {
+        "wall_ms": 13055,
+        "master_calls": 2,
+        "domain_http_attempts": 0,
+        "tool_calls": 0,
+        "verifier_calls": 1,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 147
+      },
+      "answer": "Главное опасение здесь — зафиксированная блокировка счетов по постановлению ФНС. Это официальный жёсткий стоп-фактор: налоговый орган ограничил распоряжение счётом(-ами) компании. Важно уточнить: метка подтверждает сам факт блокировки, но не её актуальный статус и не то, что заблокированы все счета. На практике блокировка может затруднить расчёты с контрагентами — ваши платежи могут «зависнуть» или не пройти, а у компании могут быть проблемы с исполнением обязательств.\n\nКосвенно это сочетается с другими сигналами: компания отвечает по искам примерно на 20,8 млн ₽ (причём почти 18,9 млн — по последним делам), кредиторская задолженность достигла около 249 млн ₽ при выручке 748 млн ₽, а собственный капитал тонкий — 1,5% пассивов после отрицательного значения в 2024 году. Долг перед бюджетом, из-за которого обычно и блокируют счета, — распространённый маркер кассовых трудностей, но сам по себе он не доказывает неплатёжеспособность — причину блокировки стоит проверить напрямую.\n\nПри этом статус компании действующий, исполнительных производств нет, банковские метки риска низкие. Если хотите, могу подробнее разобрать финансовую динамику или судебные дела.",
+      "metadata": {
+        "agent_run_id": "236810c7-bb07-4d2e-b578-9f8afc501319",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 13048,
+        "error_code": null,
+        "model_calls": 2,
+        "synthesis": "model",
+        "grounding_status": "verified",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "synthesis",
+          "start_ms": 36,
+          "latency_ms": 8031,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5218,
+          "output_tokens": 353,
+          "reasoning_tokens": 26,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "verifier",
+          "start_ms": 8088,
+          "latency_ms": 4955,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 4453,
+          "output_tokens": 133,
+          "reasoning_tokens": 121,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "question": "Объясни проще",
+      "summary": {
+        "wall_ms": 13830,
+        "master_calls": 2,
+        "domain_http_attempts": 0,
+        "tool_calls": 0,
+        "verifier_calls": 1,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 53
+      },
+      "answer": "Проще говоря: у компании могут быть проблемы с расчётами. Налоговая ограничила её счета — это стоп-фактор, потому что в такой ситуации платежи компании могут просто не пройти, включая оплату вам.\n\nДополнительно: к компании предъявляют иски примерно на 21 млн ₽, а денег «своих» у неё очень мало (собственный капитал — всего 1,5% от пассивов).\n\nПри этом есть и хорошие стороны: компания работает, исполнительных производств нет, банковские метки риска низкие.\n\nВажно уточнить у компании или в ФНС, снята ли блокировка и какие именно счёта затронуты — без этого риски для сделки сохраняются.",
+      "metadata": {
+        "agent_run_id": "fe1ffb76-6d9b-4728-9a9a-1d627e16026c",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 13745,
+        "error_code": null,
+        "model_calls": 2,
+        "synthesis": "model",
+        "grounding_status": "verified",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "synthesis",
+          "start_ms": 20,
+          "latency_ms": 9778,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5539,
+          "output_tokens": 161,
+          "reasoning_tokens": 0,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "verifier",
+          "start_ms": 9915,
+          "latency_ms": 3782,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 4312,
+          "output_tokens": 65,
+          "reasoning_tokens": 53,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "question": "А что у них с финансами?",
+      "summary": {
+        "wall_ms": 50516,
+        "master_calls": 4,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 2,
+        "repair_attempts": 1,
+        "fallback": false,
+        "known_reasoning_tokens": 496
+      },
+      "answer": "С финансами картина противоречивая. Главное:\n\n**Резкий рост выручки.** В 2023 году — 0 ₽, в 2024-м — 24,7 млн ₽, а за 2025 год уже 748,4 млн ₽ (рост на 2 926,6%). Компания явно вышла на крупный оборот.\n\n**Убыток в 2024-м.** За 2024 год компания сработала с убытком 26,2 млн ₽, и собственный капитал уходил в минус (−26,4 млн ₽). За 2025 год прибыль в карточке отсутствует — итог года пока неизвестен.\n\n**Капитал очень тонкий.** На конец 2025-го собственный капитал — всего 3,8 млн ₽, при этом капитал вернулся в «плюс» с отрицательного. Это около 0,5% от масштаба выручки: собственная «подушка» минимальна.\n\n**Большая кредиторская задолженность.** 249,3 млн ₽ на конец 2025 года против 47,6 млн годом ранее — она выросла более чем в 5 раз и в 66 раз превышает собственный капитал. Что именно стоит за этим долгом (поставщики, займы, налоги) — по данным карточки не видно, это стоит проверить.\n\nОбщий смысл: компания быстро набрала обороты, но её устойчивость держится на внешних обязательствах, а не на собственном капитале, и прибыль за последний год неизвестна. Для сделки с крупными суммами я бы дополнительно запросил расшифровку задолженности и уточнил итог 2025 года.",
+      "metadata": {
+        "agent_run_id": "8412f2b6-8689-4235-9e52-7cba7690ef84",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 49999,
+        "error_code": null,
+        "model_calls": 4,
+        "synthesis": "model",
+        "grounding_status": "repaired",
+        "repair_attempts": 1
+      },
+      "waterfall": [
+        {
+          "stage": "tool",
+          "start_ms": 73,
+          "latency_ms": 4032,
+          "tool": "get_financial_data",
+          "status": "partial"
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 91,
+          "latency_ms": 3966
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 4641,
+          "latency_ms": 20063,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 4181,
+          "output_tokens": 552,
+          "reasoning_tokens": 169,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "verifier",
+          "start_ms": 24964,
+          "latency_ms": 7192,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 3001,
+          "output_tokens": 233,
+          "reasoning_tokens": 167,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "repair",
+          "start_ms": 32801,
+          "latency_ms": 7936,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 2619,
+          "output_tokens": 415,
+          "reasoning_tokens": 11,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "verifier",
+          "start_ms": 40773,
+          "latency_ms": 9054,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 3001,
+          "output_tokens": 166,
+          "reasoning_tokens": 149,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "question": "А с судами?",
+      "summary": {
+        "wall_ms": 119395,
+        "master_calls": 4,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 2,
+        "repair_attempts": 1,
+        "fallback": false,
+        "known_reasoning_tokens": 3593
+      },
+      "answer": "По судам картина такая: компания выступает только ответчиком — 4 арбитражных дела, все против неё, на общую сумму около 20,8 млн ₽. Своих исков она не подавала ни одного. Само по себе это нейтрально, но в такой ситуации претензии предъявляют именно ей, а не она разбирается с должниками.\n\nПочти вся сумма приходится на незавершённые дела: два ещё идут, и именно на них приходится около 18,9 млн ₽. Ещё два завершены, но там в сумме лишь около 1,9 млн ₽.\n\nВажный момент: 20,8 млн ₽ — это сумма предъявленных исков, а не подтверждённое обязательство. Итог определят решения по двум незавершённым делам.\n\nИсполнительных производств сейчас нет: действующих — 0, а из четырёх завершённых общая сумма была всего около 9 тыс. ₽. То есть по уже закрытым делам крупных взысканий за компанией не числится.\n\nИтог: суды — реальный, но умеренный сигнал. Главная неопределённость — чем закончатся два незавершённых дела почти на 19 млн ₽. Имеет смысл посмотреть их предмет и следить за решениями.",
+      "metadata": {
+        "agent_run_id": "2c7ed1eb-4670-4bc6-ba94-22e92d90c116",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 119362,
+        "error_code": null,
+        "model_calls": 4,
+        "synthesis": "model",
+        "grounding_status": "repaired",
+        "repair_attempts": 1
+      },
+      "waterfall": [
+        {
+          "stage": "tool",
+          "start_ms": 110,
+          "latency_ms": 226,
+          "tool": "get_legal_data",
+          "status": "partial"
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 111,
+          "latency_ms": 163
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 430,
+          "latency_ms": 11273,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 4441,
+          "output_tokens": 356,
+          "reasoning_tokens": 9,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "verifier",
+          "start_ms": 11725,
+          "latency_ms": 5198,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 2825,
+          "output_tokens": 143,
+          "reasoning_tokens": 87,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "repair",
+          "start_ms": 16929,
+          "latency_ms": 88291,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 2431,
+          "output_tokens": 3650,
+          "reasoning_tokens": 3337,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "verifier",
+          "start_ms": 105234,
+          "latency_ms": 14121,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 2770,
+          "output_tokens": 174,
+          "reasoning_tokens": 160,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "question": "Сравни 6165169320, 2901324364 и 0278949271",
+      "summary": {
+        "wall_ms": 86260,
+        "master_calls": 3,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 1,
+        "repair_attempts": 0,
+        "fallback": true,
+        "known_reasoning_tokens": 0
+      },
+      "answer": "Аналитическое сравнение сейчас недоступно. Официальный стоп-сигнал есть у следующих компаний: ООО \"ГДК\". Проверьте его до сделки.",
+      "metadata": {
+        "agent_run_id": "45cde400-6a79-4b95-a344-632d4ca03233",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 86197,
+        "error_code": null,
+        "model_calls": 3,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "routing",
+          "start_ms": 138,
+          "latency_ms": 1212,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 3352,
+          "output_tokens": 38,
+          "reasoning_tokens": 0,
+          "finish_reason": "tool_calls"
+        },
+        {
+          "stage": "tool",
+          "start_ms": 1380,
+          "latency_ms": 92,
+          "tool": "compare_companies",
+          "status": "partial"
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 1382,
+          "latency_ms": 70
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 1460,
+          "latency_ms": 3
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 1463,
+          "latency_ms": 7
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 1487,
+          "latency_ms": 9628,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 6837,
+          "output_tokens": 514,
+          "reasoning_tokens": 0,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "no-verifier": [
+    {
+      "turn": 1,
+      "question": "Проверь контрагента 6165169320",
+      "summary": {
+        "wall_ms": 20197,
+        "master_calls": 1,
+        "domain_http_attempts": 10,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 524
+      },
+      "answer": "По ООО «ГДК» (ИНН 6165169320) картина неоднородная, и вот что в ней важно.\n\nКомпания действующая (статус CURRENT), на рынке 15 лет, по банковскому уровню риска — LOW и светофор ЗСК — GREEN. Это базовые позитивные сигналы, как и 14 пройденных проверок-маркеров.\n\nНо есть два момента, которые требуют внимания. Первый — жёсткий стоп-фактор: зафиксирована блокировка счетов по постановлению ФНС. Это официальный сигнал, который нельзя смягчать: пока он не снят, он может мешать расчётам компании. Стоит уточнить актуальность блокировки и охват (все ли счета затронуты).\n\nВторой — резкий рост бизнеса на фоне тонкой финансовой подушки. Выручка выросла с 24,7 млн ₽ в 2024 до 748,4 млн ₽ в 2025 (рост почти в 30 раз), при этом собственный капитал всего 3,8 млн ₽ — это 1,5% пассивов, а кредиторская задолженность — 249,3 млн ₽ (33,3% годовой выручки). В 2024 году компания закончила с убытком −26,2 млн ₽, прибыль за 2025 пока не раскрыта. Такие обязательства сами по себе не говорят, чем финансируется рост — возможно, это нормальная работа с авансами и отсрочками, но устойчивость стоит проверить: откуда долг и как он обслуживается.\n\nДополнительно: 4 арбитражных дела в роли ответчика на сумму около 20,8 млн ₽, причём большая часть (~18,9 млн ₽) приходится на свежие дела 2026 года. Это именно предъявленные иски, а не установленный долг — исходы нужно смотреть в карточках дел. Действующих исполнительных производств нет. Дебиторка выросла до 180,3 млн ₽ — при таком росте это ожидаемо, но важно, платят ли ей контрагенты.\n\nПокрытие данных неполное (55,6%): нет разделов по связанным компаниям, лицензиям, проверкам и госзакупкам.\n\nИтог: формальные маркеры хорошие, но блокировка счетов ФНС — стоп-фактор до выяснения, а масштабный рост при минимальном капитале и свежих исках требует уточнения платёжной дисциплины. Рекомендую запросить актуальный статус блокировки и результаты арбитражных дел перед сделкой.",
+      "metadata": {
+        "agent_run_id": "bfb170fb-1a9b-4114-900f-68b52536d7ca",
+        "check_run_id": "b3063080-208c-4814-8245-dc5cf0b7174f",
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 20193,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 8,
+          "latency_ms": 104
+        },
+        {
+          "stage": "tool",
+          "start_ms": 8,
+          "latency_ms": 10508,
+          "tool": "full_company_check",
+          "status": "partial"
+        },
+        {
+          "stage": "db.create_run",
+          "start_ms": 113,
+          "latency_ms": 35
+        },
+        {
+          "stage": "db.save_facts",
+          "start_ms": 148,
+          "latency_ms": 17
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 165,
+          "latency_ms": 2113,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "input_tokens": 2658,
+          "output_tokens": 341,
+          "reasoning_tokens": 5,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_identity",
+          "start_ms": 165,
+          "latency_ms": 2113,
+          "model": "openai/gpt-oss-20b",
+          "error": null
+        },
+        {
+          "stage": "domain_reliability",
+          "start_ms": 389,
+          "latency_ms": 2949,
+          "model": "openai/gpt-oss-120b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 390,
+          "latency_ms": 2948,
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 2837,
+          "output_tokens": 594,
+          "reasoning_tokens": 337,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_finance",
+          "start_ms": 391,
+          "latency_ms": 2616,
+          "model": "openai/gpt-oss-120b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 393,
+          "latency_ms": 1240,
+          "provider": "groq",
+          "model": "qwen/qwen3.8-27b",
+          "error": "RateLimited",
+          "input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "finish_reason": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 393,
+          "latency_ms": 1789,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "input_tokens": 1546,
+          "output_tokens": 390,
+          "reasoning_tokens": 95,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_experience",
+          "start_ms": 393,
+          "latency_ms": 1789,
+          "model": "openai/gpt-oss-20b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 1632,
+          "latency_ms": 205,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "error": "RateLimited",
+          "input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "finish_reason": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 1838,
+          "latency_ms": 1169,
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 2231,
+          "output_tokens": 363,
+          "reasoning_tokens": 87,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "legacy_summary",
+          "start_ms": 3339,
+          "latency_ms": 7059
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 3340,
+          "latency_ms": 325,
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "error": "RateLimited",
+          "input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "finish_reason": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 3666,
+          "latency_ms": 206,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "error": "RateLimited",
+          "input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "finish_reason": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 3872,
+          "latency_ms": 211,
+          "provider": "groq",
+          "model": "qwen/qwen3.8-27b",
+          "error": "RateLimited",
+          "input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "finish_reason": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 9091,
+          "latency_ms": 1298,
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "error": "RateLimited",
+          "input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "finish_reason": null
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 10404,
+          "latency_ms": 49
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 10453,
+          "latency_ms": 15
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 10468,
+          "latency_ms": 2
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 10471,
+          "latency_ms": 4
+        },
+        {
+          "stage": "db.save_summary",
+          "start_ms": 10474,
+          "latency_ms": 18
+        },
+        {
+          "stage": "db.save_statements",
+          "start_ms": 10493,
+          "latency_ms": 14
+        },
+        {
+          "stage": "db.finish_run",
+          "start_ms": 10507,
+          "latency_ms": 2
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 10554,
+          "latency_ms": 9625,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5170,
+          "output_tokens": 594,
+          "reasoning_tokens": 0,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "question": "Почему это вообще плохо?",
+      "summary": {
+        "wall_ms": 22342,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 0,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 7
+      },
+      "answer": "Плохо не каждое из этих обстоятельств само по себе, а их сочетание и то, как они бьют по вашей позиции как стороны сделки.\n\nБлокировка счетов ФНС — это прямое ограничение платёжеспособности. Если счета компании заблокированы, она может физически не суметь вовремя провести вам оплату или исполнить обязательства — независимо от того, сколько у неё денег и выручки на бумаге. Поэтому это официальный стоп-фактор: пока причина блокировки не снята, любая сделка с расчётами в обе стороны несёт риск задержек.\n\nТонкий капитал и большая кредиторка меняют вопрос устойчивости. Собственный капитал — это «собственные деньги» компании, буфер, который покрывает убытки. Здесь он 3,8 млн ₽ при активах 253 млн ₽ — буфер почти нулевой. Если что-то пойдёт не так (просрочат дебиторы, вырастут расходы), компенсировать это нечем, кроме как за счёт кредиторов. В 2024 году компания уже получала убыток −26 млн ₽ — то есть убытки для неё не теоретическая угроза.\n\nРост выручки в 30 раз выглядит эффектно, но рост сам по себе требует денег: на закупки, зарплаты, НДС. При минимальном капитале весь этот рост держится на чужих обязательствах перед компанией и её долгах. Это не доказывает проблемы — но делает компанию чувствительной к сбоям: контрагент-неплательщик или судебное решение могут быстро создать кассовый разрыв.\n\nИски на 20,8 млн ₽ — это потенциальные оттоки денег, которых пока нет в отчётах. Если суды будут проиграны, суммы реально спишутся, и при тонком капитале это существенно. Причём бо́льшая часть исков свежая — то есть вопрос в активной фазе.\n\nПроще говоря: компания живо растёт, но у неё почти нет собственной «подушки», есть официальный ограничитель расчётов и pending-обязательства на десятки миллионов. Каждая из этих вещей по отдельности — повод уточнить детали; вместе — причина не давать авансы или отсрочки, пока вы не подтвердите актуальность блокировки, исходы судов и платёжную дисциплину.",
+      "metadata": {
+        "agent_run_id": "81d00a7b-8956-4a94-a515-bebbf60f7274",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 22338,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "synthesis",
+          "start_ms": 22,
+          "latency_ms": 22304,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5759,
+          "output_tokens": 540,
+          "reasoning_tokens": 7,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "question": "Объясни проще",
+      "summary": {
+        "wall_ms": 10973,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 0,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 10
+      },
+      "answer": "Если совсем просто: компания стремительно выросла, но держится почти без собственных денег, а счета у неё под блокировкой налоговой.\n\nЧто это значит на практике:\n\n1. **Блокировка счетов** — компания может не суметь провести платёж, даже если хочет. Это самый тревожный пункт.\n\n2. **Своих денег почти нет.** Из 253 млн ₽ активов только 3,8 млн ₽ — её собственные. Остальное — долги. Любая неудача (неплатёж контрагента, проигранный суд) сразу бьёт по способности платить.\n\n3. **На неё подали в суд на ~21 млн ₽.** Это ещё не долг — суды не завершены. Но если проиграет, денег станет ещё меньше.\n\n4. **Рост в 30 раз за год** — сам по себе неплохо, но такой рост «съедает» деньги на закупки и налоги. На тонком капитале это рискованно.\n\nВывод: выглядит живой и быстрорастущей, но без запаса прочности и с ограничением на платежи. Перед сделкой стоит проверить, снята ли блокировка и чем закончились суды.",
+      "metadata": {
+        "agent_run_id": "c936a209-4cbe-41ea-9b24-c3bedb977cd5",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 10970,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "synthesis",
+          "start_ms": 21,
+          "latency_ms": 10931,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 6304,
+          "output_tokens": 275,
+          "reasoning_tokens": 10,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "question": "А что у них с финансами?",
+      "summary": {
+        "wall_ms": 8628,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 27
+      },
+      "answer": "С финансами за три отчётных года — очень резкая трансформация:\n\n**2023 — почти нули.** Выручка 0 ₽, прибыль 0 ₽, капитал 581 тыс. ₽, кредиторка 907 тыс. ₽. По этим цифрам компания выглядит неактивной, но нулевая выручка за период не доказывает, что она не работала.\n\n**2024 — активный рост с убытком.** Выручка 24,7 млн ₽, но убыток −26,2 млн ₽, капитал ушёл в минус (−26,4 млн ₽), кредиторка выросла до 47,6 млн ₽. Классическая картина года запуска: траты больше доходов, собственные средства «съедены».\n\n**2025 — взрывной рост.** Выручка 748,4 млн ₽ — рост на 2 926% год к году. Капитал восстановился до +3,8 млн ₽, кредиторка — 249,3 млн ₽. Прибыль за 2025 в карточке пока не раскрыта — а именно она покажет, приносит ли этот рост реальные деньги.\n\nЧто смущает:\n\n- **Кредиторка 249 млн ₽** — это треть годовой выручки. Что это за обязательства (долги поставщикам, авансы, налоги) — из данных не видно, и именно это ключевой вопрос: чем финансируется такой рост.\n- **Собственный капитал 3,8 млн ₽** — всего ~1,5% пассивов. Запаса прочности практически нет: в 2024 году компания уже показывала, как быстро уходит в минус.\n- **Нет данных по прибыли 2025** — без неё нельзя понять, прибыльна ли компания на новом масштабе.\n\nИтого: динамика впечатляющая, но финансовая база тонкая. Перед сделкой имеет смысл запросить пояснения по структуре кредиторки и результаты 2025 года (прибыль/убыток). Если скажете, какая роль у этой компании в вашей сделке и на каких условиях планируете работать — подскажу, на что это влияет конкретно.",
+      "metadata": {
+        "agent_run_id": "882db35e-5131-4c5d-a718-19e46e02bf58",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 8624,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 11,
+          "latency_ms": 17
+        },
+        {
+          "stage": "tool",
+          "start_ms": 11,
+          "latency_ms": 20,
+          "tool": "get_financial_data",
+          "status": "partial"
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 50,
+          "latency_ms": 8556,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5046,
+          "output_tokens": 527,
+          "reasoning_tokens": 27,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "question": "А с судами?",
+      "summary": {
+        "wall_ms": 13826,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 3
+      },
+      "answer": "С судами ситуация такая — все 4 дела в картотеке, и компания в них **ответчик**, а не истец:\n\n**Активные дела.** 2 незавершённых дела против компании на общую сумму ~18,9 млн ₽. Это свежие иски (2026 год), вопрос в активной фазе — исходы пока неизвестны.\n\n**Завершённые дела.** 2 закрытых дела на ~1,9 млн ₽. Судьба их (проигрыш или мировое) из сводки не видна, но суммы небольшие.\n\n**Исполнительные производства.** Всего 4 производства, но сумма всех — символические 9 018 ₽, действующих нет. То есть по исполнительным производствам серьёзных взысканий против компании не висит — это хороший косвенный признак.\n\nИтого: потенциальная нагрузка ~20,8 млн ₽ — это предъявленные иски, а не установленный долг до вердиктов. Но на фоне собственного капитала 3,8 млн ₽ даже частичное проигрыш по свежим искам на 18,9 млн ₽ может сразу «съесть» капитал с запасом.\n\nЧто важно выяснить: суть требований по незавершённым делам (долги поставщикам, налоги, договорные споры) — от этого зависит, разовый это конфликт или системная проблема с оплатой. Если скажете, для чего вы проверяете компанию (поставщик, покупатель, сумма и условия сделки), подскажу, насколько это критично именно для вас.",
+      "metadata": {
+        "agent_run_id": "a6a52a6f-c060-46ea-b25e-62b36550aecd",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 13823,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 9,
+          "latency_ms": 9
+        },
+        {
+          "stage": "tool",
+          "start_ms": 9,
+          "latency_ms": 11,
+          "tool": "get_legal_data",
+          "status": "partial"
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 37,
+          "latency_ms": 13770,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5423,
+          "output_tokens": 353,
+          "reasoning_tokens": 3,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "question": "Сравни 6165169320, 2901324364 и 0278949271",
+      "summary": {
+        "wall_ms": 16595,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 25
+      },
+      "answer": "Сравнение трёх компаний — и сразу главное: по ООО «ЭНДОФОКУС» (2901324364) данных практически нет, поэтому содержательно сравнить можно только «ГДК» и «АГАТ».\n\n**ООО «ГДК» (6165169320)** — масштабный, но рискованный рост. Выручка 748,4 млн ₽ (рост почти в 30 раз), но прибыль за 2025 не раскрыта, собственный капитал всего 3,8 млн ₽ при кредиторке 249,3 млн ₽. Плюс жёсткий стоп-фактор — блокировка счетов по постановлению ФНС, 4 дела в роли ответчика на ~20,8 млн ₽ (из них ~18,9 млн ₽ — свежие незавершённые иски). Действующих исполнительных производств нет.\n\n**ООО «АГАТ» (0278949271)** — скромнее, но устойчивее по судебной части. Выручка 118,9 млн ₽, прибыль 444 тыс. ₽ (положительная, в отличие от ГДК, где она неизвестна), капитал 333 тыс. ₽ — тоже тонкий, кредиторка 120,3 млн ₽ (больше годовой выручки — соотношение хуже, чем у ГДК). Суды: 1 дело в роли ответчика на символические 1 000 ₽, исполнительные производства на 2 250 ₽ — юридическая нагрузка минимальна. Жёстких стоп-факторов нет, только метки «требуют уточнения».\n\n**ООО «ЭНДОФОКУС» (2901324364)** — данных нет: ни финансов, ни правового положения в пригодном виде. Есть какая-то судебная сводка, но без лет и ролей. Отсутствие записей о взысканиях здесь не подтверждает их отсутствие. Сравнивать не с чем — для любого решения по этой компании данные нужно добирать отдельно.\n\n**Итог по компромиссу:** «ГДК» — крупный оборот, но с блокировкой счетов (стоп-фактор) и исками на десятки миллионов; «АГАТ» — меньше масштаб и тоньше капитал относительно обязательств, зато чистая юридическая история и подтверждённая прибыль. Если приоритет — минимизация юридических рисков, «АГАТ» выглядит спокойнее; если важен масштаб поставщика/покупателя, у «ГДК» он в разы больше, но блокировку счетов нужно снимать как вопрос до сделки. По «ЭНДОФОКУС» вывод сделать нельзя.\n\nЕсли назовёте, что для вас приоритетнее — финансовая устойчивость или юридическая чистота, и какая роль у контрагента в сделке — сужу рекомендацию.",
+      "metadata": {
+        "agent_run_id": "0a87b44d-d18e-4445-9335-00ca996d8bb3",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 16588,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "tool",
+          "start_ms": 5,
+          "latency_ms": 34,
+          "tool": "compare_companies",
+          "status": "partial"
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 6,
+          "latency_ms": 8
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 16,
+          "latency_ms": 5
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 22,
+          "latency_ms": 15
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 58,
+          "latency_ms": 16511,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 7882,
+          "output_tokens": 667,
+          "reasoning_tokens": 25,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "turn": 1,
+      "question": "Проверь контрагента 6165169320",
+      "summary": {
+        "wall_ms": 10061,
+        "master_calls": 1,
+        "domain_http_attempts": 5,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 560
+      },
+      "answer": "По ООО «ГДК» (ИНН 6165169320) картина неоднородная. Компания действующая, 15 лет на рынке, банкротных производств нет, банк и «светофор ЗСК» показывают низкий риск. Но есть жёсткий стоп-фактор — блокировка счетов по постановлению ФНС, и это серьёзный сигнал: без уточнения охвата и актуальности она может испытывать трудности с расчётами. Финансовый профиль резкий: выручка выросла с 24,7 млн ₽ (2024) до 748 млн ₽ (2025), при этом в 2024 был убыток −26,2 млн ₽ и отрицательный капитал, сейчас капитал всего 3,8 млн ₽ (1,5% пассивов), а кредиторка — 249 млн ₽. Параллельно компания — ответчик в 4 арбитражных делах на 20,8 млн ₽, причём основная сумма (18,9 млн ₽) — по свежим делам 2026 года. Столь быстрый рост выручки при тонком капитале и исках — повод запросить пояснения и проверить устойчивость, сам по себе он ещё ничего не доказывает. Если расскажете, какую роль компания играет в вашей сделке (поставщик, покупатель, подрядчик) и какие условия планируете, смогу дать более предметную рекомендацию.",
+      "metadata": {
+        "agent_run_id": "76553d40-e347-4e3e-a57c-81d51bdc10e0",
+        "check_run_id": "f91f2e8f-0a29-48cc-a6ed-3728215a406f",
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 10058,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 3,
+          "latency_ms": 8
+        },
+        {
+          "stage": "tool",
+          "start_ms": 3,
+          "latency_ms": 2417,
+          "tool": "full_company_check",
+          "status": "success"
+        },
+        {
+          "stage": "db.create_run",
+          "start_ms": 11,
+          "latency_ms": 4
+        },
+        {
+          "stage": "db.save_facts",
+          "start_ms": 15,
+          "latency_ms": 6
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 20,
+          "latency_ms": 1397,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "input_tokens": 2658,
+          "output_tokens": 333,
+          "reasoning_tokens": 5,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_identity",
+          "start_ms": 20,
+          "latency_ms": 1397,
+          "model": "openai/gpt-oss-20b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 85,
+          "latency_ms": 2314,
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 4629,
+          "output_tokens": 471,
+          "reasoning_tokens": 170,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_reliability",
+          "start_ms": 85,
+          "latency_ms": 2315,
+          "model": "openai/gpt-oss-120b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 86,
+          "latency_ms": 767,
+          "provider": "groq",
+          "model": "qwen/qwen3.8-27b",
+          "error": "RateLimited",
+          "input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "finish_reason": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 86,
+          "latency_ms": 1958,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "input_tokens": 1546,
+          "output_tokens": 556,
+          "reasoning_tokens": 310,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "domain_experience",
+          "start_ms": 86,
+          "latency_ms": 1958,
+          "model": "openai/gpt-oss-20b",
+          "error": null
+        },
+        {
+          "stage": "domain_finance",
+          "start_ms": 86,
+          "latency_ms": 1958,
+          "model": "openai/gpt-oss-20b",
+          "error": null
+        },
+        {
+          "stage": "domain_http",
+          "start_ms": 853,
+          "latency_ms": 1191,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "input_tokens": 2231,
+          "output_tokens": 414,
+          "reasoning_tokens": 75,
+          "finish_reason": "stop"
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 2400,
+          "latency_ms": 7
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 2407,
+          "latency_ms": 3
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 2410,
+          "latency_ms": 3
+        },
+        {
+          "stage": "db.save_block_result",
+          "start_ms": 2413,
+          "latency_ms": 1
+        },
+        {
+          "stage": "db.save_statements",
+          "start_ms": 2414,
+          "latency_ms": 4
+        },
+        {
+          "stage": "db.finish_run",
+          "start_ms": 2417,
+          "latency_ms": 1
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 2446,
+          "latency_ms": 7601,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5095,
+          "output_tokens": 334,
+          "reasoning_tokens": 0,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "question": "Почему это вообще плохо?",
+      "summary": {
+        "wall_ms": 15058,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 0,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 79
+      },
+      "answer": "Плохо не что-то одно, а сочетание сразу нескольких вещей, каждая из которых по-своему мешает нормальному сотрудничеству.\n\nБлокировка счетов по постановлению ФНС — самый жёсткий пункт: если она актуальна и затрагивает расчётные счета, компания может просто не суметь провести платёж вам вовремя, независимо от намерений. Уточнить её актуальность стоит в первую очередь.\n\nФинансовая конструкция тоже хрупкая. Собственный капитал — 3,8 млн ₽ при активах 253 млн ₽, то есть 98,5% того, чем компания владеет и работает, покрывается обязательствами — прежде всего кредиторской задолженностью в 249 млн ₽. Это не доказывает, что бизнес убыточен или финансируется «на чужие деньги», но запас прочности тонкий: если поставщики начнут требовать оплату раньше или суды взыщут значительную часть исков, кассового разрыва избежать будет трудно.\n\nДинамика выручки усиливает вопрос. Рост с 24,7 млн ₽ до 748 млн ₽ за год — более чем в 30 раз — сам по себе аномален и требует объяснения: это может быть разовый крупный контракт, смена деятельности или что-то ещё. В 2024 году компания закончила с убытком −26,2 млн ₽, и прибыль за 2025-й пока не видна — оценить реальную эффективность пока не на чем.\n\nИски в роли ответчика на 20,8 млн ₽ добавляют неопределённости: это пока лишь предъявленные требования, не установленный долг, но при тонком капитале даже частичное взыскание ощутимо ударит по платёжеспособности.\n\nЕсли коротко: компания действующая и формально «зелёная» по банку, но ниша между обязательствами, исками и возможной блокировкой счетов означает, что риск неисполнения обязательств перед вами заметно выше среднего. Именно поэтому я предлагал не ограничиваться формальной проверкой.",
+      "metadata": {
+        "agent_run_id": "9e331365-7e28-45df-ba14-425192ea22cd",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 15055,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "synthesis",
+          "start_ms": 17,
+          "latency_ms": 15014,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5440,
+          "output_tokens": 550,
+          "reasoning_tokens": 79,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "question": "Объясни проще",
+      "summary": {
+        "wall_ms": 4851,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 0,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 0
+      },
+      "answer": "Проще говоря, вот три главные проблемы:\n\n1. Счета могут быть заблокированы налоговой. Если это так, компания физически не сможет вовремя заплатить вам — даже если захочет.\n\n2. Компания почти без своих денег. Собственных средств всего 3,8 млн ₽, а должна она поставщикам около 249 млн ₽. Работает она практически целиком на обязательствах, и запаса прочности почти нет: любой крупный платёж или проигранный суд может создать дыру в деньгах.\n\n3. Её судят. Четыре иска на 20,8 млн ₽, причём самые крупные — свежие. Пока это только требования, не доказанный долг, но при таких тонких финансах даже часть этой суммы — ощутимый удар.\n\nПлюс выручка за год выросла в 30 раз — с 25 млн до 748 млн ₽. Это странно и требует объяснения: что это было — один крупный контракт или что-то ещё, по данным не видно.\n\nИтог: компания живая и формально «зелёная», но если она должна вам деньги или вы платите ей аванс, риск не получить своё заметно выше обычного. Перед сделкой стоит уточнить статус блокировки счетов и попросить пояснения по росту выручки.",
+      "metadata": {
+        "agent_run_id": "590c3ebf-38d7-47c0-b745-3181aecb55f7",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 4849,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "synthesis",
+          "start_ms": 20,
+          "latency_ms": 4821,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5917,
+          "output_tokens": 309,
+          "reasoning_tokens": 0,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "question": "А что у них с финансами?",
+      "summary": {
+        "wall_ms": 17738,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 14
+      },
+      "answer": "Финансы у ООО «ГДК» за последние три года — история резкого скачка на фоне слабой базы.\n\n2023 год: выручки фактически нет (0 ₽), капитал 581 000 ₽, кредиторка 907 000 ₽ — компания почти не работала в операционном плане.\n\n2024 год: выручка 24,7 млн ₽, но убыток −26,2 млн ₽, собственный капитал ушёл в минус (−26,4 млн ₽), кредиторка выросла до 47,6 млн ₽.\n\n2025 год: выручка взлетела до 748,4 млн ₽ — рост на 2 926,6% за год. Кредиторка при этом выросла до 249,3 млн ₽, а капитал восстановился лишь до 3,8 млн ₽ — это примерно 1,5% от суммы активов. Прибыли за 2025 год в данных нет, так что оценить, насколько бизнес прибылен на новом масштабе, пока не на чем.\n\nЧто это значит на практике: компания за один год превратилась из почти «спящей» в крупную по обороту, но собственный капитал остался символическим, а обязательства перед контрагерами выросли в пять раз. Такая комбинация — очень быстрый рост, тонкий капитал и большая кредиторка — не означает автоматически проблему, но требует объяснений: чем обеспечен рост, откуда обязательства и как компания планирует по ним рассчитываться. Для сравнения здорового контрагера обычно хочется видеть рост, который подкреплён адекватным собственным капиталом и понятной рентабельностью — здесь оба пункта пока открытые вопросы.\n\nЕсли будете запрашивать пояснения у компании, ключевые вопросы: источник скачка выручки в 2025-м и структура кредиторской задолженности — перед кем и на какой срок.",
+      "metadata": {
+        "agent_run_id": "4e49b573-9085-4dd5-bf10-d1573b1b97cd",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 17730,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 6,
+          "latency_ms": 8
+        },
+        {
+          "stage": "tool",
+          "start_ms": 6,
+          "latency_ms": 11,
+          "tool": "get_financial_data",
+          "status": "partial"
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 33,
+          "latency_ms": 17680,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 4753,
+          "output_tokens": 887,
+          "reasoning_tokens": 14,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "question": "А с судами?",
+      "summary": {
+        "wall_ms": 10531,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 15
+      },
+      "answer": "С судами у ООО «ГДК» ситуация такая: компания фигурирует только как ответчик — 4 арбитражных дела на общую сумму 20,8 млн ₽, при этом ни одного дела в роли истца у неё нет. Из этих четырёх дел два уже завершены, но на них приходится лишь 1,9 млн ₽, а основная нагрузка — два незавершённых дела на 18,9 млн ₽, то есть почти 90% всей суммы ещё «висит» и по ней решения нет. Важно: это пока предъявленные требования, а не установленный долг — исход неизвестен. Исполнительных производств всего 4, но действующих нет, и общая сумма по ним символическая — около 9 тыс. ₽, так что принудительного взыскания сейчас нет. Отдельно стоит жёсткий стоп-фактор — блокировка счетов по постановлению ФНС; её актуальность и охват по этим данным не видны, и именно она, а не суды, может напрямую мешать компании проводить платежи. В сочетании с тонким капиталом (3,8 млн ₽) незавершённые иски на 18,9 млн ₽ — серьёзный сигнал: даже частичное взыскание заметно ударит по платёжеспособности. Стоит запросить у компании статус этих дел и её позицию по ним.",
+      "metadata": {
+        "agent_run_id": "86916229-bba2-4eb8-b8fc-f27c18b387b9",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 10523,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 21,
+          "latency_ms": 11
+        },
+        {
+          "stage": "tool",
+          "start_ms": 21,
+          "latency_ms": 19,
+          "tool": "get_legal_data",
+          "status": "partial"
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 67,
+          "latency_ms": 10445,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 5001,
+          "output_tokens": 330,
+          "reasoning_tokens": 15,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "question": "Сравни 6165169320, 2901324364 и 0278949271",
+      "summary": {
+        "wall_ms": 9131,
+        "master_calls": 1,
+        "domain_http_attempts": 0,
+        "tool_calls": 1,
+        "verifier_calls": 0,
+        "repair_attempts": 0,
+        "fallback": false,
+        "known_reasoning_tokens": 9
+      },
+      "answer": "По трём компаниям картина сильно различается, и надёжность выводов тоже разная.\n\n**ООО «ГДК» (6165169320)** — самые полные данные, но и самые тревожные сигналы. Выручка 2025 — 748,4 млн ₽ после скачка почти в 30 раз, прибыль за год не видна. Собственный капитал всего 3,8 млн ₽ при кредиторке 249,3 млн ₽ — запас прочности тонкий. В судах — только ответчик: 4 дела на 20,8 млн ₽, из них 18,9 млн ₽ — по незавершённым делам. Главное — жёсткий стоп-фактор: блокировка счетов по постановлению ФНС, актуальность которой нужно уточнять отдельно.\n\n**ООО ЭНДОФОКУС (2901324364)** — данных фактически нет. Ни финансового состояния, ни правового положения по доступным источникам оценить нельзя: есть только некая судебная сводка без разбивки по годам и ролям, а отсутствие записей об исполнительных производствах ничего не гарантирует. Сказать «хорошо» или «плохо» про эту компанию честно невозможно — это не признак благополучия, а пробел в данных, который надо закрывать дополнительной проверкой.\n\n**ООО «АГАТ» (0278949271)** — данные умеренно позитивные, но с оговорками. Выручка 118,9 млн ₽, прибыль есть (444 000 ₽), хотя рентабельность очень низкая — менее 0,4%. Капитал тонкий: 333 000 ₽ при кредиторке 120,3 млн ₽, динамика выручки не рассчитывается. Судебная нагрузка минимальна: одно дело в роли ответчика на символические 1 000 ₽, исполнительные производства — 2 шт. на 2 250 ₽ действующих. Меток жёсткой остановки нет, только «требует уточнения» по исполнительным производствам и арбитражу.\n\n**Итог сравнения.** По финансовой устойчивости и правовой чистоте «АГАТ» выглядит самым безопасным из трёх: прибыль есть, судебные суммы ничтожны, стоп-факторов нет — хотя и он работает при почти нулевом собственном капитале. «ГДК» — самый рискованный из-за блокировки счетов и незавершённых исков на фоне тонкого капитала, несмотря на большой оборот. По «ЭНДОФОКУС» вывод делать не на чем — данных недостаточно, и это само по себе основание запросить отчётность и расшифровки до любых решений.\n\nОговорка: у обеих компаний с данными покрытие частичное, есть пропуски в финансовых рядах, поэтому выводы — осторожные, а не окончательные.",
+      "metadata": {
+        "agent_run_id": "a421a95a-90c9-476b-916a-bfe44df62980",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-grounded-reasoning-9.4.0",
+        "latency_ms": 9116,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "waterfall": [
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 9,
+          "latency_ms": 14
+        },
+        {
+          "stage": "tool",
+          "start_ms": 9,
+          "latency_ms": 20,
+          "tool": "compare_companies",
+          "status": "partial"
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 25,
+          "latency_ms": 1
+        },
+        {
+          "stage": "db.get_latest_snapshot",
+          "start_ms": 26,
+          "latency_ms": 1
+        },
+        {
+          "stage": "synthesis",
+          "start_ms": 43,
+          "latency_ms": 9056,
+          "provider": "openrouter",
+          "model": "z-ai/glm-5.3-flash",
+          "input_tokens": 7476,
+          "output_tokens": 662,
+          "reasoning_tokens": 9,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "routing": [
+    {
+      "kind": "routing",
+      "round": 0,
+      "mode": "throughput",
+      "ms": 9716,
+      "usage": {
+        "input_tokens": 5165,
+        "output_tokens": 198,
+        "total_tokens": 5363,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 21
+        }
+      },
+      "metadata": {
+        "token_usage": {
+          "completion_tokens": 198,
+          "prompt_tokens": 5165,
+          "total_tokens": 5363,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": 0,
+            "reasoning_tokens": 21,
+            "rejected_prediction_tokens": null,
+            "image_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 0,
+            "cached_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost": 0.000436875,
+          "is_byok": false,
+          "cost_details": {
+            "upstream_inference_cost": 0.000436875,
+            "upstream_inference_prompt_cost": 0.000387375,
+            "upstream_inference_completions_cost": 4.95e-05
+          }
+        },
+        "model_provider": "openai",
+        "model_name": "z-ai/glm-5.3-flash",
+        "system_fingerprint": null,
+        "id": "gen-1788617032-2Jr87Q00SvSKRFzvO19I",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "answer": "{\n  \"message\": \"Плохо потому, что это не аналитическая оценка, а официальный стоп-фактор: по данным источника у компании есть метка «блокировка счетов по постановлению ФНС». Если счета действительно заблокированы, компания может не суметь провести платёж вовремя — например, оплатить вам или вернуть аванс. При этом из данных не видно, все ли счета затронуты и актуален ли статус сейчас: блокировка могла быть снята. Поэтому перед сделкой стоит уточнить актуальное состояние счетов напрямую или через актуальную выписку ФНС. Остальные сигналы (действующих исполнительных производств нет, статус компании действующий, банковский риск LOW, светофор ЗСК GREEN) сами по себе эту проблему не снимают.\",\n  \"artifact\": \"none\"\n}"
+    },
+    {
+      "kind": "routing",
+      "mode": "latency",
+      "error": "TimeoutError",
+      "ms": 90037
+    },
+    {
+      "kind": "routing",
+      "mode": "latency_cap",
+      "error": "TimeoutError",
+      "ms": 90009
+    },
+    {
+      "kind": "routing",
+      "round": 0,
+      "mode": "throughput",
+      "ms": 7075,
+      "usage": {
+        "input_tokens": 5218,
+        "output_tokens": 212,
+        "total_tokens": 5430,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 21
+        }
+      },
+      "metadata": {
+        "token_usage": {
+          "completion_tokens": 212,
+          "prompt_tokens": 5218,
+          "total_tokens": 5430,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": 0,
+            "reasoning_tokens": 21,
+            "rejected_prediction_tokens": null,
+            "image_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 0,
+            "cached_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost": 0.0008887,
+          "is_byok": false,
+          "cost_details": {
+            "upstream_inference_cost": 0.0008887,
+            "upstream_inference_prompt_cost": 0.0007827,
+            "upstream_inference_completions_cost": 0.000106
+          }
+        },
+        "model_provider": "openai",
+        "model_name": "z-ai/glm-5.3-flash",
+        "system_fingerprint": null,
+        "id": "gen-1788617253-00SKapFxoeNN5gV9aCK9",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "answer": "{\"message\": \"Блокировка счетов по постановлению ФНС — это не оценка риска, а официальный статус, и он важен по простой причине: при такой блокировке компания может быть ограничена в расчётах. Если ограничение действует прямо сейчас и затрагивает счета, через которые пойдут ваши платежи, сделка может просто не исполниться — деньги не уйдут или пройдёт с задержкой. Кроме того, блокировка обычно означает наличие проблем с налоговыми обязательствами, что само по себе сигнал о платёжной дисциплине. При этом данные не показывают, насколько блокировка широка и актуальна ли она сегодня — это стоит уточнить. Также у компании есть 4 арбитражных дела в роли ответчика почти на 21 млн рублей — ещё один повод проверить её платёжную устойчивость.\", \"artifact\": \"none\"}\n"
+    },
+    {
+      "kind": "routing",
+      "round": 1,
+      "mode": "throughput",
+      "ms": 11238,
+      "usage": {
+        "input_tokens": 5218,
+        "output_tokens": 309,
+        "total_tokens": 5527,
+        "input_token_details": {
+          "audio": 0,
+          "cache_read": 0,
+          "cache_creation": 0
+        },
+        "output_token_details": {
+          "audio": 0,
+          "reasoning": 10
+        }
+      },
+      "metadata": {
+        "token_usage": {
+          "completion_tokens": 309,
+          "prompt_tokens": 5218,
+          "total_tokens": 5527,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": 0,
+            "reasoning_tokens": 10,
+            "rejected_prediction_tokens": null,
+            "image_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cache_write_tokens": 0,
+            "cached_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost": 0.0009372,
+          "is_byok": false,
+          "cost_details": {
+            "upstream_inference_cost": 0.0009372,
+            "upstream_inference_prompt_cost": 0.0007827,
+            "upstream_inference_completions_cost": 0.0001545
+          }
+        },
+        "model_provider": "openai",
+        "model_name": "z-ai/glm-5.3-flash",
+        "system_fingerprint": null,
+        "id": "gen-1788617258-kY24oFAGYtPXANTGXepM",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "answer": "{\"message\": \"Плохо не само наличие проверки контрагента, а конкретный сигнал, который она выявила: у ООО \\\"ГДК\\\" зафиксирована метка \\\"блокировка счетов по постановлению ФНС\\\". Это значит, что налоговая инициировала блокировку банковских счетов компании — обычно из-за непредставленной отчётности или недоимки. Если блокировка действует, компания может испытывать трудности с расчётами: вы рискуете не получить оплату вовремя независимо от добросовестности менеджеров. При этом важно понимать: в переданных данных указан сам факт метки, но нет её актуального статуса и охвата (заблокированы все счета или один, снята ли уже блокировка) — это стоит уточнить напрямую у контрагента или через банк. Дополнительно в отчёте видны и другие настораживающие моменты: компания фигурирует ответчиком в 4 арбитражных делах на общую сумму около 20,8 млн ₽, а собственный капитал — всего 3,8 млн ₽ (1,5% пассивов). Блокировка счетов ФНС относится к категории жёстких стоп-факторов именно потому, что напрямую угрожает платёжеспособности контрагента в момент сделки.\",\"artifact\":\"none\"}\n"
+    }
+  ]
+}

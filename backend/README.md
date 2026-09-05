@@ -76,20 +76,20 @@ curl -X POST http://localhost:8000/api/v1/chat/messages \
 
 Runtime принимает полную проверку и узкие финансовые/юридические вопросы.
 Передайте `conversation_id` из предыдущего ответа, чтобы использовать активную
-компанию без повторного ИНН. На turn допускаются один domain tool call и до пяти
-model calls: Master выбирает tool, формирует собственный естественный ответ,
-а отдельный grounding-вызов проверяет его company-specific утверждения. При
-неуспехе разрешена одна repair-попытка. Master использует стандартный
-`ChatOpenAI` с OpenAI-compatible API OpenRouter и моделью
-`z-ai/glm-5.3-flash`. Выбор model фиксируется при создании conversation и не
-меняется внутри process-local thread. Без `OPENROUTER_API_KEY` или при ошибке
-native tool calling runtime переходит на conservative deterministic fallback;
-штатный online path — только OpenRouter. Сам `run_check()` и его доменные
-Groq-вызовы не переписаны.
-Reasoning остаётся на минимальном `low`; конечные output-бюджеты
-разделены: routing 512, synthesis 4096, verifier 4096, repair 4096. Verifier
-увеличен после live `LengthFinishReasonError`, где GLM потратил все 2048 токенов
-на reasoning и не вернул JSON-вердикт.
+компанию без повторного ИНН. На turn допускается один domain tool call.
+Однозначные команды полной проверки
+и сравнения, а также finance/legal follow-up активной компании идут прямо в
+allowlisted tool. Master пишет ответ из trusted ToolResult; backend проверяет
+схему, идентификаторы, ссылки и гидратирует UI. Обычный turn использует один
+вызов Master; model routing добавляется только при необходимости.
+`ChatOpenAI` обращается к OpenRouter (`z-ai/glm-5.3-flash`,
+`OPENROUTER_PROVIDER_SORT=throughput`); модель фиксируется на conversation.
+Verifier и repair **выключены по умолчанию**, в том числе для «Объясни проще».
+`AGENT_GROUNDING_DEBUG=true` включает прежний bounded механизм только для
+явного eval/debug. Нового LLM/regex-классификатора вместо него нет.
+Без ключа, при ошибке провайдера или структурной валидации остаётся conservative
+fallback. Output-бюджеты сохранены: routing 512, synthesis 4096, debug verifier
+4096, debug repair 4096. Измерения: [latency waterfall](../docs/CHAT_LATENCY.md).
 LangGraph устанавливается транзитивно через LangChain; LangSmith tracing и API
 key для запуска не требуются.
 
@@ -101,9 +101,9 @@ LLM_MOCK=true python scripts/demo_offline.py --inn 6165169320
 
 ## Модели
 
-Сам `run_check()` делает пять вызовов: четыре блочных агента параллельно и один
-Summary-LLM поверх их ответов. Chat flow добавляет выбор tool, естественный
-ответ Master и его bounded grounding-проверку, если доступен OpenRouter;
+Legacy `run_check()` делает пять вызовов: четыре блочных агента параллельно и
+Summary-LLM. Chat вызывает `run_check(include_summary=False)`: четыре доменных
+агента → structured ToolResult → Master, без промежуточной Summary-сводки;
 в mock-режиме routing детерминированный. Targeted finance/legal читают только
 snapshot и нужный builder, не вызывая полный pipeline и доменные LLM.
 Подробнее: [multi-turn chat](../docs/MULTI_TURN_CHAT.md).
@@ -111,7 +111,7 @@ snapshot и нужный builder, не вызывая полный pipeline и �
 
 | Роль | Модель | Почему |
 |---|---|---|
-| Master | `z-ai/glm-5.3-flash` через OpenRouter | native tool call, естественный ответ, grounding verifier и одна repair-попытка |
+| Master | `z-ai/glm-5.3-flash` через OpenRouter | routing при необходимости и естественный ответ из trusted context |
 | Блок «Кто это» | `qwen/qwen3.8-27b` | отдельный TPM-бюджет для параллельного прохода |
 | Блок «Надёжность и правовые риски» | `openai/gpt-oss-120b` | самый ответственный блок, отдаём сильнейшей модели |
 | Блок «Финансовое состояние» | `qwen/qwen3.8-27b` | устойчиво держит JSON-схему на числовых данных |
@@ -271,7 +271,7 @@ backend/
       prompt.py             versioned prompt native tool calling
       response.py           deterministic ToolResult → rich UI adapter
       conversations.py      доверенный контекст диалога отдельно от истории
-      grounding.py          проверка заземления и одна попытка ремонта
+      grounding.py          точные значения и optional eval/debug verifier/repair
       synthesis.py          нормализация проверенных данных и разбор ответа Master
     domain/
       facts.py              детерминированный слой фактов и паспорт полноты

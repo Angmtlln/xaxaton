@@ -51,7 +51,8 @@ POST /api/v1/chat/messages
   -> run_check() | build_finance() | build_reliability() | build_comparison()
   -> normalized ToolResult: metrics / series / events / statuses / policy / evidence
   -> естественный ответ Master + необязательный allowlisted artifact
-  -> bounded grounding verifier -> одна repair-попытка -> conservative fallback
+  -> deterministic structural validation
+  -> optional eval/debug verifier/repair (AGENT_GROUNDING_DEBUG=false по умолчанию)
   -> backend hydration AssistantResponse
   -> InMemorySaver: bounded messages + отдельный trusted_context по conversation_id
   -> allowlisted UIBlock renderer
@@ -92,7 +93,7 @@ POST /api/v1/chat/messages
 - реализованы agent-first чат, legacy-отчёт, диаграммы и паспорт полноты;
 - реализован conversation-first full check: сообщение с одним валидным ИНН,
   LangChain `create_agent` + underlying LangGraph, `full_company_check`,
-  естественный post-tool ответ Master, bounded grounding verifier и backend
+  естественный post-tool ответ Master, structural validation и backend
   hydration; компактный `company_summary`
   перед основным сообщением, выборочные артефакты и свёрнутые источники;
 - отдельный React/Vinext-прототип содержит моковый интерфейс;
@@ -179,7 +180,7 @@ npm run dev
   не повторяют карточку компании.
 - `backend/app/agent/synthesis.py`: нормализация metrics, series, events,
   statuses, coverage, policy и evidence для Master и trusted context.
-- `backend/app/agent/grounding.py`: узкая проверка company-specific утверждений,
+- `backend/app/agent/grounding.py`: optional eval/debug проверка company-specific утверждений,
   точные URL/ИНН/ОГРН и максимум одна repair-попытка.
 - `tests/test_agent_multiturn.py`, `tests/test_agent_runtime.py`: routing, state,
   tool/result turns, budgets и fallback.
@@ -190,3 +191,12 @@ npm run dev
 - Клиент `frontend/js/chat/main.js` передаёт conversation_id и сохраняет текущий
   диалог в sessionStorage вкладки. Новый диалог сбрасывает клиентский контекст.
 - Подробности, API-пример и проверка: [MULTI_TURN_CHAT.md](MULTI_TURN_CHAT.md).
+
+## Latency chat path
+
+- [CHAT_LATENCY.md](CHAT_LATENCY.md): before/after waterfall, provider routing и
+  команды воспроизведения; `scripts/benchmark_chat_latency.py`.
+- По умолчанию verifier/repair отключены. Прямой dispatch простых команд,
+  reuse finance/legal и один Master synthesis сохраняют структурную валидацию.
+- Chat `full_company_check` пропускает только legacy Summary; `/api/v1/checks`
+  и `/report` продолжают вызывать её. Схема БД не меняется.

@@ -266,7 +266,12 @@ This prevents hallucinations from compounding across turns.
 
 ### 8.3 Grounding verifier
 
-For substantive company-specific analytical/recommendation answers, use a bounded grounding-verification step.
+Grounding verification is an optional eval/debug mechanism, disabled by default
+(`AGENT_GROUNDING_DEBUG=false`). The synchronous chat path is routing if needed
+→ tool → trusted ToolResult → Master synthesis → deterministic structural
+validation → response. It runs neither verifier nor repair, including rewrites
+and comparisons. No replacement critic or semantic classifier is introduced.
+Enable the bounded mechanism below only for explicit eval/debug runs.
 
 Verifier input:
 

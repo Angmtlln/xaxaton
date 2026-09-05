@@ -1,4 +1,4 @@
-"""Bounded post-synthesis grounding checks for Master-authored prose."""
+"""Exact backend-value checks and optional eval/debug LLM verification."""
 from __future__ import annotations
 
 import asyncio
@@ -124,8 +124,10 @@ def backend_owned_violations(message: str, verified_context: dict) -> list[str]:
     violations = []
     if URL_RE.search(message):
         violations.append("Ответ содержит URL, который не может создавать Master")
-    company = verified_context.get("company") or {}
-    known = {str(value) for value in (company.get("inn"), company.get("ogrn")) if value}
+    companies = [verified_context.get("company") or {},
+                 *verified_context.get("companies", [])]
+    known = {str(company[key]) for company in companies for key in ("inn", "ogrn")
+             if company.get(key)}
     for match in LABELLED_IDENTIFIER_RE.finditer(message):
         if match.group(2) not in known:
             violations.append("Ответ содержит неподтверждённый идентификатор компании")
@@ -153,7 +155,10 @@ async def call_grounding_verifier(
         "response_format": {"type": "json_object"},
     }
     if reasoning_effort:
-        invoke_options["extra_body"] = {"reasoning": {"effort": reasoning_effort}}
+        invoke_options["extra_body"] = {
+            **(getattr(model, "extra_body", None) or {}),
+            "reasoning": {"effort": reasoning_effort},
+        }
     response = await asyncio.wait_for(
         model.ainvoke(
             [

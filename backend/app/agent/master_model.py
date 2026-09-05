@@ -18,9 +18,16 @@ def build_master_model(settings: Settings) -> Optional[BaseChatModel]:
     if settings.llm_mock or not settings.openrouter_api_key:
         return None
 
-    extra_body = None
+    extra_body = {}
     if settings.openrouter_reasoning_effort:
-        extra_body = {"reasoning": {"effort": settings.openrouter_reasoning_effort}}
+        extra_body["reasoning"] = {"effort": settings.openrouter_reasoning_effort}
+    provider = {}
+    if settings.openrouter_provider_sort:
+        provider["sort"] = settings.openrouter_provider_sort
+    if settings.openrouter_preferred_max_latency is not None:
+        provider["preferred_max_latency"] = settings.openrouter_preferred_max_latency
+    if provider:
+        extra_body["provider"] = provider
 
     return ChatOpenAI(
         api_key=settings.openrouter_api_key,
@@ -32,7 +39,7 @@ def build_master_model(settings: Settings) -> Optional[BaseChatModel]:
         max_retries=0,
         model_kwargs={"parallel_tool_calls": False},
         default_headers=_openrouter_headers(settings),
-        extra_body=extra_body,
+        extra_body=extra_body or None,
     )
 
 

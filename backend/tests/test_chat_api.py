@@ -33,7 +33,7 @@ def test_chat_api_runs_complete_vertical_slice_once(
 ):
     calls = []
 
-    async def fake_run_check(inn, settings, client, persist):
+    async def fake_run_check(inn, settings, client, persist, **kwargs):
         calls.append((inn, persist))
         return check_payload
 
