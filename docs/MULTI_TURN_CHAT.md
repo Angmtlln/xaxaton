@@ -197,9 +197,9 @@ completion, structured output и LangChain tool calling через OpenRouter.
 
 ## Проверка 05.09.2026
 
-- После миграции Master на OpenRouter полный backend regression: `160 passed`,
+- После миграции Master на OpenRouter полный backend regression: `161 passed`,
   одно прежнее предупреждение Starlette/AnyIO. Профильный agent/grounding набор:
-  `132 passed`. `compileall` и `git diff --check` прошли.
+  `133 passed`. `compileall` и `git diff --check` прошли.
 - Точный семирепличный сценарий прошёл behavioral-тест с одним
   `conversation_id`: tools вызваны только на turns 1, 2 и 6; turn 4 использовал
   rewrite fast path, остальные содержательные ответы прошли verifier.
