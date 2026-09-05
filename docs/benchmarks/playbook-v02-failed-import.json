@@ -1,0 +1,174 @@
+{
+  "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+  "model": "z-ai/glm-5.3-flash",
+  "rows": [
+    {
+      "q": "Разбери баланс и ликвидность компании 6165169320",
+      "wall_ms": 5185,
+      "metadata": {
+        "agent_run_id": "397dbdc5-2800-48e8-832b-e183bd3bc496",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.2",
+        "latency_ms": 5182,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "message": "Аналитический ответ сейчас недоступен. Подтверждённые данные: Выручка за 2025 год — 748 359 000 ₽; Прибыль за 2025 год — Нет данных; Собственный капитал за 2025 год — 3 782 000 ₽.",
+      "calls": [
+        {
+          "kind": "master",
+          "ms": 5132,
+          "usage": {
+            "input_tokens": 722,
+            "output_tokens": 59,
+            "total_tokens": 781,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0,
+              "cache_creation": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 32
+            }
+          },
+          "finish_reason": null,
+          "input_chars": 1618
+        }
+      ]
+    },
+    {
+      "q": "Почему?",
+      "wall_ms": 8,
+      "metadata": {
+        "agent_run_id": "1bc0d900-883f-4a46-a654-8abf3e2c7162",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.2",
+        "latency_ms": 7,
+        "error_code": null,
+        "model_calls": 0,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "message": "Аналитический ответ сейчас недоступен. Подтверждённые данные: Выручка за 2025 год — 748 359 000 ₽; Прибыль за 2025 год — Нет данных; Собственный капитал за 2025 год — 3 782 000 ₽.",
+      "calls": []
+    },
+    {
+      "q": "Покажи судебную динамику компании 6165169320",
+      "wall_ms": 17,
+      "metadata": {
+        "agent_run_id": "9252757d-225d-4342-b2db-d5e6d9c1c706",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.2",
+        "latency_ms": 15,
+        "error_code": null,
+        "model_calls": 0,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "message": "В данных есть метка ограничения, требующая уточнения. Аналитический ответ сейчас недоступен; проверьте сигнал и первичные сведения до сделки.",
+      "calls": []
+    },
+    {
+      "q": "Сравни финансы компаний 6165169320 и 1684017097",
+      "wall_ms": 12163,
+      "metadata": {
+        "agent_run_id": "9e068168-edc9-4fca-8bf0-ba455af086f7",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.2",
+        "latency_ms": 12161,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "message": "Аналитическое сравнение сейчас недоступно. Проверенные показатели компаний собраны в таблице ниже.",
+      "calls": [
+        {
+          "kind": "master",
+          "ms": 12113,
+          "usage": {
+            "input_tokens": 904,
+            "output_tokens": 44,
+            "total_tokens": 948,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0,
+              "cache_creation": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 11
+            }
+          },
+          "finish_reason": null,
+          "input_chars": 2223
+        }
+      ]
+    },
+    {
+      "q": "Я продаю компании 6165169320 с отсрочкой. На что обратить внимание?",
+      "wall_ms": 10,
+      "metadata": {
+        "agent_run_id": "6b7ef7f1-6a51-44c4-b5bf-1073965a2890",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.2",
+        "latency_ms": 9,
+        "error_code": null,
+        "model_calls": 0,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "message": "В данных есть метка ограничения, требующая уточнения. Аналитический ответ сейчас недоступен; проверьте сигнал и первичные сведения до сделки.",
+      "calls": []
+    },
+    {
+      "q": "Теперь я покупаю у компании 6165169320 с авансом. Что меняется?",
+      "wall_ms": 9,
+      "metadata": {
+        "agent_run_id": "668bf192-46a4-442d-a67f-9826d20c77a2",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.2",
+        "latency_ms": 8,
+        "error_code": null,
+        "model_calls": 0,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "message": "В данных есть метка ограничения, требующая уточнения. Аналитический ответ сейчас недоступен; проверьте сигнал и первичные сведения до сделки.",
+      "calls": []
+    }
+  ]
+}

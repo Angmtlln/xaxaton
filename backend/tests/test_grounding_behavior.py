@@ -103,11 +103,8 @@ async def test_acceptance_calibrates_claims_and_asks_for_deal_context(
 
 
 def test_prompts_calibrate_claim_strength_and_transaction_recommendations():
-    assert "verified fact" in MASTER_SYSTEM_PROMPT
-    assert "interpretation" in MASTER_SYSTEM_PROMPT
-    assert "hypothesis" in MASTER_SYSTEM_PROMPT
-    assert "recommendation" in MASTER_SYSTEM_PROMPT
-    assert "роль контрагента" in MASTER_SYSTEM_PROMPT
+    assert "verified_context" in MASTER_SYSTEM_PROMPT
+    assert "user_context" in MASTER_SYSTEM_PROMPT
     assert "сила утверждения" in VERIFIER_SYSTEM_PROMPT
     assert "живёт\nна заёмные" in VERIFIER_SYSTEM_PROMPT
 

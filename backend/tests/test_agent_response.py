@@ -214,5 +214,5 @@ async def test_master_is_answer_author_and_policy_remains_backend_owned(monkeypa
     response = _assistant(result, MasterAnswer(message=message))
     assert response.message == message
     policy = next(block for block in response.blocks if block.type == "finding_list")
-    assert any("Официальный стоп-сигнал" in item.text for item in policy.items)
+    assert any("Метка ограничения из источника" in item.text for item in policy.items)
     assert response.leading_artifact.type == "company_summary"

@@ -104,6 +104,18 @@ def select_trusted_context(current: Optional[dict], topic: Optional[str]) -> Opt
     return selected
 
 
+def with_related_domains(selected: dict, current: Optional[dict]) -> dict:
+    """Deal reasoning may use other verified domains, never assistant prose."""
+    related = {}
+    for topic, context in ((current or {}).get("domains") or {}).items():
+        if topic not in {"finance", "legal"} or topic == selected.get("domain"):
+            continue
+        if (context.get("company") or {}).get("inn") != (selected.get("company") or {}).get("inn"):
+            continue
+        related[topic] = {key: value for key, value in context.items() if key != "evidence"}
+    return {**selected, "related_domains": related} if related else selected
+
+
 def append_user_context(current: Optional[list[str]], message: str, *, limit: int = 4) -> list[str]:
     """Keep bounded user-supplied context separate from verified company facts."""
     values = [item[:1000] for item in (current or []) if isinstance(item, str) and item.strip()]

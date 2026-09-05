@@ -178,7 +178,7 @@ def _fallback_message(context: dict) -> str:
     ]
     if hard_stops:
         return (
-            "В проверенных данных есть официальный стоп-сигнал. Аналитический ответ "
+            "В данных есть метка ограничения, требующая уточнения. Аналитический ответ "
             "сейчас недоступен; проверьте сигнал и первичные сведения до сделки."
         )
     state = (context.get("coverage") or {}).get("state")
@@ -223,14 +223,22 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
         if not any(key in mapping for mapping in by_company):
             continue
         cells = []
-        for mapping in by_company:
+        for owner, mapping in zip(data.companies, by_company):
             fact_id = mapping.get(key)
             fact = data.facts.get(fact_id) if fact_id else None
             if fact is None or fact.value is None:
                 cells.append(ComparisonCell(display_value="Нет данных", state="no_data"))
             else:
+                display = display_fact_value(fact)
+                if ":fin." in fact.id and fact.id.rsplit(".", 1)[-1].isdigit():
+                    display += " · " + fact.id.rsplit(".", 1)[-1]
+                elif key == "proceeds_change_pct":
+                    section = owner.sections.get("finance_series")
+                    series = section.value if section else []
+                    if len(series) >= 2:
+                        display += " · %s→%s" % (series[-2]["year"], series[-1]["year"])
                 cells.append(ComparisonCell(
-                    display_value=display_fact_value(fact),
+                    display_value=display,
                     state="data",
                     evidence_id=fact.id if fact.id in evidence_by_id else None,
                 ))
@@ -252,7 +260,7 @@ def _comparison_fallback(context: dict) -> str:
     ]
     if flagged:
         return (
-            "Аналитическое сравнение сейчас недоступно. Официальный стоп-сигнал есть "
+            "Аналитическое сравнение сейчас недоступно. Метка ограничения есть "
             "у следующих компаний: %s. Проверьте его до сделки." % ", ".join(flagged)
         )
     empty = [
@@ -280,17 +288,17 @@ def _policy_block(data, evidence_by_id: Dict[str, Evidence]) -> Optional[Finding
         fact = data.facts.get(signal.id)
         if fact is None:
             continue
-        prefix = "Официальный стоп-сигнал источника" if signal.kind == "official_hard_stop" else "Сигнал источника для уточнения"
+        prefix = "Метка ограничения из источника" if signal.kind == "official_hard_stop" else "Сигнал источника для уточнения"
         items.append(FindingItem(
             title=signal.label,
             text="%s: %s." % (prefix, display_fact_value(fact)),
             evidence_ids=[ref for ref in signal.evidence_ids if ref in evidence_by_id],
         ))
-    return FindingListBlock(title="Детерминированные сигналы", items=items) if items else None
+    return FindingListBlock(title="Метки источника", items=items) if items else None
 
 
 def _comparison_policy_block(data: ComparisonData, evidence_by_id: Dict[str, Evidence]):
-    """Детерминированные сигналы сравнения всегда подписаны компанией."""
+    """Метки источника сравнения всегда подписаны компанией."""
     names = _comparison_names(data)
     owner = {
         signal_id: item.inn for item in data.companies for signal_id in item.policy_signal_ids
@@ -302,14 +310,14 @@ def _comparison_policy_block(data: ComparisonData, evidence_by_id: Dict[str, Evi
         fact = data.facts.get(signal.id)
         if fact is None:
             continue
-        prefix = ("Официальный стоп-сигнал источника" if signal.kind == "official_hard_stop"
+        prefix = ("Метка ограничения из источника" if signal.kind == "official_hard_stop"
                   else "Сигнал источника для уточнения")
         items.append(FindingItem(
             title="%s — %s" % (names.get(owner.get(signal.id), ""), signal.label),
             text="%s: %s." % (prefix, display_fact_value(fact)),
             evidence_ids=[ref for ref in signal.evidence_ids if ref in evidence_by_id],
         ))
-    return FindingListBlock(title="Детерминированные сигналы", items=items) if items else None
+    return FindingListBlock(title="Метки источника", items=items) if items else None
 
 
 def _optional_artifact(data, evidence_by_id: Dict[str, Evidence], artifact: str):
