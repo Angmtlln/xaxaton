@@ -20,6 +20,7 @@
 | рабочий интерфейс демо | `frontend/index.html`, `frontend/report.html` | `frontend/js/chat/main.js`, `frontend/js/report/main.js`, `frontend/css/chat.css` |
 | визуальный React-прототип | [`design/prototype/README.md`](../design/prototype/README.md) | `design/prototype/app/` |
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |
+| содержательные behavioral evals Master | [`AGENT_EVALS.md`](../AGENT_EVALS.md), [`evals/README.md`](../backend/evals/README.md) | `backend/evals/scenarios.json`, `bank.py`, `run_local.py`, `graders.py`, `judge.py` |
 
 ## Источники истины и свежесть
 
