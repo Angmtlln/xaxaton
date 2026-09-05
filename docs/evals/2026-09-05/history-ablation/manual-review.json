@@ -1,0 +1,190 @@
+{
+  "reviewer": "Codex coding agent; no independent human review",
+  "method": "Selected findings from reading all answers, not exhaustive scoring. Empty findings does not mean PASS.",
+  "rows": [
+    {
+      "variant": "original",
+      "trace": "K19-0-1.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "numeric_failure",
+          "quote": "иски в сотни раз превышают собственный капитал",
+          "reason": "551% — около 5,51 раза, не сотни раз."
+        },
+        {
+          "kind": "numeric_failure",
+          "quote": "18 946 690 ₽",
+          "reason": "Правильная сумма pending 18 894 669 ₽."
+        }
+      ]
+    },
+    {
+      "variant": "original",
+      "trace": "K19-0-2.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "variant": "original",
+      "trace": "K19-0-3.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "variant": "original",
+      "trace": "S15_10-0-1.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "payment_reasoning_gap",
+          "quote": "источник текущих платежей по отчётности не виден",
+          "reason": "Ответ связывает вывод с нулевой выручкой и не рассматривает известные деньги и другие активы АПРЕЛЬ."
+        }
+      ]
+    },
+    {
+      "variant": "original",
+      "trace": "S15_10-0-2.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "variant": "original",
+      "trace": "S15_10-0-3.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "variant": "neutral",
+      "trace": "K19-0-1.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "variant": "neutral",
+      "trace": "K19-0-2.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "variant": "neutral",
+      "trace": "K19-0-3.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": []
+    },
+    {
+      "variant": "neutral",
+      "trace": "S15_10-0-1.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "numeric_failure",
+          "quote": "в ~500 раз больше капитала",
+          "reason": "499,59% — около 5 раз."
+        }
+      ]
+    },
+    {
+      "variant": "neutral",
+      "trace": "S15_10-0-2.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "target_failure",
+          "quote": "ресурсов для крупных обязательств у компании нет",
+          "reason": "Сумма и срок обязательства неизвестны; нулевая выручка не устанавливает отсутствие ресурсов."
+        },
+        {
+          "kind": "numeric_failure",
+          "quote": "в ~50 раз больше капитала",
+          "reason": "499,59% — около 5 раз."
+        }
+      ]
+    },
+    {
+      "variant": "neutral",
+      "trace": "S15_10-0-3.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "payment_overclaim",
+          "quote": "«АПРЕЛЬ» — только по небольшим суммам",
+          "reason": "Категорическое ограничение платежей без заданной суммы и срока."
+        }
+      ]
+    },
+    {
+      "variant": "absent",
+      "trace": "K19-0-1.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "conversation_regression",
+          "quote": "Количество кредиторов.",
+          "reason": "В ответ на текущий K19 модель также отвечает на предыдущие пользовательские вопросы; удаление ответов нарушило фокус разговора."
+        }
+      ]
+    },
+    {
+      "variant": "absent",
+      "trace": "K19-0-2.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "conversation_regression",
+          "quote": "Количество кредиторов.",
+          "reason": "В ответ на текущий K19 модель также отвечает на предыдущие пользовательские вопросы; удаление ответов нарушило фокус разговора."
+        }
+      ]
+    },
+    {
+      "variant": "absent",
+      "trace": "K19-0-3.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "conversation_regression",
+          "quote": "Количество кредиторов.",
+          "reason": "В ответ на текущий K19 модель также отвечает на предыдущие пользовательские вопросы; удаление ответов нарушило фокус разговора."
+        }
+      ]
+    },
+    {
+      "variant": "absent",
+      "trace": "S15_10-0-1.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "target_failure",
+          "quote": "крупных видимых источников платежа в балансе нет",
+          "reason": "Старых ответов assistant вообще нет, но категорический вывод возникает при известных активах и неизвестном размере платежа."
+        }
+      ]
+    },
+    {
+      "variant": "absent",
+      "trace": "S15_10-0-2.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "target_failure",
+          "quote": "ликвидных активов для крупных платежей в данных нет",
+          "reason": "Раскрыты деньги и дебиторка; их достаточность и ликвидность для неопределённого крупного платежа не установлены."
+        }
+      ]
+    },
+    {
+      "variant": "absent",
+      "trace": "S15_10-0-3.json.gz",
+      "scope": "targeted qualitative review, not full semantic acceptance",
+      "findings": [
+        {
+          "kind": "payment_overclaim",
+          "quote": "«АПРЕЛЬ» — только для небольших сумм",
+          "reason": "Неизвестные сумма и срок сделки не мешают категорическому ограничению."
+        }
+      ]
+    }
+  ]
+}

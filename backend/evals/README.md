@@ -212,3 +212,12 @@ setup всё равно контролируемый. Все расчёты/пр
 [Agents](https://developers.openai.com/api/docs/guides/agents) и
 [Agent evals](https://developers.openai.com/api/docs/guides/agent-evals);
 продукт остаётся на LangChain согласно AGENTS.md.
+
+## Влияние предыдущих ответов
+
+`python -m evals.history_ablation --variant original|neutral|absent --output <new-directory>`
+(из `backend/`, с `PYTHONPATH=.` и `.venv/bin/python`) запускает K19/S15_10
+на текущей GLM, по три повтора. Меняется только assistant history: исходная,
+нейтральные подтверждения или удалённые ответы. Пользовательские вопросы,
+trusted context и методология сохраняются. Это eval-only диагностика.
+[Результат: удаления истории недостаточно](../../docs/evals/2026-09-05/history-ablation/report.md).

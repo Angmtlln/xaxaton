@@ -1,0 +1,25 @@
+{
+  "conclusion": "Removing assistant history is insufficient; magnitude of history effect not established",
+  "turns": 18,
+  "model": "z-ai/glm-5.3-flash",
+  "technical_pass": 18,
+  "semantic_acceptance": false,
+  "invariants": {
+    "K19": {
+      "non_history_frozen_fields_equal": true,
+      "human_history_equal": true,
+      "actual_system_messages_equal_across_all_nine_calls": true,
+      "current_question_equal": true,
+      "system_sha256": "4053cd7c2e756115b432c3b8e27c6f98138ed0f8778bcd828ff0f0d4a5422732"
+    },
+    "S15_10": {
+      "non_history_frozen_fields_equal": true,
+      "human_history_equal": true,
+      "actual_system_messages_equal_across_all_nine_calls": true,
+      "current_question_equal": true,
+      "system_sha256": "3d79a0d824312e2c4ba436eb72d1ea1a8e4bb1271e1430f0ed8d80a6872eb783"
+    }
+  },
+  "tests": "6 passed in 2.88s",
+  "runtime_changed": false
+}
