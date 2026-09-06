@@ -238,6 +238,7 @@ def _shortlist_block(data: ShortlistData) -> CompanyShortlistBlock:
     """Подборку гидратирует backend: модель не выбирает, кто в неё попал."""
     rows = [
         ShortlistRow(
+            matched_activities=item.matched_activities,
             inn=item.inn,
             name=item.name,
             fin_year=item.fin_year,

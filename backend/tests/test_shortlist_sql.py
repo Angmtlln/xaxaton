@@ -51,3 +51,59 @@ def test_shortlist_view_preserves_unknowns_and_filters_verified_zero():
             cur.execute('SELECT inn FROM pg_temp.v_company_shortlist WHERE hard_stops = 0 AND claims_amount <= 0')
             assert cur.fetchall() == [{'inn': '3'}]
         conn.rollback()
+
+
+@pytest.mark.asyncio
+async def test_activity_repository_filters_before_limit_and_counts_companies(monkeypatch):
+    dsn = os.getenv('TEST_SHORTLIST_DATABASE_URL')
+    if not dsn:
+        pytest.skip('Требуется TEST_SHORTLIST_DATABASE_URL для PostgreSQL integration')
+    import psycopg
+    from psycopg.rows import dict_row
+    from contextlib import asynccontextmanager
+    from app.infrastructure import repository
+    async with await psycopg.AsyncConnection.connect(dsn, row_factory=dict_row) as conn:
+        await conn.execute('CREATE TEMP TABLE v_company_shortlist AS SELECT * FROM core.v_company_shortlist WITH NO DATA')
+        await conn.execute('CREATE TEMP TABLE activity_codes AS SELECT * FROM core.activity_codes WITH NO DATA')
+        for sid, proceeds in [(1, 20_000_000), (2, 30_000_000), (3, 5_000_000), (4, 100_000_000)]:
+            await conn.execute('INSERT INTO v_company_shortlist (snapshot_id, inn, short_name, proceeds) VALUES (%s,%s,%s,%s)',
+                               (sid, str(sid), 'Компания '+str(sid), proceeds))
+        for sid, code, desc, main, idx in [
+            (1,'46.73','Торговля оптовая строительными материалами',True,0),
+            (1,'46.73.1','Торговля оптовая лесоматериалами',False,1),
+            (2,'41.20','Строительство жилых и нежилых зданий',True,0),
+            (2,'46.31','Торговля оптовая фруктами и овощами',False,1),
+            (3,'47.11','Торговля розничная продуктами',True,0),
+            (4,'41.20','Строительство жилых и нежилых зданий',True,0),
+        ]:
+            await conn.execute('INSERT INTO activity_codes (snapshot_id,code,description,is_main,idx) VALUES (%s,%s,%s,%s,%s)',
+                               (sid,code,desc,main,idx))
+        class Cursor:
+            async def __aenter__(self):
+                self.cursor = conn.cursor()
+                return self
+            async def __aexit__(self, *args): await self.cursor.close()
+            async def execute(self, sql, params):
+                await self.cursor.execute(sql.replace('core.', 'pg_temp.'), params)
+            async def fetchone(self): return await self.cursor.fetchone()
+            async def fetchall(self): return await self.cursor.fetchall()
+        class Pool:
+            @asynccontextmanager
+            async def connection(self): yield self
+            def cursor(self): return Cursor()
+        monkeypatch.setattr(repository, 'get_pool', lambda: Pool())
+        result = await repository.find_companies(activity_query='торговлей', min_proceeds=10_000_000, limit=1)
+        assert result['total'] == 2 and [r['inn'] for r in result['rows']] == ['2']
+        match = result['rows'][0]['matched_activities'][0]
+        assert match['code'] == '46.31' and match['is_main'] is False
+        assert match['field_ref'].endswith('otherKindsOfActivity[0]')
+        main = await repository.find_companies(activity_query='торговля', activity_scope='main', min_proceeds=10_000_000)
+        assert main['total'] == 1 and main['rows'][0]['inn'] == '1'
+        prefix = await repository.find_companies(okved_prefix='46.7')
+        assert prefix['total'] == 1 and len(prefix['rows'][0]['matched_activities']) == 2
+        empty = await repository.find_companies(activity_query='разведение верблюдов', min_proceeds=1)
+        assert empty == {'total': 0, 'rows': []}
+        # Same company does not satisfy keywords spread across unrelated activity codes.
+        strict = await repository.find_companies(activity_query='строительство фруктами')
+        assert strict['total'] == 0
+        await conn.rollback()

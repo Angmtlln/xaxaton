@@ -37,6 +37,11 @@ def money(value) -> str:
 def describe(args: FindCompaniesArgs) -> list[str]:
     """Человекочитаемые критерии — их формулирует backend, а не модель."""
     labels = []
+    scope = "основной ОКВЭД" if args.activity_scope == "main" else "основной или дополнительный ОКВЭД"
+    if args.activity_query:
+        labels.append("Деятельность: %s (%s)" % (args.activity_query, scope))
+    if args.okved_prefix:
+        labels.append("ОКВЭД %s и дочерние коды (%s)" % (args.okved_prefix, scope))
     for value, template in (
         (args.min_proceeds, "выручка от %s"), (args.max_proceeds, "выручка до %s"),
         (args.min_profit, "прибыль от %s"), (args.max_profit, "прибыль до %s"),
@@ -66,6 +71,7 @@ async def execute_find_companies(context: ToolContext, args: BaseModel) -> ToolR
     found = await repository.find_companies(**parsed.model_dump())
     companies = [
         ShortlistCompany(
+            matched_activities=row.get("matched_activities") or [],
             inn=str(row["inn"]),
             name=(row.get("short_name") or str(row["inn"]))[:240],
             fin_year=row.get("fin_year"),
@@ -106,7 +112,7 @@ def _number(value) -> Optional[float]:
     return None if value is None else float(value)
 
 
-def direct_shortlist_arguments(message: str) -> Optional[dict]:
+def _direct_basic_arguments(message: str) -> Optional[dict]:
     """Только полные явные команды: незнакомый остаток оставляем native routing.
 
     Как и direct dispatch по ИНН, это разбор пользовательских аргументов,
@@ -135,6 +141,76 @@ def direct_shortlist_arguments(message: str) -> Optional[dict]:
         field = ('min_' if numeric['bound'].lower() == 'от' else 'max_') + (
             'proceeds' if numeric['metric'].lower() == 'выручкой' else 'profit')
         args[field] = float(Decimal(numeric['amount'].replace(',', '.')) * scale)
+    if match['limit']:
+        args['limit'] = int(match['limit'])
+    try:
+        return FindCompaniesArgs(**args).model_dump(exclude_none=True)
+    except ValueError:
+        return None
+
+
+_ACTIVITY_CLAUSE = re.compile(
+    r"(?:занимающ(?:иеся|ихся)\s+|по\s+деятельности\s+)(?P<query>.+)", re.I)
+
+
+def activity_arguments(message: str) -> dict:
+    """Явная деятельность остаётся обязательной и при модельном разборе порогов."""
+    match = re.search(
+        r"(?:занимающ(?:иеся|ихся)\s+|по\s+деятельности\s+)(.+?)"
+        r"(?=\s+и\s+(?:с\s+)?(?:выручк|прибыл|без\s)|,|$)", message.strip().rstrip('.!'), re.I)
+    code = re.search(r"\bокв[еэ]д\s+([0-9]{2}(?:\.[0-9]{1,2}){0,2})(?![0-9.])", message, re.I)
+    if not match and not code:
+        return {}
+    scope = "main" if re.search(r"только\s+основной(?:\s+окв[еэ]д)?", message, re.I) else "any"
+    query = match[1].strip() if match else None
+    if query:
+        query = re.sub(r"\s+(?:только\s+основной|включая\s+дополнительные)(?:\s+окв[еэ]д)?$", "", query, flags=re.I)
+    return {"activity_query": query, "okved_prefix": code[1] if code else None,
+            "activity_scope": scope}
+
+
+def direct_shortlist_arguments(message: str) -> Optional[dict]:
+    basic = _direct_basic_arguments(message)
+    if basic is not None:
+        return basic
+    match = re.fullmatch(
+        r"(?:найди|покажи|подбери)\s+(?:компании|контрагентов),?\s+"
+        r"(?P<condition>.+?)(?:,?\s+покажи\s+первые\s+(?P<limit>[0-9]+))?[.!]?",
+        message.strip(), re.I,
+    )
+    if not match:
+        return None
+    condition = match['condition'].strip()
+    scope = 'any'
+    scope_suffix = re.search(r",?\s+включая\s+дополнительные(?:\s+окв[еэ]д)?$", condition, re.I)
+    if scope_suffix:
+        scope = 'any'
+        condition = condition[:scope_suffix.start()].strip()
+    main_suffix = re.search(r",?\s+только\s+основной(?:\s+окв[еэ]д)?$", condition, re.I)
+    if main_suffix:
+        scope = 'main'
+        condition = condition[:main_suffix.start()].strip()
+    parts = re.split(r"\s+и\s+(?=(?:с\s+)?(?:выручкой|прибылью)|без\s)", condition, flags=re.I)
+    activity = _ACTIVITY_CLAUSE.fullmatch(parts[0])
+    code = re.fullmatch(r"(?:с\s+)?окв[еэ]д\s+([0-9.]+)", parts[0], re.I)
+    if activity:
+        args = {'activity_query': activity['query'].strip(), 'activity_scope': scope}
+    elif code:
+        args = {'okved_prefix': code[1], 'activity_scope': scope}
+    else:
+        return None
+    for part in parts[1:]:
+        if part.lower().startswith(('выручкой', 'прибылью')):
+            part = 'с ' + part
+        parsed = _direct_basic_arguments('Найди компании ' + part)
+        if parsed is None:
+            return None
+        for key, value in parsed.items():
+            if key in {'sort_by', 'order', 'limit', 'activity_scope'}:
+                continue
+            if key in args and args[key] != value:
+                return None
+            args[key] = value
     if match['limit']:
         args['limit'] = int(match['limit'])
     try:

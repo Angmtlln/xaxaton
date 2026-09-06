@@ -91,6 +91,7 @@ def build_langchain_tools(
         """
         await reserve()
         arguments = {k: v for k, v in criteria.items() if v is not None}
+        arguments.update(detail_args or {})
         return await run(arguments, "подборка по критериям")
 
     coroutine = {

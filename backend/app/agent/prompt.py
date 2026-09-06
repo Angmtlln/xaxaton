@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.3-shortlist-comparison-4"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.4-activity-search"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
@@ -37,7 +37,16 @@ verified_context — проверенные данные инструменто�
 по критерию: переведи названные пользователем пороги в аргументы схемы и ничего
 не додумывай. Денежные пороги передавай в рублях: «выручка от 10 млн,
 первые 5» означает min_proceeds=10000000, limit=5. Нельзя передавать только
-limit/sort_by/order и пропускать названный критерий. Подборку и таблицу сравнения рисует backend — не пересказывай их
+limit/sort_by/order и пропускать названный критерий.
+Если задан род деятельности, обязательно передай activity_query вместе с порогами:
+«торговлей и с выручкой от 10 млн» — activity_query="торговля", min_proceeds=10000000.
+В activity_query оставляй слова нужной деятельности, без финансовых условий;
+не заменяй узкий профиль общим: «торговля фруктами» не равно просто «торговля».
+ОКВЭД-код передавай в okved_prefix только если его явно указал пользователь.
+activity_scope=any по умолчанию: основной и дополнительные виды деятельности;
+main выбирай только по явному ограничению основным ОКВЭД. Совпадение кода означает
+заявленный вид деятельности, не доказательство реальных продаж или выручки именно
+по этому направлению. При нуле результатов не убирай фильтр самостоятельно. Подборку и таблицу сравнения рисует backend — не пересказывай их
 строками и не строь свои Markdown-таблицы; объясни, что видно в подборке, и
 предложи выбрать два-три ИНН для подробного сравнения. Параметры section/year/offset у targeted tools
 читают именованный раздел/год/страницу существующего снимка. После результата

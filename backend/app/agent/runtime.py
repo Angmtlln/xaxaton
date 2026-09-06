@@ -26,7 +26,7 @@ from .grounding import (backend_owned_violations, call_grounding_verifier,
                         call_master_repair, is_simple_rewrite, message_text)
 from .langchain_tools import LangChainToolExecution, build_langchain_tools
 from .master_model import build_master_model
-from .shortlist import direct_shortlist_arguments
+from .shortlist import activity_arguments, direct_shortlist_arguments
 from .models import CompanyRef, GroundingVerification, MasterAnswer, is_valid_inn
 from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
@@ -499,7 +499,8 @@ class MasterAgentRuntime:
                 expected_inns=inns,
                 execution=execution,
                 expected_tool=target,
-                detail_args=detail_arguments(message) if target != "full_company_check" else {},
+                detail_args=(activity_arguments(message) if target == "find_companies" else
+                             detail_arguments(message) if target != "full_company_check" else {}),
             )
             middleware = [
                 _model_policy(
@@ -891,7 +892,9 @@ def is_shortlist_request(message: str) -> bool:
     text = message or ""
     if any(is_valid_inn(value) for value in DIGIT_SEQUENCE_RE.findall(text)):
         return False
-    if not SHORTLIST_CRITERION_RE.search(text):
+    if direct_shortlist_arguments(text) is not None:
+        return True
+    if not SHORTLIST_CRITERION_RE.search(text) and not activity_arguments(text):
         return False
     return bool(SHORTLIST_SCOPE_RE.search(text)) and bool(
         SHORTLIST_VERB_RE.search(text) or COMPARISON_RE.search(text)

@@ -306,8 +306,6 @@ async def get_snapshots_for_connections(inns: List[str]) -> List[Dict[str, Any]]
             return await cur.fetchall()
 
 
-SHORTLIST_SQL = "SELECT * FROM core.v_company_shortlist WHERE 1 = 1"
-
 # Сортировка выбирается только из этого набора: имя колонки не приходит из модели.
 SHORTLIST_SORT = {
     "proceeds": "proceeds",
@@ -318,7 +316,8 @@ SHORTLIST_SORT = {
 
 
 async def find_companies(
-    *, min_proceeds=None, max_proceeds=None, min_profit=None, max_profit=None,
+    *, activity_query=None, okved_prefix=None, activity_scope="any",
+    min_proceeds=None, max_proceeds=None, min_profit=None, max_profit=None,
     risk_level=None, zsk_risk_level=None, hard_stops=None,
     min_claims_amount=None, max_claims_amount=None,
     min_enforcement_count=None, max_enforcement_count=None,
@@ -355,7 +354,33 @@ async def find_companies(
     # Колонка сортировки берётся из allowlist, а не из аргумента модели.
     column = SHORTLIST_SORT.get(sort_by, "proceeds")
     direction = "ASC" if order == "asc" else "DESC"
-    filtered = SHORTLIST_SQL + "\n" + "\n".join(where)
+    activity_filter = ["ac.snapshot_id = v.snapshot_id"]
+    if activity_scope == "main" or not (activity_query or okved_prefix):
+        activity_filter.append("ac.is_main")
+    if activity_query:
+        activity_filter.append("to_tsvector('russian', COALESCE(ac.description, '')) @@ plainto_tsquery('russian', %(activity_query)s)")
+        params["activity_query"] = activity_query
+    if okved_prefix:
+        activity_filter.append("replace(ac.code, '.', '') LIKE %(okved_children)s")
+        params["okved_children"] = okved_prefix.replace(".", "") + "%"
+    match_sql = " AND ".join(activity_filter)
+    if activity_query or okved_prefix:
+        where.append("AND EXISTS (SELECT 1 FROM core.activity_codes ac WHERE " + match_sql + ")")
+    # Сначала фильтруем компании через EXISTS: дополнительные коды не размножают
+    # строки, count и LIMIT. Показываем до пяти реальных совпадений на компанию.
+    selection = """
+    SELECT v.*, COALESCE((SELECT jsonb_agg(matches) FROM (
+        SELECT ac.code, ac.description, ac.is_main,
+               CASE WHEN ac.is_main THEN 'report.kindsOfActivityInfo.mainKindOfActivity'
+                    ELSE 'report.kindsOfActivityInfo.otherKindsOfActivity[' || (ac.idx - 1)::text || ']' END AS field_ref
+        FROM core.activity_codes ac WHERE %s
+        ORDER BY ac.is_main DESC, ac.code, ac.idx LIMIT 5
+    ) matches), '[]'::jsonb) AS matched_activities
+    FROM core.v_company_shortlist v WHERE 1 = 1
+    """ % match_sql
+    if not (activity_query or okved_prefix):
+        selection = "SELECT v.*, '[]'::jsonb AS matched_activities FROM core.v_company_shortlist v WHERE 1 = 1"
+    filtered = selection + "\n" + "\n".join(where)
     async with get_pool().connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute("SELECT count(*) AS total FROM (%s) q" % filtered, params)

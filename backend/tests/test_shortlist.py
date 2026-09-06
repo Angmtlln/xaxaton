@@ -220,3 +220,51 @@ async def test_direct_shortlist_needs_only_synthesis_model_call(found):
     assert response.metadata.synthesis == 'model'
     assert found['min_proceeds'] == 10000000 and found['limit'] == 5
     assert response.blocks[0].type == 'company_shortlist'
+
+
+@pytest.mark.parametrize('message, expected', [
+    ('найди компании занимающиеся торговлей и с выручкой от 10 млн',
+     {'activity_query': 'торговлей', 'activity_scope': 'any', 'min_proceeds': 10000000}),
+    ('Найди компании, занимающиеся оптовой торговлей фруктами и с выручкой от 10 млн, покажи первые 5',
+     {'activity_query': 'оптовой торговлей фруктами', 'activity_scope': 'any', 'limit': 5}),
+    ('Покажи компании по деятельности производство одежды', {'activity_query': 'производство одежды'}),
+    ('Найди компании с ОКВЭД 46.7 и с выручкой от 10 млн', {'okved_prefix': '46.7'}),
+    ('Найди компании занимающиеся торговлей только основной ОКВЭД', {'activity_scope': 'main'}),
+])
+def test_activity_and_finance_are_combined_without_model(message, expected):
+    from app.agent.shortlist import direct_shortlist_arguments
+    args = direct_shortlist_arguments(message)
+    assert args is not None
+    assert all(args[key] == value for key, value in expected.items())
+    assert requested_tool(message) == 'find_companies'
+
+
+@pytest.mark.parametrize('args', [
+    {'activity_query':'  '}, {'activity_query':'не торговля'},
+    {'okved_prefix':'46 OR 1=1'}, {'okved_prefix':'4'},
+])
+def test_activity_arguments_do_not_accept_empty_or_ambiguous_filter(args):
+    with pytest.raises(ValueError):
+        FindCompaniesArgs(**args)
+
+
+@pytest.mark.asyncio
+async def test_activity_reaches_repository_and_context(found):
+    result = await _run(activity_query='торговля', min_proceeds=10000000)
+    assert found['activity_query'] == 'торговля' and found['activity_scope'] == 'any'
+    assert found['min_proceeds'] == 10000000
+    assert 'дополнительный' in result.data['criteria'][0]
+
+
+@pytest.mark.asyncio
+async def test_native_router_cannot_drop_explicit_activity(found):
+    from langchain_core.messages import AIMessage
+    from test_agent_runtime import _model, _runtime, _answer, _tool_call
+    model = _model(AIMessage(content='', tool_calls=[_tool_call('find_companies',
+        {'min_proceeds': 10000000, 'activity_scope': 'main', 'okved_prefix': '47'})]), _answer('Подборка готова.'))
+    response = await _runtime(model, direct_dispatch=False, grounding_debug=False).run(
+        'Найди компании занимающиеся торговлей и с выручкой от 10 млн')
+    assert response.metadata.tool_calls == 1
+    assert found['activity_query'] == 'торговлей'
+    assert found['activity_scope'] == 'any' and found['okved_prefix'] is None
+    assert found['min_proceeds'] == 10000000

@@ -109,6 +109,12 @@ class CompareCompaniesArgs(StrictModel):
 class FindCompaniesArgs(StrictModel):
     """Подборка карточек по проверенным полям витрины, а не по прозе отчёта."""
 
+    activity_query: Optional[SafeText] = Field(default=None, min_length=2, max_length=120,
+        description="Слова вида деятельности из запроса, например торговля или оптовая торговля фруктами. Не убирай деятельность при наличии финансовых условий.")
+    okved_prefix: Optional[str] = Field(default=None, pattern=r"^[0-9]{2}(?:\.[0-9]{1,2}){0,2}$",
+        description="Явный код ОКВЭД пользователя, например 46 или 46.73. Включает дочерние коды. Не придумывай код по названию деятельности.")
+    activity_scope: Literal["main", "any"] = Field(default="any",
+        description="any — основной и дополнительные по умолчанию; main — только основной по явной просьбе.")
     min_proceeds: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False, description='Выручка от указанной суммы включительно, в рублях. 10 млн = 10000000.')
     max_proceeds: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False, description='Выручка до указанной суммы включительно, в рублях.')
     min_profit: Optional[float] = Field(default=None, allow_inf_nan=False, description='Прибыль от указанной суммы, в рублях; убыток отрицательный.')
@@ -127,6 +133,7 @@ class FindCompaniesArgs(StrictModel):
     @model_validator(mode="after")
     def validate_any_criterion(self) -> "FindCompaniesArgs":
         criteria = (
+            self.activity_query, self.okved_prefix,
             self.min_proceeds, self.max_proceeds, self.min_profit, self.max_profit,
             self.risk_level, self.zsk_risk_level, self.hard_stops,
             self.min_claims_amount, self.max_claims_amount,
@@ -134,6 +141,12 @@ class FindCompaniesArgs(StrictModel):
         )
         if all(value is None for value in criteria):
             raise ValueError("Нужен хотя бы один критерий подборки")
+        if self.activity_query is not None:
+            self.activity_query = " ".join(self.activity_query.split())
+            if len(self.activity_query) < 2 or not re.search(r"[а-яёa-z]", self.activity_query, re.I):
+                raise ValueError("Укажите название деятельности или отдельный код ОКВЭД")
+            if re.search(r"\b(?:не|без|кроме|исключая|или)\b", self.activity_query, re.I):
+                raise ValueError("Исключения и альтернативы деятельности пока не поддержаны")
         for lower, upper in (
             (self.min_proceeds, self.max_proceeds), (self.min_profit, self.max_profit),
             (self.min_claims_amount, self.max_claims_amount),
@@ -553,7 +566,15 @@ class ConnectionGraphBlock(StrictModel):
     graph: CompanyConnections
 
 
+class ShortlistActivity(StrictModel):
+    code: SafeText
+    description: Optional[SafeText] = None
+    is_main: bool
+    field_ref: SafeText
+
+
 class ShortlistRow(StrictModel):
+    matched_activities: List[ShortlistActivity] = Field(default_factory=list, max_length=5)
     inn: SafeText
     name: SafeText
     fin_year: Optional[int] = None
@@ -571,7 +592,7 @@ class CompanyShortlistBlock(StrictModel):
 
     type: Literal["company_shortlist"] = "company_shortlist"
     title: SafeText
-    criteria: List[SafeText] = Field(default_factory=list, max_length=11)
+    criteria: List[SafeText] = Field(default_factory=list, max_length=14)
     total: int = Field(ge=0)
     rows: List[ShortlistRow] = Field(default_factory=list, max_length=25)
     empty_message: Optional[SafeText] = None

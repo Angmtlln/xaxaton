@@ -550,7 +550,8 @@ WITH fin AS (
               THEN COALESCE(hard.hard_stops, 0) END AS hard_stops,
          CASE WHEN jsonb_typeof(d.document #> '{report,executionProceedings}') = 'array'
               THEN COALESCE(exec.proceedings, 0) END AS enforcement_count,
-         s.risk_level::text AS risk_level, s.zsk_risk_level::text AS zsk_risk_level
+         s.risk_level::text AS risk_level, s.zsk_risk_level::text AS zsk_risk_level,
+         s.id AS snapshot_id
   FROM   core.v_latest_snapshots s
   JOIN   core.companies c ON c.id = s.company_id
   LEFT   JOIN raw.report_documents d ON d.id = s.raw_document_id
