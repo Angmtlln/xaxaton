@@ -29,7 +29,7 @@
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |
 | содержательные behavioral evals Master | [`AGENT_EVALS.md`](../AGENT_EVALS.md), [`evals/README.md`](../backend/evals/README.md) | `backend/evals/scenarios.json`, `bank.py`, `run_local.py`, `graders.py`, `judge.py` |
 | внешние новости только при full check | [`WEB_NEWS.md`](WEB_NEWS.md) | `backend/app/agent/news.py`, `runtime.py`, `master_model.py`, `tests/test_company_news.py` |
-| безопасность агента, prompt injection, изоляция диалогов и лимиты | [`Аудит 07.09.2026`](security/AGENT_SECURITY_AUDIT_2026-09-07.md) | Находки, доказательства, порядок исправлений и воспроизводимые characterization-пробы; защиты пока не внедрены |
+| безопасность агента, prompt injection и лимиты демо | [`Правки 07.09.2026`](security/DEMO_HARDENING_2026-09-07.md), [`аудит`](security/AGENT_SECURITY_AUDIT_2026-09-07.md) | Разделение ролей, входные лимиты, backend-owned цвета; авторизация исключена из scope демо |
 
 Последняя проверка исправлений structured context без изменения prompt:
 [коэффициенты исков, source commentary и учредители](evals/2026-09-05/structured-scope-fix/report.md).

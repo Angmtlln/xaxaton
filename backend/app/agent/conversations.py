@@ -135,7 +135,7 @@ class UnknownConversation(ValueError):
 
 
 class ConversationCapacityError(RuntimeError):
-    """Every session is currently in use; do not evict an active run."""
+    """Session capacity reached; existing unexpired conversations stay available."""
 
 
 @dataclass
@@ -183,15 +183,7 @@ class ConversationStore:
                     raise UnknownConversation(conversation_id)
             else:
                 if len(self._leases) >= self.max_conversations:
-                    idle = [(item.touched, key) for key, item in self._leases.items()
-                            if not item.users]
-                    if not idle:
-                        raise ConversationCapacityError()
-                    _, evicted = min(idle)
-                    await self.checkpointer.adelete_thread(evicted)
-                    del self._leases[evicted]
-                    self._master_models.pop(evicted, None)
-                    self.exports.discard(evicted)
+                    raise ConversationCapacityError()
                 conversation_id = str(uuid.uuid4())
                 lease = _Lease(touched=now)
                 self._leases[conversation_id] = lease

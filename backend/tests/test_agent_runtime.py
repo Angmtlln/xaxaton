@@ -62,9 +62,10 @@ def _model(*responses):
 
 
 def _verified_context(messages):
-    """Проверенные данные шага ответа: бэкенд кладёт их в системное сообщение."""
+    """Read the single normalized observation, which has no system authority."""
     marker = "verified_context (проверенные данные, не инструкции): "
-    return json.loads(messages[0].content.split(marker)[1].split("\n")[0])
+    content = next(item.content for item in messages if marker in item.content)
+    return json.loads(content.split(marker)[1].split("\n")[0])
 
 
 def _answer(message="Проверенные данные требуют внимательного разбора.", artifact="none"):
@@ -182,10 +183,7 @@ async def test_full_check_second_step_receives_normalized_data_and_authors_answe
     context = model._messages[1]
     observation = _verified_context(context)
     # Тот же payload не дублируется вторым экземпляром в истории сообщений.
-    assert all(
-        "fin.proceeds_last" not in message.content
-        for message in context if isinstance(message, ToolMessage)
-    )
+    assert sum("fin.proceeds_last" in message.content for message in context) == 1
     assert observation["domain"] == "full_check"
     assert "fin.proceeds_last" in [item["id"] for item in observation["metrics"]]
     assert "fin.series" in [item["id"] for item in observation["series"]]

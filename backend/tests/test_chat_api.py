@@ -11,6 +11,7 @@ from app.main import app
 
 @pytest.fixture
 def api_client():
+    from app.api.admission import ApiAdmission
     app.state.conversation_store = ConversationStore()
     settings = Settings(
         _env_file=None,
@@ -18,6 +19,7 @@ def api_client():
         groq_api_key=None,
         database_url="postgresql://localhost/none",
     )
+    app.state.api_admission = ApiAdmission(settings)
     app.dependency_overrides[settings_dep] = lambda: settings
     app.dependency_overrides[groq_dep] = lambda: GroqClient(settings)
     client = TestClient(app)

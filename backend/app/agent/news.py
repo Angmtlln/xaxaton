@@ -151,7 +151,7 @@ async def _publication_date(url: str, client: httpx.AsyncClient) -> date | None:
 async def hydrate_news(annotations: list, answer: MasterAnswer | None, *,
                        requested: bool, settings: Settings) -> tuple[list[ExternalNews], str]:
     if not requested:
-        return [], "not_configured" if settings.llm_mock or not settings.openrouter_api_key else "unavailable"
+        return [], "not_configured" if not settings.web_news_enabled or settings.llm_mock or not settings.openrouter_api_key else "unavailable"
     if answer is None or answer.news_selection is None:
         return [], "selection_unavailable"
     if not answer.news_selection:

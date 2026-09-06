@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     app_name: str = "Контрагент-агент. PoC"
     app_version: str = "0.2.0"
 
+    # Process-local demo admission limits; apply before parsing/model work.
+    api_max_body_bytes: int = Field(default=32_768, ge=1024, le=1_048_576)
+    api_max_concurrent: int = Field(default=4, ge=1, le=32)
+    api_requests_per_minute: int = Field(default=120, ge=1, le=1000)
+    api_requests_per_ip_per_minute: int = Field(default=30, ge=1, le=1000)
+    cors_allowed_origins: list[str] = Field(default_factory=list)
+
     # --- Postgres ---
     database_url: str = Field(
         default="postgresql://postgres:postgres@localhost:5432/contractors",
@@ -34,6 +41,7 @@ class Settings(BaseSettings):
     # Только eval/debug: дополнительные LLM verifier/repair отключены в chat.
     agent_grounding_debug: bool = False
     # OpenRouter web plugin only in the full-check Master answer.
+    web_news_enabled: bool = True
     web_news_days: int = Field(default=90, ge=1, le=365)
     web_news_timeout_s: float = Field(default=6.0, gt=0, le=30)
     master_model: str = "z-ai/glm-5.3-flash"

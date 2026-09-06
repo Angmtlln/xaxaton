@@ -1,4 +1,4 @@
-/* Компактная сводка: метрики принадлежат backend, роза — отдельное качественное мнение AI. */
+/* Компактная сводка: метрики и цвета принадлежат backend. */
 import { element, svgElement, safeArray, numericValue } from '../shared/dom.js';
 import { compactNumber } from './chart.js';
 
@@ -23,7 +23,7 @@ function renderRadar(prefix, profile) {
   const figure = element('figure', 'risk-radar');
   figure.id = `radar-${prefix}`;
   const svg = svgElement('svg', { viewBox: '0 0 170 150', role: 'img',
-    'aria-label': 'Качественное мнение AI: финансы, суды, взыскания, регуляторные риски. Серый означает, что оценки нет.' });
+    'aria-label': 'Данные и официальные сигналы: финансы, суды, взыскания, регуляторные риски. Серый означает, что уровень не назначен.' });
   [14, 28, 42].forEach((r) => svg.appendChild(svgElement('polygon', {
     points: `85,${76-r} ${85+r},76 85,${76+r} ${85-r},76`, class: 'radar-ring',
   })));
@@ -45,7 +45,7 @@ function renderRadar(prefix, profile) {
     sector.append(title); svg.append(sector);
     description.push(`${label}: ${levels[level]}. ${axis.reason}`);
   });
-  svg.setAttribute('aria-label', 'Мнение AI, не рейтинг. ' + description.join(' '));
+  svg.setAttribute('aria-label', 'Официальные сигналы, без рейтинга. ' + description.join(' '));
 
   const labels = [['Финансы', 85, 21, 'middle'], ['Суды', 133, 79, 'start'],
     ['Взыскания', 85, 135, 'middle'], ['Регул.', 36, 74, 'end'], ['риски', 36, 86, 'end']];
@@ -55,8 +55,8 @@ function renderRadar(prefix, profile) {
     svg.appendChild(text);
   });
   const explanation = element('details', 'radar-explanation');
-  explanation.append(element('summary', null, 'Мнение AI · почему?'));
-  explanation.append(element('p', null, 'Качественный ориентир по отчёту, не рейтинг и не банковская оценка. Серый — недостаточно данных или оценка недоступна.'));
+  explanation.append(element('summary', null, 'Что означают цвета?'));
+  explanation.append(element('p', null, 'Красный отмечает официальный ограничительный сигнал источника. Серый — уровень риска не назначен; это не означает ни безопасность, ни наличие риска. Подробности — в ответе аналитика.'));
   description.forEach(text => explanation.append(element('p', null, text)));
   figure.append(svg, explanation);
   toggle.addEventListener('click', () => {

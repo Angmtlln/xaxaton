@@ -314,5 +314,6 @@ async def test_second_model_policy_has_answer_schema_and_normalized_context(monk
     system = model._messages[1][0].content
     assert '"required":["message","suggested_actions"]' in system
     assert '"additionalProperties":false' in system
-    assert '"domain":"finance"' in system
+    assert '"domain":"finance"' not in system
+    assert _verified_context(model._messages[1])['domain'] == 'finance'
     assert '"findings"' not in system

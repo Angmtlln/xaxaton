@@ -13,10 +13,11 @@ def proposal(level='low'):
         for key in ('finance', 'courts', 'enforcement', 'regulatory')}))
 
 
-def test_model_can_show_green_but_cannot_soften_source_hard_stop(check_payload):
+@pytest.mark.parametrize('level', ['low', 'medium', 'high'])
+def test_model_cannot_color_axes_or_soften_source_hard_stop(check_payload, level):
     data, _ = _compact_check(CheckResponse.model_validate(check_payload))
-    profile = _risk_profile(data, proposal())
-    assert profile.finance.level == 'low'
+    profile = _risk_profile(data, proposal(level))
+    assert profile.finance.level == 'unknown'
     assert profile.regulatory.level == 'high'
     assert data.company.risk_level == check_payload['company']['risk_level']
 

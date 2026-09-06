@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.agent.conversations import ConversationStore
+from app.api.admission import ApiAdmission, ApiAdmissionMiddleware
 from app.api.routes import api_router, pages_router
 from app.api.routes.pages import frontend_dir
 from app.config import get_settings
@@ -95,15 +96,19 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    settings = get_settings()
     app = FastAPI(
         title="Контрагент-агент. PoC",
         description=DESCRIPTION,
-        version=get_settings().app_version,
+        version=settings.app_version,
         openapi_tags=TAGS,
         lifespan=lifespan,
     )
+    app.state.api_admission = ApiAdmission(settings)
+    app.add_middleware(ApiAdmissionMiddleware)
     app.add_middleware(
-        CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+        CORSMiddleware, allow_origins=settings.cors_allowed_origins,
+        allow_methods=["GET", "POST"], allow_headers=["Content-Type"],
     )
 
     # Рабочий agent-first чат и legacy-отчёт раздаются одним FastAPI-сервисом.
