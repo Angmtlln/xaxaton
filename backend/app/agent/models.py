@@ -478,6 +478,7 @@ class ComparisonSummaryFact(StrictModel):
 
 
 class ComparisonColumn(StrictModel):
+    years_from_registration: Optional[int] = Field(default=None, ge=0)
     signal_status: Literal["restriction", "attention", "no_flags", "unknown"] = "unknown"
     inn: SafeText
     name: SafeText

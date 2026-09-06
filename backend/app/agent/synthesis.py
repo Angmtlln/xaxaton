@@ -34,7 +34,9 @@ def json_payload(value: str) -> dict:
     start, end = text.find("{"), text.rfind("}")
     if start == -1 or end <= start:
         raise ValueError("Model response carries no JSON object: %r" % text[:120])
-    return json.loads(text[start:end + 1])
+    # Допускаем буквальные переводы строк/табуляции от провайдера.
+    # Схема ответа по-прежнему проверяется после разбора.
+    return json.loads(text[start:end + 1], strict=False)
 
 
 def _validated_data(result: ToolResult) -> FullCompanyCheckData | TargetedData | ComparisonData:

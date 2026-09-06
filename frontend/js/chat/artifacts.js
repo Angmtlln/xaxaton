@@ -188,11 +188,29 @@ function evidenceWord(count) {
 const BANK_RISKS = { LOW: 'Низкий', MEDIUM: 'Средний', HIGH: 'Высокий' };
 const ZSK_RISKS = { GREEN: 'Зелёный', YELLOW: 'Жёлтый', RED: 'Красный' };
 
-function comparisonCoverage(block, column, index) {
-  const rows = safeArray(block.rows);
-  const total = column.total_count ?? rows.length;
-  const filled = column.filled_count ?? rows.filter(row => row.cells?.[index]?.state === 'data').length;
-  return `${filled} из ${total} показателей`;
+function comparisonFactTone(fact) {
+  // Совместимость с сохранёнными ответами: используем только ID проверенных фактов.
+  const key = String(fact.evidence_id || '').split(':').pop();
+  if (key === 'flags.attention_codes') return 'attention';
+  if (key === 'flags.hard_stop_codes') {
+    return fact.display_value === 'блокировка счетов по постановлению ФНС' ? 'attention' : 'risk';
+  }
+  return ['positive', 'attention', 'risk'].includes(fact.tone) ? fact.tone : 'neutral';
+}
+
+function comparisonSignalStatus(column) {
+  const flags = safeArray(column.key_facts).filter(f => ['flags.hard_stop_codes', 'flags.attention_codes'].includes(String(f.evidence_id || '').split(':').pop()));
+  if (flags.some(f => comparisonFactTone(f) === 'risk')) return 'restriction';
+  if (flags.length) return 'attention';
+  return column.signal_status || 'unknown';
+}
+
+function comparisonAge(years) {
+  if (!Number.isInteger(years) || years < 0) return 'Возраст не указан в источнике';
+  if (years === 0) return 'Менее года';
+  const suffix = years % 100 >= 11 && years % 100 <= 14 ? 'лет'
+    : years % 10 === 1 ? 'год' : years % 10 >= 2 && years % 10 <= 4 ? 'года' : 'лет';
+  return `Возраст: ${years} ${suffix}`;
 }
 
 function renderComparisonSummaries(block, context) {
@@ -206,14 +224,15 @@ function renderComparisonSummaries(block, context) {
   safeArray(block.columns).forEach((column, index) => {
     const card = element('article', 'comparison-summary');
     card.append(element('h3', null, column.name || 'Контрагент'),
-      element('p', 'comparison-inn', `ИНН ${column.inn || '—'}`));
+      element('p', 'comparison-inn', `ИНН ${column.inn || '—'}`),
+      element('p', 'comparison-age', comparisonAge(column.years_from_registration)));
     const signalStates = {
       restriction: ['risk', '!', 'Есть ограничения', 'Источник сообщает об ограничении. Основание — в ключевых сигналах ниже.'],
-      attention: ['attention', '!', 'Есть сигналы для проверки', 'Источник отмечает события, обстоятельства которых стоит уточнить.'],
+      attention: ['attention', '!', 'С осторожностью', 'Источник отмечает события, обстоятельства которых стоит уточнить.'],
       no_flags: ['positive', '✓', 'Метки ограничений не выявлены', 'В доступных правовых данных нет меток ограничений или внимания. Это не гарантия надёжности.'],
       unknown: ['neutral', '—', 'Недостаточно данных о сигналах', 'Неполные сведения не позволяют подтвердить отсутствие ограничений.'],
     };
-    const [tone, icon, label, explanation] = signalStates[column.signal_status] || signalStates.unknown;
+    const [tone, icon, label, explanation] = signalStates[comparisonSignalStatus(column)] || signalStates.unknown;
     const signal = element('div', `comparison-signal signal-${tone}`);
     signal.append(element('span', 'comparison-signal-icon', icon), element('strong', null, label));
     card.append(signal, element('p', 'comparison-signal-explanation', explanation));
@@ -224,9 +243,7 @@ function renderComparisonSummaries(block, context) {
     risk.title = 'Банковская оценка из исходного отчёта. Не общий рейтинг AI.';
     const zskTone = { GREEN: 'positive', YELLOW: 'attention', RED: 'risk' }[column.zsk_risk_level] || 'neutral';
     const zsk = element('span', `comparison-rating signal-${zskTone}`, `ЗСК: ${ZSK_RISKS[column.zsk_risk_level] || '—'}`);
-    const coverage = element('span', 'comparison-rating comparison-coverage', comparisonCoverage(block, column, index));
-    coverage.title = 'Заполненные показатели таблицы, не оценка компании.';
-    status.append(risk, zsk, coverage);
+    status.append(risk, zsk);
     card.appendChild(status);
     card.appendChild(element('h4', 'comparison-facts-heading', 'Ключевые сигналы'));
     const facts = safeArray(column.key_facts);
@@ -234,11 +251,13 @@ function renderComparisonSummaries(block, context) {
       const list = element('ul', 'comparison-key-facts');
       facts.forEach((fact) => {
         const item = element('li');
-        const factTone = ['positive', 'attention', 'risk'].includes(fact.tone) ? fact.tone : 'neutral';
+        const factTone = comparisonFactTone(fact);
         const marker = element('i', `comparison-fact-marker signal-${factTone}`, factTone === 'positive' ? '✓' : factTone === 'neutral' ? '·' : '!');
         marker.setAttribute('aria-hidden', 'true');
         item.appendChild(marker);
-        item.append(element('span', null, fact.label), element('strong', null, fact.display_value));
+        const factLabel = ['flags.hard_stop_codes', 'flags.attention_codes'].includes(String(fact.evidence_id || '').split(':').pop())
+          ? (factTone === 'attention' ? 'С осторожностью' : 'Есть ограничения') : fact.label;
+        item.append(element('span', null, factLabel), element('strong', null, fact.display_value));
         const button = evidenceButton(context, fact.evidence_id, true);
         if (button) item.appendChild(button);
         list.appendChild(item);

@@ -1134,3 +1134,6 @@
   .comparison-summary { padding: 16px; }
   .comparison-overview .comparison-browse { display: block; }
 }
+
+.comparison-summary > .comparison-inn { margin-bottom: 4px; }
+.comparison-age { margin: 0 0 16px; color: var(--chat-muted); font-size: 12px; }

@@ -263,6 +263,13 @@ def _comparison_signal(key, value):
     return "neutral", None
 
 
+def _comparison_policy_tone(signal):
+    if signal.kind != "official_hard_stop":
+        return "attention"
+    codes = [item.get("code") for item in signal.value if isinstance(item, dict)] if isinstance(signal.value, list) else []
+    return "attention" if codes and all(code == "fnsBlocking" for code in codes) else "risk"
+
+
 def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence]):
     """Одна таблица вместо N отчётов; значения берутся из проверенных фактов."""
     columns = [
@@ -273,6 +280,7 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             coverage_scope="Финансы и правовые данные" if len(data.focus) == 2 else
                 ("Только финансы" if data.focus == ["finance"] else "Только правовые данные"),
             gaps=item.gaps,
+            years_from_registration=item.company.years_from_registration,
             bank_risk_level=item.company.risk_level,
             zsk_risk_level=item.company.zsk_risk_level,
         )
@@ -329,8 +337,8 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
     for index, (column, owner) in enumerate(zip(columns, data.companies)):
         signals = [signal for signal in data.policy_signals if signal.id in owner.policy_signal_ids]
         column.signal_status = (
-            "restriction" if any(signal.kind == "official_hard_stop" for signal in signals) else
-            "attention" if any(signal.kind == "source_attention" for signal in signals) else
+            "restriction" if any(_comparison_policy_tone(signal) == "risk" for signal in signals) else
+            "attention" if signals else
             "no_flags" if owner.availability == "DATA" and "legal" in data.focus else "unknown"
         )
         column.total_count = len(rows)
@@ -342,8 +350,9 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             ref = next((ref for ref in signal.evidence_ids if ref in evidence_by_id), None)
             if ref is not None:
                 column.key_facts.append(ComparisonSummaryFact(
-                    label=signal.label, display_value=evidence_by_id[ref].display_value,
-                    tone="risk" if signal.kind == "official_hard_stop" else "attention",
+                    label="С осторожностью" if _comparison_policy_tone(signal) == "attention" else "Есть ограничения",
+                    display_value=evidence_by_id[ref].display_value,
+                    tone=_comparison_policy_tone(signal),
                     evidence_id=ref,
                 ))
         for key in ("proceeds", "profit", "court.defendant_count", "execproc.active_amount", "capitals"):

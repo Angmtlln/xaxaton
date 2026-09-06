@@ -550,8 +550,25 @@ def test_comparison_color_does_not_invent_risk_from_absolute_size(key, value, to
 async def test_summary_signal_status_preserves_restrictions_and_missing_data(snapshots):
     response = await _runtime(None).run('Сравни %s и %s' % (RICH, EMPTY))
     restricted, empty = _table(response).columns
-    assert restricted.signal_status == 'restriction'
-    assert restricted.key_facts[0].tone == 'risk'
+    assert restricted.signal_status == 'attention'
+    assert restricted.key_facts[0].tone == 'attention'
     assert empty.signal_status == 'unknown'
     assert not empty.key_facts
     assert all(f.tone != 'positive' for f in restricted.key_facts if 'flags.' in f.evidence_id)
+
+
+@pytest.mark.parametrize('codes,tone', [(['fnsBlocking'], 'attention'),
+    (['fnsBlocking', 'liquidationStatus'], 'risk'), (['liquidationStatus'], 'risk')])
+def test_comparison_blocking_is_yellow_but_other_restrictions_are_not_softened(codes, tone):
+    from types import SimpleNamespace
+    from app.agent.response import _comparison_policy_tone
+    signal = SimpleNamespace(kind='official_hard_stop', value=[{'code': code} for code in codes])
+    assert _comparison_policy_tone(signal) == tone
+
+
+@pytest.mark.asyncio
+async def test_comparison_age_comes_from_source(snapshots):
+    snapshots[RICH]['document']['report']['baseInfo']['registrationInfo'] = {'yearsFromRegistration': 12}
+    response = await _runtime(None).run('Сравни %s и %s' % (RICH, EMPTY))
+    assert _table(response).columns[0].years_from_registration == 12
+    assert _table(response).columns[1].years_from_registration is None
