@@ -14,7 +14,9 @@
 
 Узкий вопрос можно задать первым сообщением с явным ИНН. Новый явный ИНН
 становится активным только после успешного или частичного результата tool.
-Поиск по названию, SSE и persistent history не входят в этот срез.
+Универсальное разрешение названия в ИНН и persistent history не реализованы.
+Статусы этапов передаются через `/api/v1/chat/messages/stream` (NDJSON);
+потокового текста Master нет.
 
 Сравнение живёт рядом: «Сравни 6165169320 и 2311304742, важнее суды» вызывает
 `compare_companies` один раз на все компании. Ответ содержит таблицу
@@ -107,8 +109,12 @@ message + conversation_id
   → trusted state checkpoint
 ```
 
-На turn разрешён один domain tool call. Простой full-check, comparison с 2–5
-явными ИНН и finance/legal follow-up активной компании обходят model routing.
+В явном dispatch обычно разрешён один domain tool call; auto path допускает
+до двух разных targeted чтений. Подбор имеет отдельный бюджет, описанный в
+[COUNTERPARTY_SELECTION](COUNTERPARTY_SELECTION.md). Простой full-check и
+comparison с 2–5 явными ИНН обходят model routing. Свободные вопросы при
+доступной модели маршрутизируются по смыслу; существующий trusted context
+может позволить ответ без нового чтения. Правила — в [CHAT_ROUTING](CHAT_ROUTING.md).
 Обычный успешный turn использует один Master synthesis; сложные допустимые
 команды сохраняют model routing. Contextual follow-up и «Объясни проще» используют
 один synthesis без tools. Повторный finance/legal переиспользует **свой** раздел
@@ -118,7 +124,8 @@ Legacy Summary отсутствует в chat full check, четыре domain LL
 Verifier/repair выключены: `AGENT_GROUNDING_DEBUG=false`,
 `grounding_status=not_requested`, `repair_attempts=0`. Это не положительный
 вердикт о groundedness. Только явный debug-флаг включает прежний verifier,
-один repair и повторную проверку с общим пределом в пять вызовов модели.
+один repair и повторную проверку с общим runtime-пределом в шесть вызовов
+модели для обычного сценария.
 [Замеры и воспроизведение](CHAT_LATENCY.md).
 
 Неверный routing, невалидные аргументы, timeout или недоступная модель приводят

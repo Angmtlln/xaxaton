@@ -1,5 +1,22 @@
 # Agent-First Architecture
 
+Сверка обзора: 06.09.2026. Документ описывает архитектурные границы и этапы
+развития; исторические smoke-проверки ниже не являются новой приёмкой.
+Текущий статус реализации — в [AI_INDEX](AI_INDEX.md), запуск — в
+[backend/README](../backend/README.md).
+
+Реализованы чат и trusted context, targeted finance/legal, сравнение 2–5 ИНН,
+поиск и подбор, внешние новости полной проверки, PDF, кросс-проверка и граф
+связей, NDJSON-статусы обработки. Текст Master передаётся целиком. Дополнительный
+LLM verifier/repair выключен по умолчанию; структурные проверки сохраняются.
+Качество рассуждений остаётся предметом behavioral/live evals.
+
+MCP пока отсутствует. Планируется отдельный интерфейс чтения между backend и
+PostgreSQL; он не заменяет LangChain, domain tools или расчёт фактов и не
+добавляет LLM-стадию. Запись аудита остаётся отдельным DB-механизмом.
+[Обсуждённый объём MCP](MCP_DATA_ACCESS.md). Desktop — текущий приоритет;
+мобильная доработка приостановлена.
+
 ## 1. Product goal
 
 The product is an **AI counterparty analyst**, not a web-rendered report.
@@ -465,7 +482,8 @@ Implemented:
 - targeted finance/legal flows;
 - inline artifacts;
 - trusted structured context kept apart from chat history;
-- bounded grounding verification with one repair attempt;
+- optional eval/debug grounding verification with one repair attempt
+  (`AGENT_GROUNDING_DEBUG`, off by default);
 - no semantic/lexical regex policing of natural prose.
 
 Acceptance conversation:
@@ -484,8 +502,10 @@ This must feel like one continuous analyst conversation, not seven report render
 
 ## Stage 4 — Master model stabilization — CURRENT
 
-The Master must hold tool calling, post-tool synthesis, verification and repair
-across a full seven-turn conversation without dropping to deterministic fallback.
+The current target is reliable tool choice, post-tool synthesis and contextual
+follow-ups across a full conversation. Verification/repair is optional debug
+behavior, not a mandatory production stage. Historical probes below do not
+establish complete semantic acceptance; see the reports linked from AI_INDEX.
 
 Done:
 - one explicit Master online path: ChatOpenAI-compatible OpenRouter with
@@ -506,7 +526,7 @@ kept for domain agents rather than restored as an alternative Master path.
 
 ## Stage 5 — Multi-company comparison — DONE
 
-`compare_companies` accepts two or three verified INNs and one optional focus,
+`compare_companies` accepts two to five verified INNs and one optional focus,
 collects only the requested domains through the same targeted builders, and
 returns a single normalized ToolResult.
 
@@ -553,6 +573,11 @@ Focus on behavior:
 This is more valuable than adding infrastructure or many UI screens.
 
 ## Stage 8 — Evaluation, demo polish and deploy
+
+A source-faithful behavioral bank and live-model harness are implemented:
+[evals/README](../backend/evals/README.md). Technical checks and semantic review
+remain separate; unresolved behavioral failures are retained in dated reports.
+The following are ongoing acceptance goals, not a list of missing modules:
 
 - curated behavioral eval set;
 - model A/B;

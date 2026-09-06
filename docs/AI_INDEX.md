@@ -17,6 +17,7 @@
 | факты, расчёты, полнота данных | `backend/app/domain/facts.py` | `backend/app/infrastructure/mongo.py`, `backend/tests/test_facts.py` |
 | LLM, grounding, guardrails | `backend/app/llm/agents.py`, `backend/app/llm/prompts.py` | `backend/app/llm/groq_client.py`, `backend/tests/test_groq_and_grounding.py` |
 | API и формат ответа | `backend/app/api/routes/`, `backend/app/api/schemas.py` | `backend/app/domain/pipeline.py`, Swagger `/docs` |
+| MCP-доступ к карточкам (план, ещё не реализован) | [`MCP_DATA_ACCESS.md`](MCP_DATA_ACCESS.md) | текущий read path: `backend/app/infrastructure/repository.py`; MCP server/client ещё не добавлены |
 | PostgreSQL и аудит | [`backend/docs/db_design.md`](../backend/docs/db_design.md), `backend/db/schema.sql` | `backend/app/infrastructure/repository.py`, `backend/scripts/load_snapshot.py` |
 | поиск по деятельности / ОКВЭД | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md) | `backend/app/agent/shortlist.py`, `backend/app/infrastructure/repository.py`, `backend/db/migrations/005_shortlist_activity.sql` |
 | выбор N по показателям, «из найденных», подтверждение порядка | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md), [`RANKING_ACCEPTANCE.md`](RANKING_ACCEPTANCE.md) | `backend/app/agent/ranking.py`, `shortlist.py`, `runtime.py`, `backend/tests/test_ranking.py` |
@@ -48,8 +49,9 @@
    успеха.
 4. Исполняемый код и тесты — источник истины о текущей реализации.
 5. `backend/README.md` — операционные команды и обзор backend.
-6. `project_description.md` — подробный промежуточный снимок состояния на
-   03.09.2026; числовые результаты и план в нём могут устаревать.
+6. `README.md` и `project_description.md` — входной и продуктовый обзоры,
+   сверенные с кодом 06.09.2026. Датированные eval/latency-отчёты сохраняют
+   исходные результаты и не подтверждают состояние нового запуска.
 7. `product_materials.md`, `hypotheses.md`, `blocks_summary_design.md` —
    обоснование продуктовых решений; это не runtime-документация.
 
@@ -65,6 +67,7 @@ POST /api/v1/chat/messages
   -> standard ChatOpenAI adapter -> OpenRouter -> z-ai/glm-5.3-flash
   -> LangChain StructuredTool adapter
   -> ToolRegistry: full_company_check | get_financial_data | get_legal_data | compare_companies
+     | find_companies | select_counterparties
   -> run_check() | build_finance() | build_reliability() | build_comparison()
   -> normalized ToolResult: metrics / series / events / statuses / policy / evidence
   -> естественный ответ Master + необязательный allowlisted artifact
@@ -102,7 +105,8 @@ POST /api/v1/chat/messages
 
 ## Текущий функциональный статус
 
-По состоянию кода на момент создания индекса:
+Сверка основных возможностей с кодом: 06.09.2026. Это статус реализации,
+не новый live-прогон и не утверждение о полном semantic PASS:
 
 - реализован анализ одного ИНН;
 - реализованы четыре блока фактов, итоговая сводка, grounding, guardrails,
@@ -137,7 +141,13 @@ POST /api/v1/chat/messages
   frontend показывает их горизонтальной полосой внизу полного ответа;
 - компактный `company_summary` содержит четыре проверенные метрики, банк/ЗСК
   и качественный профиль AI по четырём направлениям с пояснениями; банковские оценки независимы;
-- persistent history в БД, name resolution, deal risk и потоковая выдача текста Master не реализованы; публичные статусы этапов передаются потоком;
+- реализованы PDF-экспорт, кросс-проверка внутренних связей и граф по запросу;
+  при числе рёбер > 2 полная проверка предлагает открыть граф;
+- persistent history в БД, универсальный name resolution, отдельный deal-risk
+  tool и потоковая выдача текста Master не реализованы; публичные статусы
+  этапов передаются NDJSON;
+- MCP пока не реализован: карточки и поиск читаются напрямую из PostgreSQL;
+  планируется перенос этих чтений за MCP-сервер, запись аудита остаётся отдельно;
 - банковские интеграции и большая база не относятся к готовому текущему проходу.
 
 Перед изменением статуса сверяйся с кодом и обновляй этот раздел в том же
