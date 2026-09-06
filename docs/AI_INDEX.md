@@ -28,7 +28,7 @@
 | рабочий интерфейс демо | [`CHAT_UI.md`](CHAT_UI.md), `frontend/index.html`, `frontend/report.html` | `frontend/js/chat/main.js`, `frontend/js/report/main.js`, `frontend/css/chat.css` |
 | визуальный React-прототип | [`design/prototype/README.md`](../design/prototype/README.md) | `design/prototype/app/` |
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |
-| содержательные behavioral evals Master | [`AGENT_EVALS.md`](../AGENT_EVALS.md), [`evals/README.md`](../backend/evals/README.md) | `backend/evals/scenarios.json`, `bank.py`, `run_local.py`, `graders.py`, `judge.py` |
+| содержательные behavioral evals Master и защита | [`Защита: 150 сценариев`](../backend/evals/DEFENSE.md), [`AGENT_EVALS.md`](../AGENT_EVALS.md), [`evals/README.md`](../backend/evals/README.md) | `backend/evals/defense_bank.py`, `defense_run.py`, `defense_judge.py`, `defense_report.py`; прежний банк `scenarios.json` |
 | внешние новости только при full check | [`WEB_NEWS.md`](WEB_NEWS.md) | `backend/app/agent/news.py`, `runtime.py`, `master_model.py`, `tests/test_company_news.py` |
 | безопасность агента, prompt injection и лимиты демо | [`Правки 07.09.2026`](security/DEMO_HARDENING_2026-09-07.md), [`аудит`](security/AGENT_SECURITY_AUDIT_2026-09-07.md) | Разделение ролей, входные лимиты; роза сохраняет мнение AI по продуктовому решению; авторизация исключена из scope демо |
 
