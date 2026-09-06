@@ -158,8 +158,10 @@ async def test_runtime_clarification_selection_and_contextual_explanation(databa
 
 
 @pytest.mark.parametrize('message,expected',[
+    ('Найди компании, занимающиеся поставками оборудования',False),
     ('Найди компании с выручкой от 10 млн',False),('Выбери 5 с наибольшей прибылью',False),
     ('Подбери лучших поставщиков с выручкой от 10 млн',True),('Выбери лучших контрагентов',True),
+    ('Подбери контрагента с выручкой от 10 млрд рублей для поставок без аванса; важна устойчивость поставок.',True),
     ('Проверь 6165169320',False)])
 def test_routing_preserves_basic_flows(message,expected):
     assert handles_selection(message,{})==expected
@@ -208,6 +210,86 @@ async def test_model_budget_is_shared_and_stops_at_eight():
     with pytest.raises(RuntimeError,match='budget'):
         await budget.ask('Ответь',{},SelectionAnswer)
     assert execution.model_calls==8 and model.calls==1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('repair', ['valid', 'too_long', 'foreign_inn', 'changed_evidence'])
+async def test_review_length_repair_is_bounded_and_preserves_fields(database, repair):
+    import time
+    from app.agent.selection_runtime import SelectionModelBudget
+    from app.agent.langchain_tools import LangChainToolExecution
+    store, _, populate = database
+    populate(1)
+    p = compact_profile(next(iter(store.values())), next(iter(store)))
+    original = ReviewBatch(reviews=[review_for(p)]).model_dump()
+    original['reviews'][0]['summary'] = 'Длинный обзор. ' * 40
+    corrected = ReviewBatch(reviews=[review_for(p)]).model_dump()
+    if repair == 'too_long': corrected = original
+    if repair == 'foreign_inn': corrected['reviews'][0]['inn'] = RICH
+    if repair == 'changed_evidence': corrected['reviews'][0]['evidence_ids'] = []
+    model = _model(ai(original), ai(corrected))
+    execution = LangChainToolExecution()
+    budget = SelectionModelBudget(model, execution, time.monotonic()+10, 5)
+    if repair == 'valid':
+        result = await budget.ask('Обзор', {}, ReviewBatch)
+        assert result.reviews[0].inn == p.inn
+        assert result.reviews[0].evidence_ids == original['reviews'][0]['evidence_ids']
+    else:
+        with pytest.raises(ValueError): await budget.ask('Обзор', {}, ReviewBatch)
+    assert model.calls == execution.model_calls == 2
+    assert budget.repair_attempts == 1
+
+
+@pytest.mark.asyncio
+async def test_runtime_completes_after_length_repair(database):
+    store, calls, populate = database
+    populate(1)
+    profiles = [compact_profile(s, inn) for inn, s in store.items()]
+    valid = ReviewBatch(reviews=[review_for(p) for p in profiles]).model_dump()
+    invalid = json.loads(json.dumps(valid))
+    invalid['reviews'][0]['summary'] = 'Длинный обзор. ' * 40
+    model = _model(
+        ai({'action':'select','filters':{'min_proceeds':10000000000},'goal':'поставщик без аванса','finalists':1}),
+        ai(invalid), ai(valid), ai(decision_for(profiles,[profiles[0].inn]).model_dump()),
+        ai({'message':'Пригодность поставщика требует проверки условий договора.'}))
+    response = await _runtime(model).run('Подбери контрагента с выручкой от 10 млрд рублей для поставок без аванса; важна устойчивость поставок.')
+    assert response.metadata.status == 'completed'
+    assert response.metadata.model_calls == 5 and response.metadata.repair_attempts == 1
+    assert response.metadata.tool_calls == 1 and response.metadata.synthesis == 'model'
+    assert calls['search'][0]['min_proceeds'] == 10000000000
+
+
+@pytest.mark.asyncio
+async def test_length_repair_never_exceeds_shared_call_budget(database):
+    import time
+    from app.agent.selection_runtime import SelectionModelBudget
+    from app.agent.langchain_tools import LangChainToolExecution
+    store, _, populate = database
+    populate(1)
+    p = compact_profile(next(iter(store.values())), next(iter(store)))
+    invalid = ReviewBatch(reviews=[review_for(p)]).model_dump()
+    invalid['reviews'][0]['summary'] = 'Обзор. ' * 100
+    model = _model(ai(invalid))
+    execution = LangChainToolExecution(model_calls=7)
+    budget = SelectionModelBudget(model, execution, time.monotonic()+10, 5)
+    with pytest.raises(ValueError): await budget.ask('Обзор', {}, ReviewBatch)
+    assert execution.model_calls == 8 and model.calls == 1 and budget.repair_attempts == 0
+
+
+@pytest.mark.asyncio
+async def test_no_finalists_is_completed_with_explanation(database):
+    store, _, populate = database
+    populate(1)
+    profiles = [compact_profile(s, inn) for inn, s in store.items()]
+    model = _model(
+        ai({'action':'select','filters':{'min_proceeds':10},'goal':'поставщик'}),
+        ai(ReviewBatch(reviews=[review_for(p) for p in profiles]).model_dump()),
+        ai(decision_for(profiles, []).model_dump()),
+        ai({'message':'Не рекомендую кандидата под эти условия поставки; уточните ограничения.'}))
+    response = await _runtime(model).run('Подбери лучших поставщиков с выручкой от 10 рублей')
+    assert response.metadata.status == 'completed' and response.metadata.synthesis == 'model'
+    assert not response.blocks
+    assert 'Не рекомендую' in response.message
 
 
 @pytest.mark.asyncio

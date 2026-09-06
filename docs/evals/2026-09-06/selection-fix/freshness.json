@@ -1,0 +1,864 @@
+[
+  {
+    "request": "Проверь контрагента 7805327192",
+    "response": {
+      "message": "В данных есть метка ограничения, требующая уточнения. Аналитический ответ сейчас недоступен; проверьте сигнал и первичные сведения до сделки.\n\nМогу показать найденные связи на графе — нажмите «Построить граф связей».\n\nСвязанные компании: ООО \"ЛЗСО\", ИНН 4720028039: Общий действующий учредитель, Общий руководитель, Общая связанная организация, Связь указана в карточке. В кратком срезе есть сигналы источника: фиктивный адрес регистрации, номинальный руководитель или недостоверные данные о нём, недостоверные регистрационные данные, блокировка счетов по постановлению ФНС. Можно запросить отдельный отчёт по этому ИНН.",
+      "external_news": [],
+      "external_news_status": "selection_unavailable",
+      "leading_artifact": {
+        "type": "company_summary",
+        "name": "ООО \"ЛЗСО\"",
+        "inn": "7805327192",
+        "status": "CURRENT",
+        "years_from_registration": 10,
+        "bank_risk_level": "LOW",
+        "zsk_risk_level": "GREEN",
+        "report_url": "/report?inn=7805327192",
+        "evidence_ids": [
+          "company.name",
+          "company.inn",
+          "company.status",
+          "company.age_years",
+          "bank.risk_level",
+          "bank.zsk_level",
+          "fin.series"
+        ],
+        "metrics": [
+          {
+            "id": "fin.proceeds_last",
+            "label": "Выручка · последний год",
+            "value": null,
+            "display_value": "Нет данных",
+            "unit": null,
+            "state": "no_data",
+            "evidence_id": null
+          },
+          {
+            "id": "fin.profit_last",
+            "label": "Прибыль · последний год",
+            "value": null,
+            "display_value": "Нет данных",
+            "unit": null,
+            "state": "no_data",
+            "evidence_id": null
+          },
+          {
+            "id": "court.defendant_count",
+            "label": "Дел в роли ответчика",
+            "value": 4,
+            "display_value": "4",
+            "unit": "шт",
+            "state": "data",
+            "evidence_id": "court.defendant_count"
+          },
+          {
+            "id": "execproc.active_count",
+            "label": "Действующих производств",
+            "value": 36,
+            "display_value": "36",
+            "unit": "шт",
+            "state": "data",
+            "evidence_id": "execproc.active_count"
+          }
+        ],
+        "risk_profile": {
+          "finance": {
+            "level": "unknown",
+            "reason": "Недостаточно данных по направлению."
+          },
+          "courts": {
+            "level": "unknown",
+            "reason": "Оценка модели недоступна."
+          },
+          "enforcement": {
+            "level": "unknown",
+            "reason": "Оценка модели недоступна."
+          },
+          "regulatory": {
+            "level": "high",
+            "reason": "В источнике есть официальные ограничительные сигналы; уточните их актуальность и охват."
+          }
+        }
+      },
+      "blocks": [
+        {
+          "type": "finding_list",
+          "title": "Метки источника",
+          "items": [
+            {
+              "title": "Жёсткие стоп-факторы",
+              "text": "Метка ограничения из источника: блокировка счетов по постановлению ФНС.",
+              "evidence_ids": [
+                "flags.hard_stop_codes"
+              ]
+            },
+            {
+              "title": "Метки, требующие уточнения",
+              "text": "Сигнал источника для уточнения: действующие исполнительные производства, арбитражные дела в роли ответчика.",
+              "evidence_ids": [
+                "flags.attention_codes"
+              ]
+            }
+          ],
+          "empty_message": null
+        }
+      ],
+      "evidence": [
+        {
+          "id": "company.name",
+          "fact_id": "company.name",
+          "source": "raw_fact",
+          "title": "Название",
+          "field_ref": "report.baseInfo.shortName",
+          "display_value": "ООО \"ЛЗСО\"",
+          "unit": null
+        },
+        {
+          "id": "company.inn",
+          "fact_id": "company.inn",
+          "source": "raw_fact",
+          "title": "ИНН",
+          "field_ref": "report.baseInfo.inn",
+          "display_value": "7805327192",
+          "unit": null
+        },
+        {
+          "id": "company.age_years",
+          "fact_id": "company.age_years",
+          "source": "raw_fact",
+          "title": "Лет с регистрации",
+          "field_ref": "report.baseInfo.registrationInfo.yearsFromRegistration",
+          "display_value": "10 лет",
+          "unit": "лет"
+        },
+        {
+          "id": "positive.count",
+          "fact_id": "positive.count",
+          "source": "source_signal",
+          "title": "Пройденных проверок-маркеров",
+          "field_ref": "report.reputationalRisks.positive[]",
+          "display_value": "13",
+          "unit": "шт"
+        },
+        {
+          "id": "company.status",
+          "fact_id": "company.status",
+          "source": "raw_fact",
+          "title": "Статус",
+          "field_ref": "report.status.status",
+          "display_value": "CURRENT",
+          "unit": null
+        },
+        {
+          "id": "bank.risk_level",
+          "fact_id": "bank.risk_level",
+          "source": "raw_fact",
+          "title": "Уровень риска банка",
+          "field_ref": "report.baseInfo.riskLevel",
+          "display_value": "LOW",
+          "unit": null
+        },
+        {
+          "id": "bank.zsk_level",
+          "fact_id": "bank.zsk_level",
+          "source": "raw_fact",
+          "title": "Светофор ЗСК",
+          "field_ref": "report.zskRiskLevel",
+          "display_value": "GREEN",
+          "unit": null
+        },
+        {
+          "id": "flags.hard_stop_codes",
+          "fact_id": "flags.hard_stop_codes",
+          "source": "source_signal",
+          "title": "Жёсткие стоп-факторы",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "блокировка счетов по постановлению ФНС",
+          "unit": null
+        },
+        {
+          "id": "flags.attention_codes",
+          "fact_id": "flags.attention_codes",
+          "source": "source_signal",
+          "title": "Метки, требующие уточнения",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "действующие исполнительные производства, арбитражные дела в роли ответчика",
+          "unit": null
+        },
+        {
+          "id": "court.defendant_count",
+          "fact_id": "court.defendant_count",
+          "source": "derived_metric",
+          "title": "Дел в роли ответчика",
+          "field_ref": "report.arbitrationCases[].defendantCount",
+          "display_value": "4",
+          "unit": "шт"
+        },
+        {
+          "id": "court.defendant_amount",
+          "fact_id": "court.defendant_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков к компании",
+          "field_ref": "report.arbitrationCases[].defendantAmount",
+          "display_value": "46 073 795 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.plaintiff_count",
+          "fact_id": "court.plaintiff_count",
+          "source": "derived_metric",
+          "title": "Дел в роли истца",
+          "field_ref": "report.arbitrationCases[].plaintiffCount",
+          "display_value": "4",
+          "unit": "шт"
+        },
+        {
+          "id": "court.plaintiff_amount",
+          "fact_id": "court.plaintiff_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков компании",
+          "field_ref": "report.arbitrationCases[].plaintiffAmount",
+          "display_value": "5 192 895 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.common_count",
+          "fact_id": "court.common_count",
+          "source": "derived_metric",
+          "title": "Всего дел по сводке банка",
+          "field_ref": "report.arbitrationByStatus.commonCount",
+          "display_value": "21",
+          "unit": "шт"
+        },
+        {
+          "id": "court.common_amount",
+          "fact_id": "court.common_amount",
+          "source": "derived_metric",
+          "title": "Общая сумма дел",
+          "field_ref": "report.arbitrationByStatus.commonAmount",
+          "display_value": "62 003 282 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.defendant_pending",
+          "fact_id": "court.defendant_pending",
+          "source": "derived_metric",
+          "title": "Незавершённые дела против компании",
+          "field_ref": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "display_value": "{\"count\":3,\"amount\":45007228.0}",
+          "unit": null
+        },
+        {
+          "id": "court.defendant_finished",
+          "fact_id": "court.defendant_finished",
+          "source": "derived_metric",
+          "title": "Завершённые дела против компании",
+          "field_ref": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "display_value": "{\"count\":5,\"amount\":2181009.0}",
+          "unit": null
+        },
+        {
+          "id": "execproc.total_count",
+          "fact_id": "execproc.total_count",
+          "source": "derived_metric",
+          "title": "Исполнительных производств всего",
+          "field_ref": "report.executionProceedings[]",
+          "display_value": "255",
+          "unit": "шт"
+        },
+        {
+          "id": "execproc.amount_unknown_count",
+          "fact_id": "execproc.amount_unknown_count",
+          "source": "derived_metric",
+          "title": "Производств без суммы в источнике",
+          "field_ref": "report.executionProceedings[].amount",
+          "display_value": "80",
+          "unit": "шт"
+        },
+        {
+          "id": "execproc.active_count",
+          "fact_id": "execproc.active_count",
+          "source": "derived_metric",
+          "title": "Действующих производств",
+          "field_ref": "report.executionProceedings[].active",
+          "display_value": "36",
+          "unit": "шт"
+        },
+        {
+          "id": "inspections.count",
+          "fact_id": "inspections.count",
+          "source": "derived_metric",
+          "title": "Проверок надзорных органов",
+          "field_ref": "report.inspections[]",
+          "display_value": "1",
+          "unit": "шт"
+        },
+        {
+          "id": "inspections.violations_count",
+          "fact_id": "inspections.violations_count",
+          "source": "derived_metric",
+          "title": "Проверок с выявленными нарушениями",
+          "field_ref": "report.inspections[].inspectionStatus",
+          "display_value": "0",
+          "unit": "шт"
+        },
+        {
+          "id": "fin.series",
+          "fact_id": "fin.series",
+          "source": "derived_metric",
+          "title": "Финансовые показатели по доступным годам",
+          "field_ref": "report.finReports[]",
+          "display_value": "Нет",
+          "unit": "руб"
+        }
+      ],
+      "suggested_actions": [
+        {
+          "label": "Построить граф связей",
+          "prompt": "Построй граф связей",
+          "mode": "submit"
+        },
+        {
+          "label": "Сравнить с другими",
+          "prompt": "Сравни контрагентов: 7805327192 и ",
+          "mode": "compose"
+        },
+        {
+          "label": "Что уточнить у контрагента?",
+          "prompt": "Что уточнить у контрагента?",
+          "mode": "submit"
+        },
+        {
+          "type": "export_pdf",
+          "label": "Экспортировать в PDF",
+          "result_id": "dc754037-21ab-4657-9a43-655cb4fd2d0d"
+        }
+      ],
+      "metadata": {
+        "agent_run_id": "dc754037-21ab-4657-9a43-655cb4fd2d0d",
+        "check_run_id": "c100adac-5779-4309-8b9f-94d2bacbc7d8",
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.6-snapshot-freshness",
+        "latency_ms": 93213,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "fallback",
+        "grounding_status": "fallback",
+        "repair_attempts": 0
+      },
+      "conversation_id": "10f1fe07-dc82-49a1-b61e-11af33c576fd",
+      "active_company": {
+        "inn": "7805327192",
+        "name": "ООО \"ЛЗСО\""
+      },
+      "attachments": []
+    }
+  },
+  {
+    "request": "Счета точно заблокированы сегодня? Ты это проверил на текущую дату?",
+    "response": {
+      "message": "**Нет, статус «на сегодня» я подтвердить не могу.** Проверка опирается на снимок данных по состоянию на 9 августа 2026 года: на эту дату источник показывал блокировки счетов по постановлениям ФНС как действующие. Что происходит со счётом сейчас, мои данные не отражают — повторное чтение той же карточки вернёт тот же снимок, а не свежие сведения от первоисточника.\n\nКак уточнить актуальность:\n- **Запросить у контрагента** подтверждение из банка или налоговой об отсутствии/снятии блокировки на текущую дату и её причину;\n- **Проверить в открытом сервисе ФНС** сведения о блокировках — там виден статус на момент обращения.\n\nСама по себе блокировка — повод для осторожности и уточнения причин, а не автоматический запрет на сотрудничество, пока её актуальность и основание не выяснены.",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [],
+      "evidence": [
+        {
+          "id": "company.name",
+          "fact_id": "company.name",
+          "source": "raw_fact",
+          "title": "Название",
+          "field_ref": "report.baseInfo.shortName",
+          "display_value": "ООО \"ЛЗСО\"",
+          "unit": null
+        },
+        {
+          "id": "company.inn",
+          "fact_id": "company.inn",
+          "source": "raw_fact",
+          "title": "ИНН",
+          "field_ref": "report.baseInfo.inn",
+          "display_value": "7805327192",
+          "unit": null
+        },
+        {
+          "id": "company.age_years",
+          "fact_id": "company.age_years",
+          "source": "raw_fact",
+          "title": "Лет с регистрации",
+          "field_ref": "report.baseInfo.registrationInfo.yearsFromRegistration",
+          "display_value": "10 лет",
+          "unit": "лет"
+        },
+        {
+          "id": "positive.count",
+          "fact_id": "positive.count",
+          "source": "source_signal",
+          "title": "Пройденных проверок-маркеров",
+          "field_ref": "report.reputationalRisks.positive[]",
+          "display_value": "13",
+          "unit": "шт"
+        },
+        {
+          "id": "company.status",
+          "fact_id": "company.status",
+          "source": "raw_fact",
+          "title": "Статус",
+          "field_ref": "report.status.status",
+          "display_value": "CURRENT",
+          "unit": null
+        },
+        {
+          "id": "bank.risk_level",
+          "fact_id": "bank.risk_level",
+          "source": "raw_fact",
+          "title": "Уровень риска банка",
+          "field_ref": "report.baseInfo.riskLevel",
+          "display_value": "LOW",
+          "unit": null
+        },
+        {
+          "id": "bank.zsk_level",
+          "fact_id": "bank.zsk_level",
+          "source": "raw_fact",
+          "title": "Светофор ЗСК",
+          "field_ref": "report.zskRiskLevel",
+          "display_value": "GREEN",
+          "unit": null
+        },
+        {
+          "id": "flags.hard_stop_codes",
+          "fact_id": "flags.hard_stop_codes",
+          "source": "source_signal",
+          "title": "Жёсткие стоп-факторы",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "блокировка счетов по постановлению ФНС",
+          "unit": null
+        },
+        {
+          "id": "flags.attention_codes",
+          "fact_id": "flags.attention_codes",
+          "source": "source_signal",
+          "title": "Метки, требующие уточнения",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "действующие исполнительные производства, арбитражные дела в роли ответчика",
+          "unit": null
+        },
+        {
+          "id": "court.defendant_count",
+          "fact_id": "court.defendant_count",
+          "source": "derived_metric",
+          "title": "Дел в роли ответчика",
+          "field_ref": "report.arbitrationCases[].defendantCount",
+          "display_value": "4",
+          "unit": "шт"
+        },
+        {
+          "id": "court.defendant_amount",
+          "fact_id": "court.defendant_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков к компании",
+          "field_ref": "report.arbitrationCases[].defendantAmount",
+          "display_value": "46 073 795 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.plaintiff_count",
+          "fact_id": "court.plaintiff_count",
+          "source": "derived_metric",
+          "title": "Дел в роли истца",
+          "field_ref": "report.arbitrationCases[].plaintiffCount",
+          "display_value": "4",
+          "unit": "шт"
+        },
+        {
+          "id": "court.plaintiff_amount",
+          "fact_id": "court.plaintiff_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков компании",
+          "field_ref": "report.arbitrationCases[].plaintiffAmount",
+          "display_value": "5 192 895 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.common_count",
+          "fact_id": "court.common_count",
+          "source": "derived_metric",
+          "title": "Всего дел по сводке банка",
+          "field_ref": "report.arbitrationByStatus.commonCount",
+          "display_value": "21",
+          "unit": "шт"
+        },
+        {
+          "id": "court.common_amount",
+          "fact_id": "court.common_amount",
+          "source": "derived_metric",
+          "title": "Общая сумма дел",
+          "field_ref": "report.arbitrationByStatus.commonAmount",
+          "display_value": "62 003 282 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.defendant_pending",
+          "fact_id": "court.defendant_pending",
+          "source": "derived_metric",
+          "title": "Незавершённые дела против компании",
+          "field_ref": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "display_value": "{\"count\":3,\"amount\":45007228.0}",
+          "unit": null
+        },
+        {
+          "id": "court.defendant_finished",
+          "fact_id": "court.defendant_finished",
+          "source": "derived_metric",
+          "title": "Завершённые дела против компании",
+          "field_ref": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "display_value": "{\"count\":5,\"amount\":2181009.0}",
+          "unit": null
+        },
+        {
+          "id": "execproc.total_count",
+          "fact_id": "execproc.total_count",
+          "source": "derived_metric",
+          "title": "Исполнительных производств всего",
+          "field_ref": "report.executionProceedings[]",
+          "display_value": "255",
+          "unit": "шт"
+        },
+        {
+          "id": "execproc.amount_unknown_count",
+          "fact_id": "execproc.amount_unknown_count",
+          "source": "derived_metric",
+          "title": "Производств без суммы в источнике",
+          "field_ref": "report.executionProceedings[].amount",
+          "display_value": "80",
+          "unit": "шт"
+        },
+        {
+          "id": "execproc.active_count",
+          "fact_id": "execproc.active_count",
+          "source": "derived_metric",
+          "title": "Действующих производств",
+          "field_ref": "report.executionProceedings[].active",
+          "display_value": "36",
+          "unit": "шт"
+        },
+        {
+          "id": "inspections.count",
+          "fact_id": "inspections.count",
+          "source": "derived_metric",
+          "title": "Проверок надзорных органов",
+          "field_ref": "report.inspections[]",
+          "display_value": "1",
+          "unit": "шт"
+        },
+        {
+          "id": "inspections.violations_count",
+          "fact_id": "inspections.violations_count",
+          "source": "derived_metric",
+          "title": "Проверок с выявленными нарушениями",
+          "field_ref": "report.inspections[].inspectionStatus",
+          "display_value": "0",
+          "unit": "шт"
+        },
+        {
+          "id": "fin.series",
+          "fact_id": "fin.series",
+          "source": "derived_metric",
+          "title": "Финансовые показатели по доступным годам",
+          "field_ref": "report.finReports[]",
+          "display_value": "Нет",
+          "unit": "руб"
+        }
+      ],
+      "suggested_actions": [
+        {
+          "label": "Запросить подтверждение у контрагента",
+          "prompt": "Помоги составить запрос контрагенту: попросить документы, подтверждающие актуальное состояние счетов и причину блокировки по постановлению ФНС",
+          "mode": "compose"
+        },
+        {
+          "label": "Что делать с блокировкой",
+          "prompt": "Объясни, как блокировка счетов ФНС влияет на условия сотрудничества и какие меры предосторожности имеет смысл принять",
+          "mode": "submit"
+        }
+      ],
+      "metadata": {
+        "agent_run_id": "dda03403-677a-421d-ac23-dee3c03e0be3",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.6-snapshot-freshness",
+        "latency_ms": 56715,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "conversation_id": "10f1fe07-dc82-49a1-b61e-11af33c576fd",
+      "active_company": {
+        "inn": "7805327192",
+        "name": "ООО \"ЛЗСО\""
+      },
+      "attachments": []
+    }
+  },
+  {
+    "request": "Объясни проще",
+    "response": {
+      "message": "Коротко: **утверждать, что счёт заблокирован именно сегодня, я не могу.** У меня — снимок данных от 9 августа 2026 года: на ту дату блокировка счёта числилась действующей. Что с ней сейчас, этот снимок не показывает — свежие сведения сами по себе у меня не появляются.\n\nУзнать точно можно двумя путями: попросить у контрагента свежую справку из банка или налоговой либо проверить блокировку в открытом сервисе ФНС — там видно состояние на момент запроса. Сама блокировка — повод задать вопросы, а не автоматический отказ от сделки: главное — понять причину и сняли ли её.",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [],
+      "evidence": [
+        {
+          "id": "company.name",
+          "fact_id": "company.name",
+          "source": "raw_fact",
+          "title": "Название",
+          "field_ref": "report.baseInfo.shortName",
+          "display_value": "ООО \"ЛЗСО\"",
+          "unit": null
+        },
+        {
+          "id": "company.inn",
+          "fact_id": "company.inn",
+          "source": "raw_fact",
+          "title": "ИНН",
+          "field_ref": "report.baseInfo.inn",
+          "display_value": "7805327192",
+          "unit": null
+        },
+        {
+          "id": "company.age_years",
+          "fact_id": "company.age_years",
+          "source": "raw_fact",
+          "title": "Лет с регистрации",
+          "field_ref": "report.baseInfo.registrationInfo.yearsFromRegistration",
+          "display_value": "10 лет",
+          "unit": "лет"
+        },
+        {
+          "id": "positive.count",
+          "fact_id": "positive.count",
+          "source": "source_signal",
+          "title": "Пройденных проверок-маркеров",
+          "field_ref": "report.reputationalRisks.positive[]",
+          "display_value": "13",
+          "unit": "шт"
+        },
+        {
+          "id": "company.status",
+          "fact_id": "company.status",
+          "source": "raw_fact",
+          "title": "Статус",
+          "field_ref": "report.status.status",
+          "display_value": "CURRENT",
+          "unit": null
+        },
+        {
+          "id": "bank.risk_level",
+          "fact_id": "bank.risk_level",
+          "source": "raw_fact",
+          "title": "Уровень риска банка",
+          "field_ref": "report.baseInfo.riskLevel",
+          "display_value": "LOW",
+          "unit": null
+        },
+        {
+          "id": "bank.zsk_level",
+          "fact_id": "bank.zsk_level",
+          "source": "raw_fact",
+          "title": "Светофор ЗСК",
+          "field_ref": "report.zskRiskLevel",
+          "display_value": "GREEN",
+          "unit": null
+        },
+        {
+          "id": "flags.hard_stop_codes",
+          "fact_id": "flags.hard_stop_codes",
+          "source": "source_signal",
+          "title": "Жёсткие стоп-факторы",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "блокировка счетов по постановлению ФНС",
+          "unit": null
+        },
+        {
+          "id": "flags.attention_codes",
+          "fact_id": "flags.attention_codes",
+          "source": "source_signal",
+          "title": "Метки, требующие уточнения",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "действующие исполнительные производства, арбитражные дела в роли ответчика",
+          "unit": null
+        },
+        {
+          "id": "court.defendant_count",
+          "fact_id": "court.defendant_count",
+          "source": "derived_metric",
+          "title": "Дел в роли ответчика",
+          "field_ref": "report.arbitrationCases[].defendantCount",
+          "display_value": "4",
+          "unit": "шт"
+        },
+        {
+          "id": "court.defendant_amount",
+          "fact_id": "court.defendant_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков к компании",
+          "field_ref": "report.arbitrationCases[].defendantAmount",
+          "display_value": "46 073 795 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.plaintiff_count",
+          "fact_id": "court.plaintiff_count",
+          "source": "derived_metric",
+          "title": "Дел в роли истца",
+          "field_ref": "report.arbitrationCases[].plaintiffCount",
+          "display_value": "4",
+          "unit": "шт"
+        },
+        {
+          "id": "court.plaintiff_amount",
+          "fact_id": "court.plaintiff_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков компании",
+          "field_ref": "report.arbitrationCases[].plaintiffAmount",
+          "display_value": "5 192 895 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.common_count",
+          "fact_id": "court.common_count",
+          "source": "derived_metric",
+          "title": "Всего дел по сводке банка",
+          "field_ref": "report.arbitrationByStatus.commonCount",
+          "display_value": "21",
+          "unit": "шт"
+        },
+        {
+          "id": "court.common_amount",
+          "fact_id": "court.common_amount",
+          "source": "derived_metric",
+          "title": "Общая сумма дел",
+          "field_ref": "report.arbitrationByStatus.commonAmount",
+          "display_value": "62 003 282 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "court.defendant_pending",
+          "fact_id": "court.defendant_pending",
+          "source": "derived_metric",
+          "title": "Незавершённые дела против компании",
+          "field_ref": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "display_value": "{\"count\":3,\"amount\":45007228.0}",
+          "unit": null
+        },
+        {
+          "id": "court.defendant_finished",
+          "fact_id": "court.defendant_finished",
+          "source": "derived_metric",
+          "title": "Завершённые дела против компании",
+          "field_ref": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "display_value": "{\"count\":5,\"amount\":2181009.0}",
+          "unit": null
+        },
+        {
+          "id": "execproc.total_count",
+          "fact_id": "execproc.total_count",
+          "source": "derived_metric",
+          "title": "Исполнительных производств всего",
+          "field_ref": "report.executionProceedings[]",
+          "display_value": "255",
+          "unit": "шт"
+        },
+        {
+          "id": "execproc.amount_unknown_count",
+          "fact_id": "execproc.amount_unknown_count",
+          "source": "derived_metric",
+          "title": "Производств без суммы в источнике",
+          "field_ref": "report.executionProceedings[].amount",
+          "display_value": "80",
+          "unit": "шт"
+        },
+        {
+          "id": "execproc.active_count",
+          "fact_id": "execproc.active_count",
+          "source": "derived_metric",
+          "title": "Действующих производств",
+          "field_ref": "report.executionProceedings[].active",
+          "display_value": "36",
+          "unit": "шт"
+        },
+        {
+          "id": "inspections.count",
+          "fact_id": "inspections.count",
+          "source": "derived_metric",
+          "title": "Проверок надзорных органов",
+          "field_ref": "report.inspections[]",
+          "display_value": "1",
+          "unit": "шт"
+        },
+        {
+          "id": "inspections.violations_count",
+          "fact_id": "inspections.violations_count",
+          "source": "derived_metric",
+          "title": "Проверок с выявленными нарушениями",
+          "field_ref": "report.inspections[].inspectionStatus",
+          "display_value": "0",
+          "unit": "шт"
+        },
+        {
+          "id": "fin.series",
+          "fact_id": "fin.series",
+          "source": "derived_metric",
+          "title": "Финансовые показатели по доступным годам",
+          "field_ref": "report.finReports[]",
+          "display_value": "Нет",
+          "unit": "руб"
+        }
+      ],
+      "suggested_actions": [
+        {
+          "label": "Вопросы контрагенту",
+          "prompt": "Составь список вопросов контрагенту про блокировку счёта: причину, актуальность и что нужно для её снятия",
+          "mode": "submit"
+        },
+        {
+          "label": "Проверить связанную компанию",
+          "prompt": "Проверь связанную компанию по ИНН 4720028039",
+          "mode": "submit"
+        }
+      ],
+      "metadata": {
+        "agent_run_id": "0fda0f9b-ef28-4465-b5d6-a83274d69145",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.6-snapshot-freshness",
+        "latency_ms": 68405,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "conversation_id": "10f1fe07-dc82-49a1-b61e-11af33c576fd",
+      "active_company": {
+        "inn": "7805327192",
+        "name": "ООО \"ЛЗСО\""
+      },
+      "attachments": []
+    }
+  }
+]

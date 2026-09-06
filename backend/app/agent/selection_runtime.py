@@ -7,6 +7,7 @@ import logging
 import re
 import time
 from dataclasses import replace
+from pydantic import ValidationError
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import wrap_model_call
@@ -18,14 +19,14 @@ from .models import AssistantMetadata, AssistantResponse, CompanyRef, FindCompan
 from .prompt import MASTER_PROMPT_VERSION
 from .response import _comparison_table
 from .selection import ANALYSIS_RULES, SelectionSession, decision_profile
-from .selection_models import (SelectCounterpartiesArgs, SelectionAnswer, SelectionData,
+from .selection_models import (SelectCounterpartiesArgs, SelectionAnswer, SelectionNarrative, SelectionData,
                                SelectionRoute, filter_values)
 from .shortlist import activity_arguments, describe
 from .synthesis import json_payload, normalized_tool_context, verified_evidence
 from .targeted_models import ComparisonData
 
 log = logging.getLogger(__name__)
-SELECTION_PROMPT_VERSION = MASTER_PROMPT_VERSION + "/selection-v1"
+SELECTION_PROMPT_VERSION = MASTER_PROMPT_VERSION + "/selection-v2"
 
 
 def handles_selection(message, previous):
@@ -48,7 +49,7 @@ def handles_selection(message, previous):
             return True
     return bool(
         re.search(r"\b(?:подбер\w*|подбор\w*|выбер\w*|выбери|отбер\w*|отбери|найди|лучш\w*)", message, re.I)
-        and re.search(r"поставщик|покупател|партн[её]р|сотруднич|подходящ|над[её]ж|качественн|глубок|лучших\s+(?:контрагент|компани)|лучшие\s+(?:контрагент|компани)", message, re.I)
+        and re.search(r"поставщик|для\s+(?:регулярных\s+)?постав(?:ок|ки)|покупател|партн[её]р|сотруднич|подходящ|над[её]ж|качественн|глубок|лучших\s+(?:контрагент|компани)|лучшие\s+(?:контрагент|компани)", message, re.I)
     )
 
 
@@ -58,7 +59,14 @@ clarify — если нет цели сотрудничества или неп�
 Не спрашивай показатель сортировки вместо цели. Если цель не названа в текущем
 запросе или сохранённых пользовательских условиях, задай ОДИН вопрос: поставщик,
 покупатель с отсрочкой или партнёр? Не придумывай цель.
+Определяй цель по смыслу: не требуй буквального слова «поставщик». Просьба подобрать
+контрагента «для поставок без аванса; важна устойчивость поставок» уже описывает
+выбор поставщика и не требует уточнения роли. В таком случае action=select,
+goal=«поставщик без аванса», preferences=«устойчивость поставок».
 Фильтры — только явно названные жёсткие условия, с рублями и правильными границами.
+«Для поставок», «без аванса», «устойчивость поставок» — цель/пожелания,
+не название компании и не activity_query. Не переноси название активной компании
+из предыдущей проверки в фильтры нового подбора. 10 млрд рублей = 10000000000 рублей.
 Никогда не игнорируй неподдерживаемые фильтры (например регион) — уточни ограничение.
 Мягкие пожелания запиши в preferences. Не меняй их в жёсткие фильтры самовольно.
 Если новых фильтров нет, а сохранённые есть, use_previous_filters=true и filters=null.
@@ -77,6 +85,7 @@ clarify — если нет цели сотрудничества или неп�
 class SelectionModelBudget:
     def __init__(self, model, execution, deadline, timeout):
         self.model, self.execution, self.deadline, self.timeout = model, execution, deadline, timeout
+        self.repair_attempts = 0
 
     async def ask(self, prompt, payload, schema):
         if self.model is None:
@@ -110,7 +119,33 @@ class SelectionModelBudget:
                  int((time.monotonic() - started) * 1000), usage)
         if message.tool_calls:
             raise ValueError("Unexpected model tool call")
-        return schema.model_validate(json_payload(message.content))
+        value = json_payload(message.content)
+        try:
+            return schema.model_validate(value)
+        except ValidationError as exc:
+            errors = exc.errors(include_url=False, include_input=False)
+            # Repair only prose length in mini-reviews. Identity, evidence and
+            # other schema failures are still rejected, never silently trimmed.
+            repairable = schema.__name__ == 'ReviewBatch' and all(
+                e['type'] == 'string_too_long' and len(e['loc']) == 3
+                and e['loc'][0] == 'reviews' and e['loc'][2] in
+                {'summary', 'strengths', 'limitations', 'missing_data'} for e in errors)
+            if not repairable or self.repair_attempts or self.execution.model_calls >= 8:
+                raise
+            self.repair_attempts += 1  # Reserve before awaiting concurrent batches.
+            log.info('selection_format_repair schema=%s fields=%s', schema.__name__,
+                     [e['loc'] for e in errors])
+            repaired = await self.ask(prompt + '\nСократи ТОЛЬКО отмеченные слишком длинные поля. '
+                'Не добавляй новых утверждений. Остальные поля, порядок, ИНН и evidence_ids сохрани точно.',
+                {**payload, 'previous_response': value, 'validation_errors': errors}, schema)
+            restored = repaired.model_dump(mode='json')
+            expected = schema.model_validate({**value, 'reviews': [
+                {**row, **{e['loc'][2]: restored['reviews'][i][e['loc'][2]]
+                          for e in errors if e['loc'][1] == i}}
+                for i, row in enumerate(value['reviews'])]}).model_dump(mode='json')
+            if restored != expected:
+                raise ValueError('Format repair changed fields outside the length errors')
+            return repaired
 
 
 def answer_context(data, explain_inns=()):
@@ -215,8 +250,13 @@ async def run_selection_turn(runtime, message, cid, run_id, started, deadline, b
                 pending = args.model_dump(mode="json") if data and data.state == "too_many" else {}
         if not question and data and (data.state == "complete" or contextual):
             context = answer_context(data, route.explain_inns if contextual else ())
-            answer = await budget.ask(ANALYSIS_RULES + "\nТы Master. Дай осторожную рекомендацию по глубокому сравнению под задачу, объясни компромиссы. При selection_state=partial не объявляй лучших. При selection_state=complete проход завершён: неполнота отдельных источников сравнения не означает сбой отбора, обозначь конкретные ограничения рекомендации. Для поставщика оценивай исполнение поставок, для покупателя — оплату. order может только переставить всех переданных финалистов, без новых ИНН. Ответ — до трёх кратких абзацев. Не называй пользователю поля JSON, verified_profiles, order или partial. Для объяснения ответь только на вопрос пользователя без повторения отчёта. Не пересказывай все мини-сводки — они будут показаны отдельно. Причины отсева проверяй по other_verified_candidates; интерпретации модели не являются источником фактов.",
-                                     {"user_message": message, **context}, SelectionAnswer)
+            # There is nothing to reorder with zero/one finalist. Ask only for
+            # prose, so an excluded candidate cannot reappear in an order field.
+            answer_schema = SelectionNarrative if len(data.finalists) < 2 else SelectionAnswer
+            answer = await budget.ask(ANALYSIS_RULES + "\nТы Master. Дай осторожную рекомендацию по глубокому сравнению под задачу, объясни компромиссы. При selection_state=partial не объявляй лучших. При selection_state=complete проход завершён: неполнота отдельных источников сравнения не означает сбой отбора, обозначь конкретные ограничения рекомендации. Для поставщика оценивай исполнение поставок, для покупателя — оплату. Если схема содержит order, оно может только переставить переданных финалистов, без новых ИНН. Если в схеме только message, верни только message. При пустом finalists объясни, почему никто не рекомендован; новых финалистов не выбирай. Ответ — до трёх кратких абзацев. Не называй пользователю поля JSON, verified_profiles, order или partial. Для объяснения ответь только на вопрос пользователя без повторения отчёта. Не пересказывай все мини-сводки — они будут показаны отдельно. Причины отсева проверяй по other_verified_candidates; интерпретации модели не являются источником фактов.",
+                                     {"user_message": message, **context}, answer_schema)
+            if isinstance(answer, SelectionNarrative) and not isinstance(answer, SelectionAnswer):
+                answer = SelectionAnswer(message=answer.message)
             if contextual:
                 # An explanation cannot change the stored selection or UI columns.
                 answer.order = []
@@ -253,7 +293,8 @@ async def run_selection_turn(runtime, message, cid, run_id, started, deadline, b
             model_calls=execution.model_calls, model=model_name, prompt_version=SELECTION_PROMPT_VERSION,
             latency_ms=int((time.perf_counter() - started) * 1000), routing="deterministic_fallback" if failed else "model",
             synthesis="model" if answer else "fallback" if failed else "deterministic",
-            grounding_status="not_requested" if answer else "not_required"))
+            grounding_status="not_requested" if answer else "not_required",
+            repair_attempts=budget.repair_attempts))
     updates = {key: previous.get(key) for key in (
         "active_company", "trusted_context", "comparison_context", "shortlist_context", "user_context")}
     updates.update(counterparty_selection=data.model_dump(mode="json") if data else None,

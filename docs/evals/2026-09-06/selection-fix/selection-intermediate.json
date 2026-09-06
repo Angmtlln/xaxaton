@@ -1,0 +1,68 @@
+[
+  {
+    "request": "Подбери контрагента с выручкой от 10 млрд рублей для поставок без аванса; важна устойчивость поставок.",
+    "response": {
+      "message": "Условия: выручка от 10.0 млрд ₽. Найдено: 1; проанализировано: 1.\n\nАналитический ответ недоступен. Сохранены полученные данные и предварительные оценки.",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [],
+      "evidence": [],
+      "suggested_actions": [
+        "Почему эти?",
+        "Объясни проще"
+      ],
+      "metadata": {
+        "agent_run_id": "b60c9739-e3ca-4345-8eb7-5d00d2b2ad22",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "deterministic_fallback",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.6-snapshot-freshness/selection-v2",
+        "latency_ms": 8747,
+        "error_code": null,
+        "model_calls": 4,
+        "synthesis": "fallback",
+        "grounding_status": "not_required",
+        "repair_attempts": 0
+      },
+      "conversation_id": "07fdd594-50ff-428e-aee7-4b4ed99654fd",
+      "active_company": null,
+      "attachments": []
+    }
+  },
+  {
+    "request": "Объясни проще",
+    "response": {
+      "message": "Простыми словами: под вашу задачу прошёл проверку только один поставщик — ООО «МАКСМАРКЕТ», и он не подходит. Компания на дату данных признана банкротом, открыто конкурсное производство. Плюс есть серьёзные признаки проблем: фиктивный адрес, недостоверные регистрационные данные, блокировка счетов налоговой, огромные долги и множество исков и исполнительных производств.\n\nДля поставки без аванса это значит: компания может не оплатить товар и не выполнить обязательства, а взыскать что-то с банкрота крайне сложно. Сравнивать её с другими не с кем — альтернатив в выборке нет.\n\nРекомендация: искать другого поставщика, у которого нет процедуры банкротства и связанных с ней ограничений. Отчёт основан на данных на дату снимка; отдельные показатели (часть отчётности, проверки) раскрыты не полностью, но это не меняет вывода.",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [],
+      "evidence": [],
+      "suggested_actions": [
+        "Почему эти?",
+        "Объясни проще"
+      ],
+      "metadata": {
+        "agent_run_id": "65f4b63a-fa55-4182-bcd7-8ff0682fde09",
+        "check_run_id": null,
+        "status": "completed",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.6-snapshot-freshness/selection-v2",
+        "latency_ms": 11100,
+        "error_code": null,
+        "model_calls": 2,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "conversation_id": "07fdd594-50ff-428e-aee7-4b4ed99654fd",
+      "active_company": null,
+      "attachments": []
+    }
+  }
+]

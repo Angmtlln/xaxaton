@@ -1,0 +1,62 @@
+[
+  {
+    "request": "Подбери контрагента с выручкой от 10 млрд рублей для поставок без аванса; важна устойчивость поставок.",
+    "response": {
+      "message": "Уточните роль контрагента: ищете поставщика, покупателя с отсрочкой или партнёра?",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [],
+      "evidence": [],
+      "suggested_actions": [],
+      "metadata": {
+        "agent_run_id": "18b5169f-a0c8-4d18-9a24-e416e1d8d5fd",
+        "check_run_id": null,
+        "status": "needs_input",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.6-snapshot-freshness/selection-v2",
+        "latency_ms": 3522,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "deterministic",
+        "grounding_status": "not_required",
+        "repair_attempts": 0
+      },
+      "conversation_id": "93298d63-4729-4e80-a74b-50af6ee5905c",
+      "active_company": null,
+      "attachments": []
+    }
+  },
+  {
+    "request": "Объясни проще",
+    "response": {
+      "message": "Сначала задайте условия подбора контрагентов.",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [],
+      "evidence": [],
+      "suggested_actions": [],
+      "metadata": {
+        "agent_run_id": "f2598e49-45f1-49e7-b886-43e875582591",
+        "check_run_id": null,
+        "status": "needs_input",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.6-snapshot-freshness/selection-v2",
+        "latency_ms": 945,
+        "error_code": null,
+        "model_calls": 1,
+        "synthesis": "deterministic",
+        "grounding_status": "not_required",
+        "repair_attempts": 0
+      },
+      "conversation_id": "93298d63-4729-4e80-a74b-50af6ee5905c",
+      "active_company": null,
+      "attachments": []
+    }
+  }
+]

@@ -34,6 +34,11 @@
 [коэффициенты исков, source commentary и учредители](evals/2026-09-05/structured-scope-fix/report.md).
 В отчёте технические результаты отделены от оставшихся ошибок рассуждения.
 
+Исправление сбоя мини-сводок подбора и утверждений об актуальности снимков:
+[selection-fix](evals/2026-09-06/selection-fix/report.md). Одна попытка исправления
+длины в общем бюджете, без ослабления проверки ИНН/evidence; версия методологии
+`0.3.6-snapshot-freshness`.
+
 Парное сравнение GLM и Claude на неизменных сообщениях:
 [missing и source conflict](evals/2026-09-05/model-comparison/report.md).
 `backend/evals/compare_models.py` — eval-only повтор контекстных реплик;

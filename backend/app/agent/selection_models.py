@@ -106,6 +106,9 @@ class SelectionRoute(StrictModel):
     explain_inns: list[SafeText] = Field(default_factory=list, max_length=5)
 
 
-class SelectionAnswer(StrictModel):
+class SelectionNarrative(StrictModel):
     message: SafeText = Field(min_length=1, max_length=3500)
+
+
+class SelectionAnswer(SelectionNarrative):
     order: list[SafeText] = Field(default_factory=list, max_length=5)
