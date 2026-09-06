@@ -197,6 +197,9 @@ async def call_master_repair(
         "response_schema": MasterAnswer.model_json_schema(),
         "allowed_artifacts": list(allowed_artifacts),
     }
+    allow_risk_profile = verified_context.get("domain") == "full_check"
+    if not allow_risk_profile:
+        payload["response_schema"]["properties"].pop("risk_profile", None)
     response = await asyncio.wait_for(
         model.ainvoke(
             [
@@ -211,7 +214,8 @@ async def call_master_repair(
     if not isinstance(response, AIMessage):
         raise ValueError("Master repair returned an invalid message")
     repaired = parse_master_answer(
-        message_text(response), allowed_artifacts=allowed_artifacts
+        message_text(response), allowed_artifacts=allowed_artifacts,
+        allow_risk_profile=allow_risk_profile,
     )
     return repaired, response
 

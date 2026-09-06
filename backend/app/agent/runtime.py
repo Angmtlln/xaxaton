@@ -498,6 +498,7 @@ class MasterAgentRuntime:
                     candidate = parse_master_answer(
                         message_text(final),
                         allowed_artifacts=allowed_artifacts(execution.result, contextual=contextual),
+                        allow_risk_profile=target == "full_company_check" and not contextual,
                     )
             except Exception as exc:  # noqa: BLE001
                 log.info("agent_model_fallback run_id=%s reason=%s detail=%s", run_id, type(exc).__name__, str(exc)[:400])
@@ -691,6 +692,8 @@ def _model_policy(
             schema.setdefault("required", []).append("suggested_actions")
             if after_tool and expected_tool == "full_company_check":
                 schema["required"].append("risk_profile")
+            else:
+                schema["properties"].pop("risk_profile", None)
             news_prompt = ""
             if after_tool and expected_tool == "full_company_check" and execution.result.status != "error":
                 from .news import news_search_request

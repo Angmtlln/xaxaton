@@ -1,4 +1,5 @@
 """Сравнение контрагентов: один вызов инструмента, сопоставимые меры, границы."""
+import json
 import pytest
 from pydantic import ValidationError
 from langchain_core.messages import AIMessage
@@ -368,6 +369,34 @@ async def test_follow_up_after_comparison_needs_no_new_tool_call(snapshots):
     assert second.metadata.error_code is None
     assert second.metadata.synthesis == "model"
     assert second.blocks == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("direct", [False, True])
+@pytest.mark.parametrize("debug", [False, True])
+async def test_irrelevant_broken_risk_profile_does_not_discard_comparison(snapshots, direct, debug):
+    text = "**Сравнение получено.**\n\n- **Оговорки:** учитывайте пробелы данных."
+    answer = AIMessage(content=json.dumps({
+        "message": text, "artifact": "none",
+        "risk_profile": {"finance": {"level": "medium", "reason": "Неполный профиль"}},
+    }, ensure_ascii=False))
+    turns = [] if direct else [AIMessage(content="", tool_calls=[_tool_call(
+        "compare_companies", {"inns": [RICH, OTHER], "focus": "both"})])]
+    turns += [answer] + ([_verified()] if debug else [])
+    turns += [answer] + ([_verified()] if debug else [])
+    model = _model(*turns)
+    runtime = _runtime(model, direct_dispatch=direct, grounding_debug=debug)
+    first = await runtime.run("Сравни %s и %s" % (RICH, OTHER))
+    assert first.message == text
+    assert first.metadata.synthesis == "model"
+    assert first.metadata.tool_calls == 1
+    assert first.metadata.model_calls == (1 if direct else 2) + int(debug)
+    assert len(_table(first).columns) == 2
+    followup = await runtime.run("Кого выбрать и почему?", first.conversation_id)
+    assert followup.message == text
+    assert followup.metadata.synthesis == "model"
+    assert followup.metadata.tool_calls == 0
+    assert followup.blocks == []
 
 
 @pytest.mark.asyncio

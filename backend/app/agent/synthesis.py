@@ -157,11 +157,16 @@ def _comparison_context(data: ComparisonData, result: ToolResult, evidence) -> d
     }
 
 
-def parse_master_answer(value, *, allowed_artifacts: Iterable[str]) -> MasterAnswer:
+def parse_master_answer(
+    value, *, allowed_artifacts: Iterable[str], allow_risk_profile: bool = True,
+) -> MasterAnswer:
     """Validate structure only; natural-language meaning is checked separately."""
-    proposal = MasterAnswer.model_validate(
-        _answer_payload(value) if isinstance(value, str) else value
-    )
+    payload = _answer_payload(value) if isinstance(value, str) else value
+    if not allow_risk_profile and isinstance(payload, dict):
+        # Профиль полной проверки не относится к этому turn. Его лишнее содержимое
+        # не должно мешать валидации message, действий и разрешённого артефакта.
+        payload = {key: item for key, item in payload.items() if key != "risk_profile"}
+    proposal = MasterAnswer.model_validate(payload)
     if proposal.artifact not in set(allowed_artifacts):
         raise ValueError("Artifact is unavailable for this turn")
     return proposal
