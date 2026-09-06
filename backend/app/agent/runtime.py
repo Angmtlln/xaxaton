@@ -24,11 +24,11 @@ from .conversations import (ConversationCapacityError, ConversationState,
                             select_trusted_context, store_comparison_context, with_related_domains)
 from .grounding import (backend_owned_violations, call_grounding_verifier,
                         call_master_repair, is_simple_rewrite, message_text)
-from .langchain_tools import COMPANY_TOOLS, LangChainToolExecution, build_langchain_tools
+from .langchain_tools import COMPANY_TOOLS, TARGETED_TOOLS, LangChainToolExecution, build_langchain_tools
 from .master_model import build_master_model
 from .shortlist import activity_arguments, direct_shortlist_arguments
 from .ranking import selection_turn
-from .models import CompanyRef, GroundingVerification, MasterAnswer, is_valid_inn
+from .models import CompanyRef, Evidence, GroundingVerification, MasterAnswer, is_valid_inn
 from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS, RANKING_SYNTHESIS_INSTRUCTIONS
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
 from app.infrastructure.progress import emit_progress
@@ -39,7 +39,7 @@ from .tools import ToolContext, ToolRegistry, build_tool_registry
 
 log = logging.getLogger(__name__)
 MAX_AGENT_MODEL_CALLS = 2
-MAX_TOTAL_MODEL_CALLS = 5
+MAX_TOTAL_MODEL_CALLS = 6  # Three routing/answer calls plus optional verifier/repair/verifier.
 MAX_TOOL_CALLS = 1
 # Сравнение идёт одним вызовом инструмента, но не более пяти компаний.
 MAX_COMPARISON_COMPANIES = 5
@@ -49,7 +49,7 @@ ROUTER_MAX_TOKENS = 512
 ANSWER_MAX_TOKENS = 4096
 VERIFIER_MAX_TOKENS = 4096
 REPAIR_MAX_TOKENS = 4096
-GRAPH_RECURSION_LIMIT = 12
+GRAPH_RECURSION_LIMIT = 16  # Two sequential tools plus middleware and final answer.
 TOOL_BUNDLE_VERSION = "counterparty-tools-3.1.0"
 DIGIT_SEQUENCE_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
 CHECK_WORD_RE = re.compile(r"\bпров(?:ерь(?:те)?|ер(?:ить|ка|ку|ьте))\b", re.I)
@@ -165,12 +165,10 @@ class MasterAgentRuntime:
             )
             return response
         except (UnknownConversation, ConversationCapacityError) as exc:
-            response = guard_response("missing_inn", run_id, started)
             unknown = isinstance(exc, UnknownConversation)
-            response.message = (
-                "Диалог не найден или истёк. Начните новый диалог и укажите ИНН."
-                if unknown else "Все диалоги сейчас заняты. Повторите запрос позже."
-            )
+            response = guard_response("unknown_conversation" if unknown else "missing_inn", run_id, started)
+            if not unknown:
+                response.message = "Все диалоги сейчас заняты. Повторите запрос позже."
             response.metadata.error_code = "unknown_conversation" if unknown else "conversation_capacity"
             log.info(
                 "agent_run_finished run_id=%s conversation_id=%s status=%s "
@@ -182,7 +180,7 @@ class MasterAgentRuntime:
 
     async def _run_conversation(self, message, cid, run_id, started, deadline, binding):
         model, model_name, model_provider = binding
-        execution = LangChainToolExecution()
+        execution = LangChainToolExecution(run_id=run_id)
         config = {"configurable": {"thread_id": cid}, "recursion_limit": GRAPH_RECURSION_LIMIT}
         state_agent = create_agent(
             model=model or _OfflineStateModel(), tools=[],
@@ -358,7 +356,7 @@ class MasterAgentRuntime:
             "model_limit=%s tool_limit=%s remaining_ms=%s trusted_topic=%s",
             run_id, cid, model_name, model_provider, MASTER_PROMPT_VERSION,
             TOOL_BUNDLE_VERSION, list(COMPANY_TOOLS) if target == "auto" else [target] if target else [], inn or inns,
-            MAX_TOTAL_MODEL_CALLS, MAX_TOOL_CALLS,
+            MAX_TOTAL_MODEL_CALLS, 2 if target == "auto" else MAX_TOOL_CALLS,
             max(0, int((deadline - time.monotonic()) * 1000)), last_topic,
         )
 
@@ -419,7 +417,9 @@ class MasterAgentRuntime:
             if switching_company:
                 trusted_store, user_context, last_topic = None, [], None
             active = CompanyRef(inn=inn, name=(active or {}).get("name") if not switching_company else None).model_dump(mode="json")
-        if result is not None and result.status in {"success", "partial"}:
+        for result in execution.observations():
+            if result.status not in {"success", "partial"}:
+                continue
             observation = normalized_tool_context(result)
             if observation["domain"] == "shortlist":
                 # Отдельный bounded ToolResult; активная компания сохраняется.
@@ -432,7 +432,7 @@ class MasterAgentRuntime:
             else:
                 company = observation["company"]
                 if company.get("inn") == inn and is_valid_inn(inn):
-                    if switching_company:
+                    if switching_company and (active or {}).get("inn") != inn:
                         trusted_store, user_context, last_topic = None, [], None
                     active = CompanyRef(inn=inn, name=company.get("name")).model_dump(mode="json")
                     trusted_store = merge_trusted_context(trusted_store, observation)
@@ -564,10 +564,10 @@ class MasterAgentRuntime:
                     clear_history,
                     news_days=self.tool_context.settings.web_news_days,
                 ),
-                ModelCallLimitMiddleware(run_limit=MAX_AGENT_MODEL_CALLS + int(target == "find_companies"), exit_behavior="error"),
+                ModelCallLimitMiddleware(run_limit=MAX_AGENT_MODEL_CALLS + int(target in {"find_companies", "auto"}), exit_behavior="error"),
             ]
             if not contextual:
-                middleware.append(ToolCallLimitMiddleware(run_limit=MAX_TOOL_CALLS, exit_behavior="error"))
+                middleware.append(ToolCallLimitMiddleware(run_limit=execution.max_tool_calls, exit_behavior="error"))
             agent = create_agent(
                 model=model,
                 tools=tools,
@@ -587,9 +587,9 @@ class MasterAgentRuntime:
                         contextual = execution.result is None
                     candidate = parse_master_answer(
                         message_text(final),
-                        allowed_artifacts=allowed_artifacts(execution.result, contextual=contextual),
-                        allow_risk_profile=(execution.result is not None
-                                            and execution.result.metadata.tool == "full_company_check"),
+                        allowed_artifacts=allowed_artifacts(execution.last_successful(), contextual=contextual),
+                        allow_risk_profile=(execution.last_successful() is not None
+                                            and execution.last_successful().metadata.tool == "full_company_check"),
                     )
             except Exception as exc:  # noqa: BLE001
                 log.info("agent_model_fallback run_id=%s reason=%s detail=%s", run_id, type(exc).__name__, str(exc)[:400])
@@ -620,7 +620,7 @@ class MasterAgentRuntime:
                 run_id, target, execution.result.status, execution.result.metadata.latency_ms,
             )
 
-        result = execution.result
+        result = execution.last_successful() or execution.result
         if result is not None and result.status == "error":
             return tool_result_to_assistant(
                 result,
@@ -631,7 +631,7 @@ class MasterAgentRuntime:
                 model=model_name,
                 started=started,
             )
-        verified_context = cached_context if contextual else synthesis_context(result, cached_context)
+        verified_context = execution_context(execution, cached_context)
         artifacts = allowed_artifacts(result, contextual=contextual)
         # External selection is independent of the optional internal prose repair.
         news_answer = candidate
@@ -669,6 +669,29 @@ class MasterAgentRuntime:
             grounding_status=grounding_status,
             repair_attempts=repairs,
         )
+        errors = [item for item in execution.observations() if item.status == "error"]
+        # Keep the primary artifact's references first, then the other verified
+        # read from this exact company snapshot. Assistant prose supplies none.
+        evidence = {item.id: item for item in response.evidence}
+        company = (verified_context or {}).get("company") or {}
+        for item in execution.observations():
+            if item.status == "error":
+                continue
+            observation = normalized_tool_context(item)
+            if any((observation.get("company") or {}).get(key) != company.get(key)
+                   for key in ("inn", "snapshot_id", "report_date")):
+                continue
+            for entry in observation.get("evidence", []):
+                if len(evidence) < 60:
+                    evidence.setdefault(entry["id"], Evidence.model_validate(entry))
+        response.evidence = list(evidence.values())
+        if errors:
+            response.metadata.status = "partial"
+            response.message += "\n\n" + " ".join(
+                ("Финансовые данные" if item.metadata.tool == "get_financial_data" else "Юридические данные")
+                + " не удалось прочитать: " + (item.error.user_safe_message if item.error else "ошибка инструмента.")
+                for item in errors
+            )
         if result is not None and result.metadata.tool == "full_company_check":
             from .news import hydrate_news
             response.external_news, response.external_news_status = await hydrate_news(
@@ -755,12 +778,19 @@ def _model_policy(
 ):
     @wrap_model_call
     async def enforce(request, handler):
-        if execution.model_calls >= MAX_AGENT_MODEL_CALLS + int(expected_tool == "find_companies"):
+        if execution.model_calls >= MAX_AGENT_MODEL_CALLS + int(expected_tool in {"find_companies", "auto"}):
             raise RuntimeError("Agent model call budget exhausted")
         after_tool = execution.result is not None
         automatic = expected_tool == "auto"
         actual_tool = execution.result.metadata.tool if after_tool else expected_tool
-        answer_stage = expected_tool is None or after_tool
+        available_tools = list(request.tools)
+        if automatic and after_tool:
+            available_tools = [tool for tool in available_tools
+                               if execution.tool_calls < execution.max_tool_calls
+                               and tool.name in TARGETED_TOOLS
+                               and tool.name not in execution.called_tools
+                               and all(name in TARGETED_TOOLS for name in execution.called_tools)]
+        answer_stage = expected_tool is None or (after_tool and (not automatic or not available_tools))
         settings = dict(request.model_settings)
         settings["parallel_tool_calls"] = False
         # Подборка извлекает несколько условий; прежних 512 токенов маршрутизации
@@ -773,7 +803,7 @@ def _model_policy(
             # адаптеры пытаются превратить response_format в описание функции.
             settings["response_format"] = {"type": "json_object"}
         overrides = {
-            "tools": [] if answer_stage else request.tools,
+            "tools": [] if answer_stage else available_tools,
             "tool_choice": "none" if answer_stage else "auto" if automatic else "required",
             "model_settings": settings,
         }
@@ -789,7 +819,7 @@ def _model_policy(
 
         if answer_stage or automatic:
             emit_progress("synthesis" if after_tool else "context")
-            context = synthesis_context(execution.result, cached_context) if after_tool else cached_context
+            context = execution_context(execution, cached_context)
             schema = MasterAnswer.model_json_schema()
             schema.setdefault("required", []).append("suggested_actions")
             if after_tool and actual_tool == "full_company_check":
@@ -812,7 +842,7 @@ def _model_policy(
             else:
                 schema["properties"].pop("news_selection", None)
             schema["properties"]["artifact"]["enum"] = list(
-                allowed_artifacts(execution.result, contextual=not after_tool)
+                allowed_artifacts(execution.last_successful(), contextual=not after_tool)
             )
             base = request.system_message.content if request.system_message else MASTER_SYSTEM_PROMPT
             overrides["system_message"] = SystemMessage(
@@ -830,23 +860,36 @@ def _model_policy(
                     + ("\nСначала реши, достаточно ли verified_context для последнего вопроса. "
                        "Учитывай отрицания: упоминание финансов или судов не является командой их проверять. "
                        "Если данные уже переданы, отвечай без инструмента. Если нужны новые сведения, "
-                       "выбери один подходящий инструмент; узкий вопрос не требует полной проверки. "
+                       "выбери подходящий инструмент; узкий вопрос не требует полной проверки. "
                        "Не заявляй о выполненном чтении без результата инструмента. "
-                       "Если запрос требует нескольких новых разделов, обозначь границу текущего чтения. "
+                       "Для смешанного вопроса можно последовательно прочитать финансы и юридические данные, "
+                       "каждый инструмент не более одного раза. Не читай второй раздел, если вопрос уже раскрыт. "
+                       "Полная проверка не совмещается с другими чтениями в одном ходе. "
                        "При явной просьбе обновить данные прочитай их повторно; это чтение снимка, "
                        "а не обновление сведений у первоисточника.\n"
-                       if automatic and not after_tool else "\n")
+                       if automatic and not answer_stage else "\n")
                     + "Финальный ответ верни только JSON; Markdown разрешён внутри message."
                 )
             )
         bounded = request.override(**overrides)
         execution.model_calls += 1
-        response = await asyncio.wait_for(handler(bounded), timeout=timeout_s)
+        call_started = time.perf_counter()
+        try:
+            response = await asyncio.wait_for(handler(bounded), timeout=timeout_s)
+        except BaseException as exc:
+            log.info("agent_model_call_failed run_id=%s call=%s latency_ms=%s reason=%s",
+                     execution.run_id, execution.model_calls,
+                     int((time.perf_counter() - call_started) * 1000), type(exc).__name__)
+            raise
         proposals = response.result
         proposal = proposals[-1] if proposals else None
         if not isinstance(proposal, AIMessage):
             raise ValueError("Invalid model message")
         _record_usage(execution, proposal)
+        log.info("agent_model_call_finished run_id=%s call=%s stage=%s latency_ms=%s tool_proposals=%s usage=%s",
+                 execution.run_id, execution.model_calls, "answer" if answer_stage else "choice",
+                 int((time.perf_counter() - call_started) * 1000),
+                 [call["name"] for call in proposal.tool_calls], proposal.usage_metadata or {})
         if execution.news_requested:
             execution.news_annotations = proposal.additional_kwargs.get("annotations", [])
         calls = proposal.tool_calls
@@ -856,13 +899,17 @@ def _model_policy(
         else:
             if automatic and not calls:
                 return response
-            allowed_names = {tool.name for tool in request.tools} if automatic else {expected_tool}
-            if len(calls) != 1 or calls[0]["name"] not in allowed_names:
+            allowed_names = {tool.name for tool in available_tools} if automatic else {expected_tool}
+            paired = (automatic and execution.tool_calls == 0 and len(calls) == 2
+                      and {call["name"] for call in calls} == set(TARGETED_TOOLS)
+                      and len({call["id"] for call in calls}) == 2)
+            if (len(calls) != 1 and not paired) or any(call["name"] not in allowed_names for call in calls):
                 raise ValueError("Invalid native tool proposal: expected=%s got=%s" % (
                     expected_tool, [call.get("name") for call in calls]))
             definition = registry.get_definition(calls[0]["name"])
             try:
-                definition.input_model.model_validate(calls[0]["args"])
+                for call in calls:
+                    registry.get_definition(call["name"]).input_model.model_validate(call["args"])
             except ValueError as error:
                 if expected_tool != "find_companies":
                     raise
@@ -885,6 +932,25 @@ def _model_policy(
         return response
 
     return enforce
+
+
+def execution_context(execution, cached_context):
+    context = cached_context
+    errors = []
+    for result in execution.observations():
+        if result.status == "error":
+            errors.append({"tool": result.metadata.tool,
+                           "message": result.error.user_safe_message if result.error else "Ошибка чтения"})
+        else:
+            context = synthesis_context(result, context)
+    if context is not None:
+        related = (context.get("related_domains") or {}).values()
+        partial = errors or any((item.get("coverage") or {}).get("state") != "DATA" for item in related)
+        if partial:
+            context = {**context, "coverage": {**context.get("coverage", {}), "state": "PARTIAL"}}
+        if errors:
+            context = {**context, "tool_errors": errors}
+    return context
 
 
 def synthesis_context(result, cached_context):

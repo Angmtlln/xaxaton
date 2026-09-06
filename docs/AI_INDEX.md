@@ -202,7 +202,8 @@ npm run dev
   `targeted_models.py`: framework-agnostic контракты нормализованных данных.
 - `runtime.py`, `master_model.py`, `langchain_tools.py`, `prompt.py`: provider-neutral
   `create_agent`, выбранный при создании conversation Master provider/model,
-  до 5 model calls, 1 domain call, recursion limit 12; неверный routing использует
+  до 6 model calls с debug-проверкой, до двух разных targeted чтений в auto path,
+  recursion limit 16; неверный routing использует
   ограниченный deterministic fallback.
 - `response.py`: строгая связь evidence с фактами, hydration verified data,
   deterministic policy-блоки, отдельный `leading_artifact` только для full
@@ -237,7 +238,9 @@ npm run dev
   reuse проверенного контекста и Master synthesis сохраняют структурную валидацию.
 - Свободные вопросы об одной компании при доступной модели используют выбор
   инструмента или ответа по смыслу в существующем Master-вызове; одиночные слова
-  больше не фиксируют единственный tool. Границы — в [CHAT_ROUTING](CHAT_ROUTING.md).
+  больше не фиксируют единственный tool. Финансы и юридические данные можно прочитать
+  за один ход; ввод до 4000 символов, истечение сессии возвращает черновик.
+  Границы — в [CHAT_ROUTING](CHAT_ROUTING.md).
 - Chat `full_company_check` пропускает только legacy Summary; `/api/v1/checks`
   и `/report` продолжают вызывать её. Схема БД не меняется.
 

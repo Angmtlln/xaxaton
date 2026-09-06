@@ -1023,6 +1023,9 @@
 .landing-mode .send-button:hover { background: #444; }
 .landing-mode .composer-meta { color: #fff; padding-inline: 4px; }
 .landing-mode .composer-meta > :first-child { display: none; }
+@media (min-width: 769px) {
+  .landing-mode .composer-meta > #composer-hint { display: block; }
+}
 .landing-mode .prompt-examples { width: min(900px, 100%); display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .landing-mode .prompt-example { min-height: 44px; padding: 12px 16px; border: 1px solid #ffffff8a; border-radius: 999px; color: #fff; background: transparent; box-shadow: none; }
 .landing-mode .prompt-example:hover { background: #a11d16; }

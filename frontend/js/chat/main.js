@@ -7,6 +7,8 @@ import { registerTurn, resetNavigation } from './navigation.js';
 
 const form = document.getElementById('chat-form');
 const input = document.getElementById('chat-input');
+const composerHint = document.getElementById('composer-hint');
+const MESSAGE_LIMIT = 4000;
 const sendButton = document.getElementById('send-button');
 const intro = document.getElementById('chat-intro');
 const thread = document.getElementById('chat-thread');
@@ -18,6 +20,7 @@ const CHAT_STORAGE_KEY = 'counterparty-current-conversation-v1';
 let conversationId = null;
 let activeCompany = null;
 let conversationHistory = [];
+let sessionExpired = false;
 const composerShell = document.querySelector('.chat-composer-shell');
 const landingSlot = document.getElementById('landing-composer-slot');
 
@@ -41,7 +44,7 @@ function updateActions() {
 function saveConversation() {
   try {
     sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify({
-      conversationId, activeCompany, messages: conversationHistory.slice(-24),
+      conversationId, activeCompany, sessionExpired, draft: input.value, messages: conversationHistory.slice(-24),
     }));
   } catch (error) { /* Диалог остаётся доступен при запрете/переполнении storage. */ }
 }
@@ -50,15 +53,19 @@ function showActiveCompany() {
   activeCompanyBar.hidden = !conversationId && !conversationHistory.length;
   input.placeholder = activeCompany ? 'Уточните по компании'
     : 'Опишите задачу…';
-  activeCompanyLabel.textContent = activeCompany
+  activeCompanyLabel.textContent = sessionExpired
+    ? 'Сессия истекла · следующий запрос начнёт новый диалог, укажите ИНН'
+    : activeCompany
     ? `${activeCompany.name || 'Контрагент'} · ИНН ${activeCompany.inn}`
     : 'Компания ещё не выбрана';
 }
 
 function resetConversation() {
   if (form.hasAttribute('aria-busy')) return;
+  const draft = sessionExpired ? input.value : '';
   conversationId = null;
   activeCompany = null;
+  sessionExpired = false;
   conversationHistory = [];
   resetNavigation();
   thread.querySelectorAll('.news-section').forEach((section) => section.dispose?.());
@@ -66,7 +73,7 @@ function resetConversation() {
   thread.hidden = true;
   intro.hidden = false;
   lastReportLink.hidden = true;
-  input.value = '';
+  input.value = draft;
   syncLayout();
   showActiveCompany();
   saveConversation();
@@ -74,6 +81,12 @@ function resetConversation() {
 }
 
 function resizeInput() {
+  const length = Array.from(input.value.trim()).length;
+  const invalid = length > MESSAGE_LIMIT;
+  input.setCustomValidity(invalid ? `Максимум ${MESSAGE_LIMIT} символов. Сейчас ${length}. Сократите запрос.` : '');
+  input.setAttribute('aria-invalid', String(invalid));
+  composerHint.textContent = invalid ? `${length} / ${MESSAGE_LIMIT} · сократите запрос, текст сохранён`
+    : `До ${MESSAGE_LIMIT} символов · ответы по доступным данным`;
   input.style.height = 'auto';
   input.style.height = `${Math.min(input.scrollHeight, 132)}px`;
 }
@@ -155,6 +168,12 @@ function appendRequestError(message) {
 async function sendMessage(message) {
   const text = String(message || '').trim();
   if (!text || form.hasAttribute('aria-busy')) return;
+  if (Array.from(text).length > MESSAGE_LIMIT) {
+    input.value = String(message);
+    resizeInput();
+    input.reportValidity();
+    return;
+  }
   intro.hidden = true;
   thread.hidden = false;
   appendUserMessage(text);
@@ -181,9 +200,14 @@ async function sendMessage(message) {
       if (payload && payload.metadata && payload.metadata.error_code === 'unknown_conversation') {
         conversationId = null;
         activeCompany = null;
+        sessionExpired = true;
+        input.value = text;
+        resizeInput();
+        resetNavigation();
         lastReportLink.hidden = true;
       } else if (payload && payload.conversation_id) {
         conversationId = payload.conversation_id;
+        sessionExpired = false;
         activeCompany = payload.active_company || null;
       }
       appendAssistantMessage(payload || {});
@@ -209,7 +233,7 @@ form.addEventListener('submit', (event) => {
   sendMessage(input.value);
 });
 
-input.addEventListener('input', resizeInput);
+input.addEventListener('input', () => { resizeInput(); saveConversation(); });
 window.addEventListener('resize', resizeInput);
 input.addEventListener('keydown', (event) => {
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
@@ -235,6 +259,8 @@ try {
   if (saved && Array.isArray(saved.messages)) {
     conversationId = typeof saved.conversationId === 'string' ? saved.conversationId : null;
     activeCompany = saved.activeCompany || null;
+    sessionExpired = saved.sessionExpired === true;
+    input.value = typeof saved.draft === 'string' ? saved.draft : '';
     conversationHistory = saved.messages.slice(-24);
     conversationHistory.forEach((item) => {
       if (item.role === 'user') appendUserMessage(item.message);

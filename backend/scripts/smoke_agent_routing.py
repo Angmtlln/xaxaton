@@ -20,21 +20,33 @@ CASES = [
     ("Объясни проще", "0278949271", 0),
 ]
 
+STAGE2_CASES = [
+    ("Прочитай финансовые и судебные данные 6165169320 и объясни их вместе. Полную проверку не запускай.", "6165169320", 2),
+    ("Не проверяй финансы, объясни проще", "6165169320", 0),
+    ("Мы продаём им товар на 10000000 рублей с отсрочкой 30 дней. Что это меняет?", "6165169320", 0),
+    ("Почему?", "6165169320", 0),
+]
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default="http://localhost:8000")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--suite", choices=["routing", "stage2"], default="routing")
     parser.add_argument("--turns", type=int, nargs="+", choices=range(1, len(CASES) + 1),
-                        default=list(range(1, len(CASES) + 1)),
+                        default=None,
                         help="Run selected original turns in order; include the setup turn")
     args = parser.parse_args()
+    cases = STAGE2_CASES if args.suite == "stage2" else CASES
+    args.turns = args.turns or list(range(1, len(cases) + 1))
+    if max(args.turns) > len(cases):
+        parser.error("Turn exceeds selected suite length")
     if args.output.exists():
         parser.error("Output already exists; choose a new path to preserve the previous run")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     rows = []
     cid = None
-    for question, inn, tool_count in [CASES[index - 1] for index in args.turns]:
+    for question, inn, tool_count in [cases[index - 1] for index in args.turns]:
         started = time.monotonic()
         request = Request(args.base_url.rstrip("/") + "/api/v1/chat/messages",
                           data=json.dumps({"message": question, "conversation_id": cid}).encode(),
@@ -57,7 +69,7 @@ def main():
             row = {"question": question, "checks": {"transport": False}, "error": str(exc),
                    "latency_s": round(time.monotonic() - started, 3)}
         rows.append(row)
-        args.output.write_text(json.dumps({"base_url": args.base_url, "planned": len(args.turns),
+        args.output.write_text(json.dumps({"base_url": args.base_url, "suite": args.suite, "planned": len(args.turns),
                                           "completed": len(rows), "results": rows}, ensure_ascii=False, indent=2))
         print(json.dumps({"turn": len(rows), "question": question, "checks": row["checks"],
                           "latency_s": row["latency_s"]}, ensure_ascii=False), flush=True)

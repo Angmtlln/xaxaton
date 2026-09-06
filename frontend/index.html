@@ -85,7 +85,7 @@
     <form class="chat-composer" id="chat-form" aria-label="Сообщение AI-аналитику">
       <label class="sr-only" for="chat-input">Запрос о контрагенте</label>
       <div class="composer-control">
-        <textarea id="chat-input" rows="1" maxlength="1000" autocomplete="off"
+        <textarea id="chat-input" rows="1" autocomplete="off"
                   placeholder="Опишите задачу…" aria-describedby="composer-hint"></textarea>
         <button class="send-button" id="send-button" type="submit" aria-label="Отправить запрос">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -95,7 +95,7 @@
         </button>
       </div>
       <div class="composer-meta">
-        <span id="composer-hint">Ответы опираются на доступные данные о компании</span>
+        <span id="composer-hint" aria-live="polite">До 4000 символов · ответы по доступным данным</span>
         <span>Enter — отправить · Shift+Enter — новая строка</span>
       </div>
     </form>

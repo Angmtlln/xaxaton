@@ -124,7 +124,9 @@ def test_complementary_context_does_not_nest_old_copies_of_the_new_domain():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("proposal", [
-    [_tool_call("get_financial_data"), _tool_call("get_legal_data", call_id="extra")],
+    [_tool_call("get_financial_data"), _tool_call("full_company_check", call_id="extra")],
+    [_tool_call("get_financial_data"), _tool_call("get_financial_data", call_id="extra")],
+    [_tool_call("get_financial_data"), _tool_call("get_legal_data", {"inn": "6165169320", "sql": "select 1"}, call_id="extra")],
     [_tool_call("unknown_tool")],
     [_tool_call("get_financial_data", {"inn": "6165169320", "sql": "select 1"})],
 ])
@@ -197,3 +199,102 @@ async def test_company_switch_without_reading_drops_old_trusted_data(monkeypatch
         assert context["company"]["inn"] == "0278949271"
         assert not context.get("metrics")
         assert "6165169320" not in messages[0].content
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("failed_domain", [None, "finance", "legal"])
+async def test_two_distinct_reads_keep_success_and_followup_context(monkeypatch, failed_domain):
+    from app.agent.models import ToolError, ToolResult, ToolResultMetadata
+    model = _model(
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
+        AIMessage(content="", tool_calls=[_tool_call("get_legal_data", call_id="legal")]),
+        _answer("Вывод по прочитанным данным."),
+        _answer("Объяснение по сохранённым данным."),
+    )
+    runtime = _runtime(model, grounding_debug=False)
+    calls = []
+
+    async def execute(name, args, context):
+        calls.append(name)
+        domain = "finance" if name == "get_financial_data" else "legal"
+        if domain == failed_domain:
+            return ToolResult(status="error", error=ToolError(code="timeout", user_safe_message="Источник не ответил."),
+                              metadata=ToolResultMetadata(tool=name, latency_ms=1))
+        return targeted_result(domain)
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    response = await runtime.run("Прочитай финансы и суды у 6165169320, без полной проверки")
+    assert calls == ["get_financial_data", "get_legal_data"]
+    assert response.metadata.tool_calls == 2
+    assert response.metadata.model_calls == 3
+    assert response.metadata.synthesis == "model"
+    assert model._tool_bindings[1]["tools"] == ["get_legal_data"]
+    assert len(model._tool_bindings) == 2  # Final call does not bind any tools.
+    context = _verified_context(model._messages[-1])
+    if failed_domain:
+        assert response.metadata.status == "partial"
+        assert "не удалось прочитать" in response.message
+        assert context["tool_errors"]
+    else:
+        assert context["related_domains"]["finance"]["metrics"]
+        assert {item.fact_id for item in response.evidence} >= {"fin.profit_last", "court.defendant_count"}
+    followup = await runtime.run("Почему?", response.conversation_id)
+    assert followup.metadata.tool_calls == 0
+    assert len(calls) == 2
+    context = _verified_context(model._messages[-1])
+    assert context["metrics"]
+    if not failed_domain:
+        assert context["related_domains"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("next_tool", ["get_financial_data", "full_company_check"])
+async def test_second_read_cannot_repeat_or_escalate_to_full(monkeypatch, next_tool):
+    model = _model(
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
+        AIMessage(content="", tool_calls=[_tool_call(next_tool, call_id="invalid")]),
+    )
+    runtime = _runtime(model, grounding_debug=False)
+    calls = []
+    async def execute(name, args, context):
+        calls.append(name)
+        return targeted_result()
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    response = await runtime.run("Финансы и суды 6165169320")
+    assert calls == ["get_financial_data"]
+    assert response.metadata.tool_calls == 1
+    assert response.metadata.synthesis == "fallback"
+    assert response.evidence
+
+
+def test_partial_first_domain_does_not_become_complete_after_second_read():
+    from app.agent.langchain_tools import LangChainToolExecution
+    from app.agent.runtime import execution_context
+    execution = LangChainToolExecution(results=[targeted_result(availability="PARTIAL"), targeted_result("legal")])
+    assert execution_context(execution, None)["coverage"]["state"] == "PARTIAL"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("order", [("finance", "legal"), ("legal", "finance")])
+async def test_native_pair_is_read_sequentially_then_answered_once(monkeypatch, order):
+    import asyncio
+    names = {"finance": "get_financial_data", "legal": "get_legal_data"}
+    model = _model(AIMessage(content="", tool_calls=[_tool_call(names[domain], call_id=domain) for domain in order]),
+                   _answer("Совместный ответ."))
+    runtime = _runtime(model, grounding_debug=False)
+    active = 0
+    reads = []
+    async def execute(name, args, context):
+        nonlocal active
+        active += 1
+        assert active == 1
+        await asyncio.sleep(.01)
+        reads.append(name)
+        active -= 1
+        return targeted_result("finance" if name == names["finance"] else "legal")
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    response = await runtime.run("Финансы и суды 6165169320")
+    assert set(reads) == set(names.values())
+    assert response.metadata.tool_calls == response.metadata.model_calls == 2
+    assert response.metadata.synthesis == "model"
+    assert _verified_context(model._messages[-1])["related_domains"]

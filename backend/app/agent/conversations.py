@@ -124,9 +124,9 @@ def with_related_domains(selected: dict, current: Optional[dict]) -> dict:
 
 def append_user_context(current: Optional[list[str]], message: str, *, limit: int = 4) -> list[str]:
     """Keep bounded user-supplied context separate from verified company facts."""
-    values = [item[:1000] for item in (current or []) if isinstance(item, str) and item.strip()]
+    values = [item[:4000] for item in (current or []) if isinstance(item, str) and item.strip()]
     if message.strip():
-        values.append(message.strip()[:1000])
+        values.append(message.strip()[:4000])
     return values[-limit:]
 
 

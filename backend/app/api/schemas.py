@@ -11,7 +11,7 @@ class ChatMessageRequest(BaseModel):
     message: str = Field(
         ...,
         min_length=1,
-        max_length=1000,
+        max_length=4000,
         description="Полная проверка, финансовый или юридический вопрос; продолжение использует активную компанию диалога",
         json_schema_extra={"example": "Проверь контрагента 6165169320"},
     )

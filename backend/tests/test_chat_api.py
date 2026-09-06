@@ -168,3 +168,16 @@ def test_conversation_id_schema_is_uuid(api_client):
     assert api_client.post("/api/v1/chat/messages", json={
         "message": "А финансы?", "conversation_id": "arbitrary-thread",
     }).status_code == 422
+
+
+@pytest.mark.parametrize("endpoint", ["/api/v1/chat/messages", "/api/v1/chat/messages/stream"])
+@pytest.mark.parametrize("length, expected", [(1001, 200), (4000, 200), (4001, 422)])
+def test_chat_message_length_boundary(api_client, endpoint, length, expected):
+    response = api_client.post(endpoint, json={"message": "я" * length})
+    assert response.status_code == expected
+
+
+def test_long_user_context_keeps_end_of_message():
+    from app.agent.conversations import append_user_context
+    message = "я" * 3950 + " Условия сделки в конце."
+    assert append_user_context([], message) == [message]

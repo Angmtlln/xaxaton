@@ -15,10 +15,12 @@ from .tools import ToolContext, ToolRegistry
 
 log = logging.getLogger(__name__)
 COMPANY_TOOLS = ("full_company_check", "get_financial_data", "get_legal_data")
+TARGETED_TOOLS = ("get_financial_data", "get_legal_data")
 
 
 @dataclass
 class LangChainToolExecution:
+    run_id: Optional[str] = None
     started: bool = False
     tool_calls: int = 0
     model_calls: int = 0
@@ -26,10 +28,20 @@ class LangChainToolExecution:
     output_tokens: Optional[int] = None
     used_fallback: bool = False
     result: Optional[ToolResult] = None
+    results: list[ToolResult] = field(default_factory=list)
+    called_tools: list[str] = field(default_factory=list)
+    max_tool_calls: int = 1
     # Per-turn external provenance, never part of trusted domain context.
     news_requested: bool = False
     news_annotations: list = field(default_factory=list)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
+    read_lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
+
+    def observations(self) -> list[ToolResult]:
+        return self.results or ([self.result] if self.result is not None else [])
+
+    def last_successful(self) -> Optional[ToolResult]:
+        return next((item for item in reversed(self.observations()) if item.status != "error"), None)
 
 
 def build_langchain_tools(
@@ -41,6 +53,7 @@ def build_langchain_tools(
 ) -> List[StructuredTool]:
     """Идентификаторы компаний остаются за бэкендом: аргумент модели только сверяется."""
     if expected_tool == "auto":
+        execution.max_tool_calls = 2
         return [tool for name in COMPANY_TOOLS for tool in build_langchain_tools(
             registry, tool_context, agent_run_id=agent_run_id,
             expected_inn=expected_inn, execution=execution, expected_tool=name,
@@ -51,17 +64,29 @@ def build_langchain_tools(
 
     async def reserve() -> None:
         async with execution.lock:
-            if execution.started:
+            if (execution.tool_calls >= execution.max_tool_calls
+                    or expected_tool in execution.called_tools
+                    or (execution.started and (expected_tool not in TARGETED_TOOLS
+                                               or any(name not in TARGETED_TOOLS for name in execution.called_tools)))):
                 raise RuntimeError("Domain tool call budget exhausted")
             execution.started = True
-            execution.tool_calls = 1
+            execution.tool_calls += 1
+            execution.called_tools.append(expected_tool)
 
     async def run(arguments: Dict[str, object], subject: str) -> tuple[str, Dict[str, object]]:
-        log.info("agent_tool_call run_id=%s tool=%s inn=%s routing=%s call=1/1",
+        # Providers may propose both targeted tools in one AIMessage. ToolNode
+        # may schedule both, but domain reads must remain sequential.
+        async with execution.read_lock:
+            return await read(arguments, subject)
+
+    async def read(arguments: Dict[str, object], subject: str) -> tuple[str, Dict[str, object]]:
+        log.info("agent_tool_call run_id=%s tool=%s inn=%s routing=%s call=%s/%s",
                  agent_run_id, expected_tool, subject,
-                 "deterministic_fallback" if execution.used_fallback else "model")
+                 "deterministic_fallback" if execution.used_fallback else "model",
+                 execution.called_tools.index(expected_tool) + 1, execution.max_tool_calls)
         result = await registry.execute(expected_tool, arguments, tool_context)
         execution.result = result
+        execution.results.append(result)
         log.info("agent_tool_result run_id=%s tool=%s status=%s latency_ms=%s",
                  agent_run_id, expected_tool, result.status, result.metadata.latency_ms)
         return _observation(result)
