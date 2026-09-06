@@ -190,7 +190,7 @@ def direct_shortlist_arguments(message: str) -> Optional[dict]:
     if main_suffix:
         scope = 'main'
         condition = condition[:main_suffix.start()].strip()
-    parts = re.split(r"\s+и\s+(?=(?:с\s+)?(?:выручкой|прибылью)|без\s)", condition, flags=re.I)
+    parts = re.split(r"(?:\s+и\s+|,\s*(?:и\s+)?)(?=(?:с\s+)?(?:выручкой|прибылью)|без\s)", condition, flags=re.I)
     activity = _ACTIVITY_CLAUSE.fullmatch(parts[0])
     code = re.fullmatch(r"(?:с\s+)?окв[еэ]д\s+([0-9.]+)", parts[0], re.I)
     if activity:
