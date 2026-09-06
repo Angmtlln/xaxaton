@@ -18,7 +18,27 @@ services:
       timeout: 3s
       retries: 10
 
+  company-data-mcp:
+    image: xaxaton-backend:local
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "app.mcp_data.server"]
+    environment:
+      MCP_DATABASE_URL: postgresql://contractors_mcp:${MCP_DB_PASSWORD:-}@db:5432/contractors
+    ports:
+      - "127.0.0.1:8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   api:
+    image: xaxaton-backend:local
     # Образу нужны обе части проекта, поэтому контекст — корень репозитория.
     build:
       context: ..
@@ -27,11 +47,16 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/contractors
+      COMPANY_DATA_BACKEND: ${COMPANY_DATA_BACKEND:-mcp}
+      MCP_SERVER_URL: http://company-data-mcp:8001/mcp
+      MCP_TIMEOUT_S: ${MCP_TIMEOUT_S:-10}
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      company-data-mcp:
+        condition: service_started
     volumes:
       - ..:/data:ro
 

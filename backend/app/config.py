@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     db_pool_min: int = 1
     db_pool_max: int = 8
 
+    # Local scripts/tests keep direct mode; Docker explicitly defaults to MCP.
+    company_data_backend: Literal['direct', 'mcp'] = 'direct'
+    mcp_server_url: str = 'http://127.0.0.1:8001/mcp'
+    mcp_timeout_s: float = Field(default=10, gt=0, le=60)
+
     # --- Master Agent ---
     # Независимо от Groq-конфигурации доменных агентов ниже.
     openrouter_api_key: Optional[str] = None

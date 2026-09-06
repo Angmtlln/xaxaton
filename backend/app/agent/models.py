@@ -170,6 +170,7 @@ class FindCompaniesArgs(StrictModel):
 
 class ToolError(StrictModel):
     code: Literal[
+        "source_unavailable",
         "unknown_tool",
         "invalid_arguments",
         "not_found",

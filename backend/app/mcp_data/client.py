@@ -44,6 +44,9 @@ class LimitedTransport(httpx2.AsyncBaseTransport):
 def source_error(exc):
     if isinstance(exc, CompanySourceError): return exc
     if isinstance(exc, (TimeoutError, httpx2.TimeoutException)): return SourceTimeout()
+    # SDK output-schema validation raises RuntimeError; never surface its payload.
+    if isinstance(exc, (RuntimeError, ValidationError, json.JSONDecodeError)):
+        return InvalidSourceResponse()
     if isinstance(exc, BaseExceptionGroup):
         errors = [source_error(child) for child in exc.exceptions]
         return next((e for e in errors if type(e) is not CompanySourceError), errors[0])
@@ -55,6 +58,9 @@ class McpCompanyDataReader:
         self.url, self.timeout_s = url, timeout_s
 
     async def _read(self, operation, arguments):
+        # repository historically uses None for an omitted ranking list.
+        if operation == 'find_companies' and arguments.get('ranking') is None:
+            arguments = {k: v for k, v in arguments.items() if k != 'ranking'}
         params = INPUTS[operation].model_validate(arguments).model_dump(mode='json')
         started, request_id = time.perf_counter(), uuid.uuid4().hex
         code, rows, size = 'ok', 0, 0

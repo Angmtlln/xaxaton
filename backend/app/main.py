@@ -18,6 +18,7 @@ from app.api.routes import api_router, pages_router
 from app.api.routes.pages import frontend_dir
 from app.config import get_settings
 from app.domain.pipeline import CompanyNotFound
+from app.mcp_data.errors import CompanySourceError
 from app.infrastructure.db import close_pool, init_pool
 from app.llm.groq_client import GroqClient
 
@@ -112,6 +113,10 @@ def create_app() -> FastAPI:
 
     app.include_router(api_router)
     app.include_router(pages_router)
+
+    @app.exception_handler(CompanySourceError)
+    async def source_error_handler(request, exc: CompanySourceError) -> JSONResponse:
+        return JSONResponse(status_code=exc.http_status, content={"detail": exc.message})
 
     @app.exception_handler(CompanyNotFound)
     async def not_found_handler(request, exc: CompanyNotFound) -> JSONResponse:

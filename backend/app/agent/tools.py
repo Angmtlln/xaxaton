@@ -12,6 +12,7 @@ from pydantic import BaseModel, ValidationError
 
 from app.api.schemas import CheckResponse
 from app.infrastructure.progress import emit_progress
+from app.mcp_data.errors import CompanySourceError
 from app.config import Settings
 from app.llm.groq_client import GroqClient
 from app.domain.pipeline import CompanyNotFound, run_check
@@ -143,6 +144,9 @@ class ToolRegistry:
             result = await asyncio.wait_for(
                 definition.executor(context, parsed_args), timeout=definition.timeout_s
             )
+        except CompanySourceError as exc:
+            return _error_result(exc.code, exc.message, tool=definition.name,
+                                 latency_ms=_elapsed_ms(started), retryable=exc.retryable)
         except CompanyNotFound as exc:
             inn = str(exc) or getattr(parsed_args, "inn", "")
             return _error_result(

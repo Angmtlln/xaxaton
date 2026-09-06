@@ -10,3 +10,13 @@ class CompanyDataReader(Protocol):
     async def get_connection_candidates(self, limit: int = 10001) -> list[dict[str, Any]]: ...
     async def get_snapshots_for_connections(self, inns: list[str]) -> list[dict[str, Any]]: ...
     async def data_source_status(self) -> dict[str, Any]: ...
+
+
+def get_company_reader(settings=None) -> CompanyDataReader:
+    from app.config import get_settings
+    settings = settings if settings is not None else get_settings()
+    if settings.company_data_backend == 'mcp':
+        from app.mcp_data.client import McpCompanyDataReader
+        return McpCompanyDataReader(settings.mcp_server_url, settings.mcp_timeout_s)
+    from app.infrastructure.company_postgres import PostgresCompanyDataReader
+    return PostgresCompanyDataReader()

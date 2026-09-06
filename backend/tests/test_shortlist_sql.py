@@ -93,7 +93,7 @@ async def test_activity_repository_filters_before_limit_and_counts_companies(mon
             @asynccontextmanager
             async def connection(self): yield self
             def cursor(self): return Cursor()
-        monkeypatch.setattr(repository, 'get_pool', lambda: Pool())
+        monkeypatch.setattr('app.infrastructure.company_postgres.get_pool', lambda: Pool())
         result = await repository.find_companies(activity_query='торговлей', min_proceeds=10_000_000, limit=1)
         assert result['total'] == 2 and [r['inn'] for r in result['rows']] == ['2']
         match = result['rows'][0]['matched_activities'][0]
@@ -161,7 +161,7 @@ async def test_selection_reads_exact_snapshot_ids_and_bounds_batch(monkeypatch):
             @asynccontextmanager
             async def connection(self): yield self
             def cursor(self): return Cursor()
-        monkeypatch.setattr(repository,'get_pool',lambda:Pool())
+        monkeypatch.setattr('app.infrastructure.company_postgres.get_pool',lambda:Pool())
         selected=await repository.get_selection_snapshots([1])
         assert len(selected)==1 and selected[0]['snapshot_id']==1
         assert selected[0]['document']=={'version':1}

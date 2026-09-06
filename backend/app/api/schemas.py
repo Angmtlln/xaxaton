@@ -191,6 +191,8 @@ class RunListItem(BaseModel):
 
 
 class HealthOut(BaseModel):
+    data_source: str = 'direct'
+    data_source_available: bool = False
     status: str
     database: bool
     llm_mode: str
