@@ -109,6 +109,7 @@ def normalized_tool_context(result: ToolResult) -> dict:
         "schema_version": "verified-context-1",
         "tool": result.metadata.tool,
         "domain": domain,
+        "connections": data.connections.model_dump(mode="json") if full and data.connections else None,
         "status": result.status,
         "company": company,
         "freshness": result.freshness.model_dump(mode="json") if result.freshness else None,

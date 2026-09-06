@@ -250,6 +250,46 @@ class ExternalNews(StrictModel):
     summary: SafeText = Field(min_length=1, max_length=500)
 
 
+class ConnectionNode(StrictModel):
+    inn: SafeText
+    name: SafeText
+    snapshot_id: Optional[SafeText] = None
+    report_date: Optional[SafeText] = None
+    review_state: Literal["root", "reviewed", "partial", "unavailable"] = "unavailable"
+    observations: List[ToolFact] = Field(default_factory=list, max_length=12)
+    gaps: List[SafeText] = Field(default_factory=list, max_length=8)
+
+
+class ConnectionEdge(StrictModel):
+    source: SafeText
+    target: SafeText
+    kind: Literal["shared_founder", "shared_director", "founder_director", "ownership",
+                  "related_company", "shared_related", "address", "email", "website", "phone"]
+    label: SafeText
+    via: Optional[SafeText] = None
+    field_refs: List[SafeText] = Field(min_length=1, max_length=4)
+
+
+class CompanyConnections(StrictModel):
+    state: Literal["complete", "partial", "unavailable"] = "complete"
+    root_inn: SafeText
+    nodes: List[ConnectionNode] = Field(default_factory=list, max_length=7)
+    edges: List[ConnectionEdge] = Field(default_factory=list, max_length=30)
+    total_companies: int = Field(default=0, ge=0)
+    total_edges: int = Field(default=0, ge=0)
+    external_references: int = Field(default=0, ge=0)
+    note: SafeText = "Проверены связи внутри доступного набора карточек, один шаг от компании."
+
+    @model_validator(mode="after")
+    def validate_graph(self):
+        known = {node.inn for node in self.nodes}
+        if len(known) != len(self.nodes) or any(not is_valid_inn(inn) for inn in known):
+            raise ValueError("Invalid connection identifiers")
+        if any(e.source == e.target or {e.source, e.target} - known for e in self.edges):
+            raise ValueError("Invalid connection edge")
+        return self
+
+
 class FullCompanyCheckData(StrictModel):
     check_run_id: Optional[SafeText] = None
     pipeline_status: Literal["SUCCEEDED", "PARTIAL"]
@@ -264,6 +304,7 @@ class FullCompanyCheckData(StrictModel):
     status_ids: List[SafeText] = Field(default_factory=list, max_length=8)
     policy_signals: List[PolicySignal] = Field(default_factory=list, max_length=12)
     calculator_version: SafeText
+    connections: Optional[CompanyConnections] = None
     sections: Dict[str, DataSection] = Field(default_factory=dict)
 
     @model_validator(mode="after")

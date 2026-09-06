@@ -6,7 +6,7 @@ from .models import SuggestedAction
 
 
 def next_actions(answer, context, *, contextual=False):
-    companies = [context.get("company") or {}, *context.get("companies", [])]
+    companies = [context.get("company") or {}, *context.get("companies", []), *(context.get("connections") or {}).get("nodes", [])]
     known = {str(item.get("inn")) for item in companies if item.get("inn")}
     if answer is not None:
         actions, seen = [], set()

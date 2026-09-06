@@ -263,7 +263,12 @@ async def _execute_full_company_check(context: ToolContext, args: BaseModel) -> 
     )
     check = CheckResponse.model_validate(check_payload)
     data, evidence = _compact_check(check, snapshot=check_payload.get("_agent_snapshot"))
+    if check_payload.get("_agent_snapshot") is not None:
+        from .connections import cross_check
+        data.connections = await cross_check(check_payload["_agent_snapshot"])
     warnings: List[str] = []
+    if data.connections is not None and data.connections.state != "complete":
+        warnings.append(data.connections.note)
     if check.status == "PARTIAL":
         warnings.append("Некоторые разделы удалось оценить только по фактам исходной карточки.")
     warnings.extend(data.sections.get("data_gaps").value if "data_gaps" in data.sections else [])

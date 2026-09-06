@@ -280,3 +280,27 @@ async def list_runs(inn: Optional[str] = None, limit: int = 20) -> List[Dict[str
         async with conn.cursor() as cur:
             await cur.execute(sql, {"inn": inn, "limit": limit})
             return await cur.fetchall()
+
+
+async def get_connection_candidates(limit: int = 10001) -> List[Dict[str, Any]]:
+    """Bounded identity projection of latest snapshots, without analytical arrays."""
+    async with get_pool().connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "SELECT * FROM core.v_connection_candidates ORDER BY inn LIMIT %(limit)s",
+                {"limit": limit},
+            )
+            return await cur.fetchall()
+
+
+async def get_snapshots_for_connections(inns: List[str]) -> List[Dict[str, Any]]:
+    """One batch for the bounded one-hop review; no per-neighbour pipeline."""
+    if not inns:
+        return []
+    sql = SNAPSHOT_SQL.replace("SELECT s.id", "SELECT DISTINCT ON (c.inn) s.id").replace(
+        "c.inn = %(inn)s", "c.inn = ANY(%(inns)s)"
+    ).replace("ORDER  BY s.report_date DESC\nLIMIT  1", "ORDER BY c.inn, s.report_date DESC, s.id DESC")
+    async with get_pool().connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(sql, {"inns": inns})
+            return await cur.fetchall()

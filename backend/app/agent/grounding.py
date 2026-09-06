@@ -125,9 +125,12 @@ def backend_owned_violations(message: str, verified_context: dict) -> list[str]:
     if URL_RE.search(message):
         violations.append("Ответ содержит URL, который не может создавать Master")
     companies = [verified_context.get("company") or {},
-                 *verified_context.get("companies", [])]
+                 *verified_context.get("companies", []),
+                 *(verified_context.get("connections") or {}).get("nodes", [])]
     known = {str(company[key]) for company in companies for key in ("inn", "ogrn")
              if company.get(key)}
+    known.update(str(e["via"]) for e in (verified_context.get("connections") or {}).get("edges", [])
+                 if e.get("via") and str(e["via"]).isdigit())
     for match in LABELLED_IDENTIFIER_RE.finditer(message):
         if match.group(2) not in known:
             violations.append("Ответ содержит неподтверждённый идентификатор компании")
