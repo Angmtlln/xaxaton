@@ -551,7 +551,7 @@ export function buildAssistantMessage(payload, hooks = {}) {
   body.appendChild(lead);
 
   const blocks = safeArray(payload.blocks).filter((block) => !block || (block.type !== 'evidence_list'
-    && !(comparison && block.type === 'finding_list' && block.title === 'Метки источника')));
+    && !(block.type === 'finding_list' && block.title === 'Метки источника')));
   if (blocks.length) {
     const stack = element('div', 'rich-stack');
     blocks.forEach((block) => {
