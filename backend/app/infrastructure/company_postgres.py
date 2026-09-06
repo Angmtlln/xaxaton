@@ -123,7 +123,7 @@ class PostgresCompanyDataReader:
                 await cur.execute(sql, {"inns": inns})
                 return await cur.fetchall()
 
-    async def find_companies(self, 
+    async def find_companies(self,
         *, activity_query=None, okved_prefix=None, activity_scope="any",
         min_proceeds=None, max_proceeds=None, min_profit=None, max_profit=None,
         risk_level=None, zsk_risk_level=None, hard_stops=None,

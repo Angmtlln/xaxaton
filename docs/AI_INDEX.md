@@ -17,7 +17,7 @@
 | факты, расчёты, полнота данных | `backend/app/domain/facts.py` | `backend/app/infrastructure/mongo.py`, `backend/tests/test_facts.py` |
 | LLM, grounding, guardrails | `backend/app/llm/agents.py`, `backend/app/llm/prompts.py` | `backend/app/llm/groq_client.py`, `backend/tests/test_groq_and_grounding.py` |
 | API и формат ответа | `backend/app/api/routes/`, `backend/app/api/schemas.py` | `backend/app/domain/pipeline.py`, Swagger `/docs` |
-| MCP-доступ к карточкам (план, ещё не реализован) | [`MCP_DATA_ACCESS.md`](MCP_DATA_ACCESS.md) | текущий read path: `backend/app/infrastructure/repository.py`; MCP server/client ещё не добавлены |
+| MCP-доступ к карточкам, запуск и откат | [`MCP_DATA_ACCESS.md`](MCP_DATA_ACCESS.md) | `backend/app/mcp_data/`, `backend/app/infrastructure/company_reader.py`, `company_postgres.py`, `backend/scripts/setup_mcp_access.py` |
 | PostgreSQL и аудит | [`backend/docs/db_design.md`](../backend/docs/db_design.md), `backend/db/schema.sql` | `backend/app/infrastructure/repository.py`, `backend/scripts/load_snapshot.py` |
 | поиск по деятельности / ОКВЭД | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md) | `backend/app/agent/shortlist.py`, `backend/app/infrastructure/repository.py`, `backend/db/migrations/005_shortlist_activity.sql` |
 | выбор N по показателям, «из найденных», подтверждение порядка | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md), [`RANKING_ACCEPTANCE.md`](RANKING_ACCEPTANCE.md) | `backend/app/agent/ranking.py`, `shortlist.py`, `runtime.py`, `backend/tests/test_ranking.py` |
@@ -78,6 +78,7 @@ POST /api/v1/chat/messages
   -> allowlisted UIBlock renderer
 
 ИНН
+  -> repository -> выбранный reader (Docker: MCP-клиент -> MCP-сервер)
   -> последний снимок карточки в PostgreSQL
   -> нормализация Mongo Extended JSON
   -> детерминированные факты + паспорт полноты
@@ -146,8 +147,9 @@ POST /api/v1/chat/messages
 - persistent history в БД, универсальный name resolution, отдельный deal-risk
   tool и потоковая выдача текста Master не реализованы; публичные статусы
   этапов передаются NDJSON;
-- MCP пока не реализован: карточки и поиск читаются напрямую из PostgreSQL;
-  планируется перенос этих чтений за MCP-сервер, запись аудита остаётся отдельно;
+- реализован MCP-сервер чтения и клиент; Docker использует MCP по умолчанию,
+  локальный Python — direct. Все шесть чтений карточек/поиска переключаются
+  единым reader; запись аудита остаётся отдельно, скрытого fallback на SQL нет;
 - банковские интеграции и большая база не относятся к готовому текущему проходу.
 
 Перед изменением статуса сверяйся с кодом и обновляй этот раздел в том же

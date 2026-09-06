@@ -23,7 +23,7 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
-    command: ["python", "-m", "app.mcp_data.server"]
+    command: ["python", "-m", "app.mcp_data.server", "--host", "0.0.0.0"]
     environment:
       MCP_DATABASE_URL: postgresql://contractors_mcp:${MCP_DB_PASSWORD:-}@db:5432/contractors
     ports:

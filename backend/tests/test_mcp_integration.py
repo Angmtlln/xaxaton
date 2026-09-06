@@ -71,3 +71,30 @@ async def test_registry_preserves_source_error_codes(monkeypatch):
             ToolContext(settings=settings, client=client, persist=False))
         assert result.status == 'error' and result.error.code == 'source_unavailable'
     finally: await client.aclose()
+
+
+def test_ndjson_delivers_safe_source_error(monkeypatch):
+    import json
+    from app.main import create_app
+    from app.api.deps import settings_dep, groq_dep
+    from app.agent.conversations import ConversationStore
+    from app.llm.groq_client import GroqClient
+    settings = Settings(_env_file=None, llm_mock=True)
+    async def fail(*args, **kwargs): raise CompanySourceError()
+    monkeypatch.setattr(repository, 'get_latest_snapshot', fail)
+    app = create_app()
+    app.state.conversation_store = ConversationStore()
+    app.dependency_overrides[settings_dep] = lambda: settings
+    app.dependency_overrides[groq_dep] = lambda: GroqClient(settings)
+    client = TestClient(app)
+    try:
+        response = client.post('/api/v1/chat/messages/stream', json={'message':'Проверь контрагента 6165169320'})
+        events = [json.loads(line) for line in response.text.splitlines()]
+        assert response.status_code == 200
+        result = events[-1]['payload']
+        assert result['metadata']['status'] == 'error'
+        assert result['metadata']['error_code'] == 'source_unavailable'
+        assert result['metadata']['model_calls'] == 0
+        assert 'не найдена' not in result['message'].lower()
+    finally:
+        client.close()

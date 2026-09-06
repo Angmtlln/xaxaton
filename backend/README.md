@@ -12,6 +12,7 @@ POST /api/v1/chat/messages
   → StructuredTool adapter / domain Tool Registry
   → full_company_check | finance/legal | compare_companies | find_companies | select_counterparties
   → run_check() или targeted builders / поиск / подбор
+  → repository → выбранный reader (Docker: MCP → PostgreSQL)
   → verified ToolResult → естественный ответ Master
   → backend hydration AssistantResponse
   → rich chat в frontend/
@@ -32,6 +33,26 @@ POST /api/v1/checks {"inn": "..."}
 ```
 
 ## Быстрый старт
+
+Рекомендуемый запуск — Docker с MCP. Заполните `backend/.env` ключами моделей
+и отдельным URL-safe `MCP_DB_PASSWORD`. Из `backend/`:
+
+```bash
+docker compose build api
+docker compose up -d db
+# Только если выгрузка ещё не загружена:
+docker compose run --rm --no-deps api python scripts/load_snapshot.py \
+  --create-schema --file /data/contractors_audit.snapshot.json
+docker compose run --rm --no-deps api python scripts/setup_mcp_access.py
+docker compose up -d company-data-mcp api
+curl --fail http://127.0.0.1:8000/health
+```
+
+Ожидается `data_source=mcp`, `data_source_available=true`, `status=ok`.
+Пароль не коммитить. Для существующей старой схемы сначала применить миграции
+функций; подробнее — [MCP_DATA_ACCESS](../docs/MCP_DATA_ACCESS.md).
+
+Локальный Python без `COMPANY_DATA_BACKEND` сохраняет прямой режим:
 
 ```bash
 cd backend
@@ -398,6 +419,7 @@ PYTHONPATH=. python -m pytest -q
   [WEB_NEWS](../docs/WEB_NEWS.md) и [COMPANY_CONNECTIONS](../docs/COMPANY_CONNECTIONS.md).
 - Дополнительный verifier/repair выключен по умолчанию. Корректная структура
   и provenance не гарантируют правильность рассуждений Master.
-- MCP пока не реализован. Сегодня backend читает PostgreSQL напрямую;
-  планируется сервер чтения между backend и БД без изменения расчёта фактов.
-  [Архитектура, DB impact и приёмка](../docs/MCP_DATA_ACCESS.md).
+- Docker использует MCP по умолчанию; локальный Python — direct, если режим
+  не задан явно. Сервер доступен только внутри Docker и на localhost:8001.
+  Запись аудита остаётся прямой. Удалённая банковская интеграция не подключена.
+  [Запуск, DB impact, диагностика и откат](../docs/MCP_DATA_ACCESS.md).

@@ -1,0 +1,50 @@
+{
+  "while_stopped": {
+    "health_http": 200,
+    "health": {
+      "status": "degraded",
+      "database": true,
+      "data_source": "mcp",
+      "data_source_available": false
+    },
+    "facts": {
+      "http": 503,
+      "body": {
+        "detail": "Источник данных контрагентов временно недоступен. Попробуйте ещё раз."
+      }
+    },
+    "chat": {
+      "http": 200,
+      "event_types": [
+        "progress",
+        "progress",
+        "result"
+      ],
+      "metadata": {
+        "agent_run_id": "0fc03670-adfc-486a-a744-ebf2b9c35f33",
+        "check_run_id": null,
+        "status": "error",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.5-two-reads",
+        "latency_ms": 30,
+        "error_code": "source_unavailable",
+        "model_calls": 0,
+        "synthesis": "deterministic",
+        "grounding_status": "not_required",
+        "repair_attempts": 0
+      },
+      "message": "Источник данных контрагентов временно недоступен. Попробуйте ещё раз."
+    }
+  },
+  "after_restart": {
+    "health": {
+      "status": "ok",
+      "database": true,
+      "data_source": "mcp",
+      "data_source_available": true
+    },
+    "facts_http": 200
+  }
+}

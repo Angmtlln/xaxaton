@@ -1,0 +1,15 @@
+{
+  "direct": {
+    "status": "ok",
+    "database": true,
+    "data_source": "direct",
+    "data_source_available": true
+  },
+  "facts_match": true,
+  "restored": {
+    "status": "ok",
+    "database": true,
+    "data_source": "mcp",
+    "data_source_available": true
+  }
+}
