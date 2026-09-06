@@ -44,10 +44,10 @@ PYTHONPATH=. .venv/bin/python -m evals.defense_run --suite full --output evals/r
 PYTHONPATH=. .venv/bin/python -m evals.defense_judge --run evals/results/defense-full
 ```
 
-Это оплачиваемые вызовы текущего Master, доменных моделей и отдельного судьи.
-Судья по умолчанию `anthropic/claude-sonnet-4.6`; `--model` выбирает другую модель
-доступного OpenRouter. Одинаковая модель допускается только с `--allow-same-model`,
-и bias фиксируется. `.env` и настройки приложения не редактируются.
+Это оплачиваемые вызовы текущего Master и доменных моделей. Семантический review
+использует только ту же настроенную модель проекта (сейчас GLM), без автоматической
+подмены другой моделью. `same_model_as_subject=true` явно фиксирует зависимость
+оценки: это не независимый судья и не человеческая приёмка. `.env` не редактируется.
 
 Пилот содержит 20 сценариев всех девяти категорий. `--case M07` выбирает сценарий
 внутри suite; `--repetitions 3` повторяет целый диалог с новой сессией. Для точного
@@ -57,7 +57,9 @@ PYTHONPATH=. .venv/bin/python -m evals.defense_judge --run evals/results/defense
 ограничивает независимые диалоги, внутри реплики последовательны.
 
 Повтор судьи сохраняется отдельно: `--label second`. Старый вывод не затирается.
-`defense_report --run <dir> --judge-label independent` пересобирает отчёт без LLM.
+`defense_report --run <dir> --judge-label configured` пересобирает отчёт без LLM.
+`--regrade` пересчитывает точные проверки на архивных ответах, сохраняет отдельный
+`regraded-checks.json` и hash оценщика; исходные trace и результаты не изменяются.
 
 ## Оценка
 

@@ -5,7 +5,7 @@ import argparse
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from .defense_grade import aggregate
+from .defense_grade import aggregate, grade
 from .defense_run import read, save
 
 
@@ -13,10 +13,19 @@ def percentile(values,p):
     return sorted(values)[min(len(values)-1,int((len(values)-1)*p))] if values else None
 
 
-def report(out,label=None):
+def report(out,label=None,regrade=False):
     out=Path(out); manifest=read(out/'manifest.json'); bank=read(out/'bank.json')
     items=read(out/'progress.json')['rows'] if (out/'progress.json').exists() else []
     traces=[read(out/i['trace']) for i in items]; scored=[r for r in traces if r['scored']]
+    if regrade:
+        from .bank import normalize,sha
+        docs={d['report']['baseInfo']['inn']:d for d in normalize(read(out/'source.json.gz'))}
+        checks={r['id']:grade(r,r['spec'],docs) for r in traces}
+        # Original trace checks stay untouched; this is an explicit new measurement.
+        save(out/'regraded-checks.json',{'grader_sha256':sha(Path(__file__).with_name('defense_grade.py')),'checks':checks})
+    if (out/'regraded-checks.json').exists():
+        measured=read(out/'regraded-checks.json')
+        for r in traces: r['checks']=measured['checks'].get(r['id'],r['checks'])
     judgments={}
     if label:
         for r in scored:
@@ -87,5 +96,5 @@ def report(out,label=None):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(); p.add_argument('--run',required=True); p.add_argument('--judge-label')
-    args=p.parse_args(); report(args.run,args.judge_label)
+    p=argparse.ArgumentParser(); p.add_argument('--run',required=True); p.add_argument('--judge-label'); p.add_argument('--regrade',action='store_true')
+    args=p.parse_args(); report(args.run,args.judge_label,args.regrade)

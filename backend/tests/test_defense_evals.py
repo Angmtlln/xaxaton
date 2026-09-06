@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from evals.defense_bank import compile_bank, load
-from evals.defense_grade import grade, aggregate
+from evals.defense_grade import grade, aggregate, source_checks
 from evals.defense_judge import validate_judgment, evidence_for
 from evals.defense_run import select_cases, save, read
 
@@ -63,7 +63,8 @@ def test_scenario_denominator_and_missing_review():
 
 def test_judge_requires_all_parts_real_quotes_and_resolvable_paths():
     spec={'requirements':[{'id':'r1'},{'id':'r2'}]}; evidence={'source':{'profit':0}}
-    p={'requirements':[{'id':'r1','status':'met','reason':'Значение верно','quote':'ноль','source_paths':[['source','profit']]},
+    p={'factual_audit':'supported','factual_audit_reason':'Проверены все утверждения.',
+       'requirements':[{'id':'r1','status':'met','reason':'Значение верно','quote':'ноль','source_paths':[['source','profit']]},
                        {'id':'r2','status':'missed','reason':'Вторая часть отсутствует'}]}
     assert validate_judgment(p,spec,'Прибыль ноль.',evidence)['status']=='PARTIAL'
     bad=copy.deepcopy(p); bad['requirements'][0]['quote']='сто миллионов'
@@ -86,6 +87,15 @@ def test_atomic_trace_round_trip(tmp_path):
     path=tmp_path/'row.json.gz'; save(path,{'message':'Пример','value':None})
     assert read(path)=={'message':'Пример','value':None}
     assert not list(tmp_path.glob('*.tmp'))
+
+
+def test_neighbour_source_values_use_neighbour_identity():
+    data={'inn':'123','connections':{'nodes':[{'inn':'456','observations':[
+        {'field_ref':'report.profit','value':12}]}]}}
+    docs={'123':{'report':{}},'456':{'report':{'profit':12}}}
+    assert source_checks(data,docs)['status']=='PASS'
+    data['connections']['nodes'][0]['observations'][0]['value']=13
+    assert source_checks(data,docs)['status']=='FAIL'
 
 
 @pytest.mark.skipif(os.getenv('TEST_DEFENSE_POSTGRES')!='1',reason='Opt-in disposable Docker PostgreSQL')

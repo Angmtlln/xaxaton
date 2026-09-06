@@ -1,9 +1,37 @@
 """Exact structural checks. Prose is evaluated separately, never with regex."""
 from __future__ import annotations
 
+import re
+from .bank import at
 from .graders import check, structured_checks
 
 GUARDS = {'missing_inn','invalid_inn','ambiguous_inn','stale_company_choice','invalid_company_choice'}
+
+
+def source_checks(data,docs):
+    """Resolve provenance inside each company scope, including graph neighbours."""
+    failures=[]; checked=0
+    def visit(value,inn=None):
+        nonlocal checked
+        if isinstance(value,list):
+            for item in value: visit(item,inn)
+        elif isinstance(value,dict):
+            company=value.get('company')
+            current=value.get('inn') or (company.get('inn') if isinstance(company,dict) else None) or inn
+            fid=value.get('id','')
+            if isinstance(fid,str) and ':' in fid and fid.split(':')[0] in docs: current=fid.split(':')[0]
+            ref=value.get('field_ref'); actual=value.get('value')
+            if current in docs and isinstance(ref,str) and 'value' in value and re.fullmatch(r'report(?:\.[A-Za-z_][A-Za-z_0-9]*|\[\d+\])+',ref):
+                if actual is None or isinstance(actual,(int,float,bool)):
+                    path=[int(p) if p.isdigit() else p for p in re.findall(r'[A-Za-z_][A-Za-z_0-9]*|\d+',ref)]
+                    src=at(docs[current],path); expected=src.get('value'); checked+=1
+                    if isinstance(expected,str) and isinstance(actual,(int,float)) and not isinstance(actual,bool):
+                        try: expected=float(expected)
+                        except ValueError: pass
+                    if expected!=actual: failures.append({'inn':current,'path':path,'actual':actual,'source':src})
+            for item in value.values(): visit(item,current)
+    visit(data)
+    return check('source_values',not failures if checked else None,{'checked':checked,'failures':failures})
 
 
 def grade(row, spec, docs):
@@ -35,7 +63,8 @@ def grade(row, spec, docs):
             out.append(check('tool_company_identity',args['inn']==(company.get('inn') or result.get('inn'))))
     for t in row.get('tools',[]):
         data=(t.get('result') or {}).get('data') or {}
-        out.extend(structured_checks(data,docs))
+        out.extend(c for c in structured_checks(data,{}) if c['name']!='source_values')
+        out.append(source_checks(data,docs))
         if t['name']=='find_companies':
             matching=next((r for r in reads if r['method']=='find_companies'),None)
             raw=(matching or {}).get('result') or {}
