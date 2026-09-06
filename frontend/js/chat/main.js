@@ -3,6 +3,7 @@
 import { element } from '../shared/dom.js';
 import { buildAssistantMessage } from './artifacts.js';
 import { requestErrorText, sendChatMessage } from './api.js';
+import { registerTurn, resetNavigation } from './navigation.js';
 
 const form = document.getElementById('chat-form');
 const input = document.getElementById('chat-input');
@@ -59,6 +60,7 @@ function resetConversation() {
   conversationId = null;
   activeCompany = null;
   conversationHistory = [];
+  resetNavigation();
   thread.querySelectorAll('.news-section').forEach((section) => section.dispose?.());
   thread.replaceChildren();
   thread.hidden = true;
@@ -118,7 +120,7 @@ function appendLoading() {
 }
 
 function appendAssistantMessage(payload) {
-  thread.appendChild(buildAssistantMessage(payload, {
+  const article = buildAssistantMessage(payload, {
     index: thread.children.length,
     onReportUrl: (url) => {
       lastReportLink.href = url;
@@ -131,7 +133,9 @@ function appendAssistantMessage(payload) {
       resizeInput();
       input.focus();
     },
-  }));
+  });
+  thread.appendChild(article);
+  registerTurn(payload, article);
   updateActions();
 }
 

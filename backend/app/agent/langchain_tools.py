@@ -83,7 +83,20 @@ def build_langchain_tools(
         return await run({"inns": list(expected_inns or []), "focus": selected},
                          ", ".join(expected_inns or []))
 
-    coroutine = execute_comparison if expected_tool == "compare_companies" else execute
+    async def execute_shortlist(**criteria) -> tuple[str, Dict[str, object]]:
+        """Пороги подборки — условия пользователя, а не данные о компании.
+
+        Их формулирует модель, но схема инструмента их валидирует, а применённые
+        критерии backend возвращает пользователю дословно.
+        """
+        await reserve()
+        arguments = {k: v for k, v in criteria.items() if v is not None}
+        return await run(arguments, "подборка по критериям")
+
+    coroutine = {
+        "compare_companies": execute_comparison,
+        "find_companies": execute_shortlist,
+    }.get(expected_tool, execute)
     return [StructuredTool.from_function(
         coroutine=coroutine, name=definition.name, description=definition.description,
         args_schema=definition.input_model, response_format="content_and_artifact",

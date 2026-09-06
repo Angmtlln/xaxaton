@@ -149,3 +149,11 @@ Important scenarios include:
 - legacy endpoint regression.
 
 When a large task has genuinely independent workstreams, subagents may be used selectively. Do not use them mechanically.
+
+
+## Mobile scope — paused
+
+Мобильная версия пока не является приоритетом. Сохраняй её текущее состояние;
+не дорабатывай мобильный интерфейс, адаптивность и мобильные сценарии и не
+запускай отдельную мобильную полировку/приёмку. Возобновляй работу над мобильной
+версией только по отдельному явному запросу пользователя.

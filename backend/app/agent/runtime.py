@@ -26,6 +26,7 @@ from .grounding import (backend_owned_violations, call_grounding_verifier,
                         call_master_repair, is_simple_rewrite, message_text)
 from .langchain_tools import LangChainToolExecution, build_langchain_tools
 from .master_model import build_master_model
+from .shortlist import direct_shortlist_arguments
 from .models import CompanyRef, GroundingVerification, MasterAnswer, is_valid_inn
 from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
@@ -56,6 +57,18 @@ FULL_PHRASE_RE = re.compile(r"\b(?:пол\w+|комплексн\w+)\s+(?:про�
 FINANCE_TOPIC_RE = re.compile(r"\b(?:выручк\w*|прибыл\w*|финанс\w*|рентабельн\w*|капитал\w*|баланс\w*|кредиторск\w*|задолженн\w*)\b", re.I)
 LEGAL_TOPIC_RE = re.compile(r"\b(?:суд\w*|арбитраж\w*|исполнител\w*|юридическ\w*|надежност\w*|надёжност\w*|банкрот\w*|иск[аи]?|иски)\b", re.I)
 NARROW_TOPIC_RE = re.compile(r"\b(?:выручк\w*|прибыл\w*|финанс\w*|суд\w*|арбитраж\w*|исполнител\w*|закуп\w*|тендер\w*|лиценз\w*)\b", re.I)
+SHORTLIST_VERB_RE = re.compile(
+    r"\b(?:найд\w+|подбер\w+|подбор\w*|отбер\w+|покаж\w+|выведи|список|перечисл\w+|сколько)\b",
+    re.I,
+)
+SHORTLIST_SCOPE_RE = re.compile(
+    r"\b(?:вс[еех]х?|все|любы\w+|каки\w+|котор\w+|у\s+ког[оо]|с\s+выручк\w+|компани\w+|контрагент\w+)\b",
+    re.I,
+)
+SHORTLIST_CRITERION_RE = re.compile(
+    r"\b(?:больше|меньше|более|менее|свыше|от|до|выше|ниже|превыша\w+|без|есть|нет)\b",
+    re.I,
+)
 COMPARISON_RE = re.compile(r"\b(?:сравн\w*|compare\w*)\b", re.I)
 EXPLANATION_RE = re.compile(
     r"\b(?:почему|объясни\w*|поясни\w*|проще|что\s+это\s+значит|насколько\s+это\s+критично)\b",
@@ -178,6 +191,7 @@ class MasterAgentRuntime:
         previous = (await state_agent.aget_state(config)).values
         active = previous.get("active_company")
         trusted_store = previous.get("trusted_context")
+        shortlist_store = previous.get("shortlist_context")
         comparison_store = previous.get("comparison_context")
         user_context = previous.get("user_context") or []
         last_topic = previous.get("last_topic")
@@ -197,10 +211,23 @@ class MasterAgentRuntime:
                                       else requested_tool(item.content))
                     if pending_target:
                         break
-        comparison_request = bool(COMPARISON_RE.search(message)) or pending_target == "compare_companies"
+        shortlist_request = is_shortlist_request(message)
+        comparison_request = (not shortlist_request) and (
+            bool(COMPARISON_RE.search(message)) or pending_target == "compare_companies"
+        )
         inns = None
-        if comparison_request:
-            reason, inns = inspect_comparison_request(message)
+        if shortlist_request:
+            reason, inn, target = None, None, "find_companies"
+            switching_company = False
+            turn_user_context = user_context
+            turn_last_topic = last_topic
+            turn_last_answer_verified = last_answer_verified
+            selected_context = None
+            preselected_tool = bool(self.direct_dispatch and direct_shortlist_arguments(message))
+        elif comparison_request:
+            reason, inns = inspect_comparison_request(
+                message, (active or {}).get("inn")
+            )
             inn = None
             target = "compare_companies" if reason is None else None
             switching_company = False
@@ -264,6 +291,11 @@ class MasterAgentRuntime:
                 reason, target, inn = None, None, None
                 inns = [company["inn"] for company in comparison_store["companies"]]
                 selected_context, turn_last_topic = comparison_store, "comparison"
+            if (no_explicit_inn and last_topic == "shortlist"
+                    and isinstance(shortlist_store, dict) and target is None
+                    and not requests_refresh(message)):
+                reason, inn = None, None
+                selected_context, turn_last_topic = shortlist_store, "shortlist"
             preselected_tool = bool(
                 (self.direct_dispatch and target and is_direct_request(message, target))
                 or (
@@ -344,7 +376,11 @@ class MasterAgentRuntime:
         result = execution.result
         if result is not None and result.status in {"success", "partial"}:
             observation = normalized_tool_context(result)
-            if observation["domain"] == "comparison":
+            if observation["domain"] == "shortlist":
+                # Отдельный bounded ToolResult; активная компания сохраняется.
+                shortlist_store = observation
+                last_topic = "shortlist"
+            elif observation["domain"] == "comparison":
                 # Сравнение живёт отдельно: trusted_context привязан к одной компании.
                 comparison_store = store_comparison_context(observation)
                 last_topic = "comparison"
@@ -383,6 +419,7 @@ class MasterAgentRuntime:
                 "trusted_context": trusted_store,
                 "user_context": user_context,
                 "comparison_context": comparison_store,
+                "shortlist_context": shortlist_store,
                 "last_topic": last_topic,
                 "last_answer_verified": answer_verified,
             },
@@ -430,6 +467,7 @@ class MasterAgentRuntime:
             )
             execution.result = await self.registry.execute(
                 target,
+                direct_shortlist_arguments(message) if target == "find_companies" else
                 {"inns": list(inns), "focus": comparison_focus(message)}
                 if target == "compare_companies" else {"inn": inn, **(detail_arguments(message) if target != "full_company_check" else {})},
                 self.tool_context
@@ -476,7 +514,7 @@ class MasterAgentRuntime:
                     clear_history,
                     news_days=self.tool_context.settings.web_news_days,
                 ),
-                ModelCallLimitMiddleware(run_limit=MAX_AGENT_MODEL_CALLS, exit_behavior="error"),
+                ModelCallLimitMiddleware(run_limit=MAX_AGENT_MODEL_CALLS + int(target == "find_companies"), exit_behavior="error"),
             ]
             if not contextual:
                 middleware.append(ToolCallLimitMiddleware(run_limit=MAX_TOOL_CALLS, exit_behavior="error"))
@@ -506,6 +544,9 @@ class MasterAgentRuntime:
         if not contextual and execution.result is None:
             if execution.started:
                 return runtime_timeout_response(run_id, started, tool_calls=execution.tool_calls)
+            if target == "find_companies":
+                # Критерии подборки называет пользователь; угадывать их нельзя.
+                return guard_response("shortlist_needs_criteria", run_id, started)
             execution.started = True
             execution.tool_calls = 1
             execution.used_fallback = True
@@ -658,13 +699,16 @@ def _model_policy(
 ):
     @wrap_model_call
     async def enforce(request, handler):
-        if execution.model_calls >= MAX_AGENT_MODEL_CALLS:
+        if execution.model_calls >= MAX_AGENT_MODEL_CALLS + int(expected_tool == "find_companies"):
             raise RuntimeError("Agent model call budget exhausted")
         after_tool = execution.result is not None
         answer_stage = expected_tool is None or after_tool
         settings = dict(request.model_settings)
         settings["parallel_tool_calls"] = False
-        settings["max_tokens"] = answer_max_tokens if answer_stage else router_max_tokens
+        # Подборка извлекает несколько условий; прежних 512 токенов маршрутизации
+        # может не хватить модели для завершённого native tool call.
+        tool_tokens = max(router_max_tokens, 2048) if expected_tool == "find_companies" else router_max_tokens
+        settings["max_tokens"] = answer_max_tokens if answer_stage else tool_tokens
         if answer_stage:
             # Ответ Master разбирается по схеме, поэтому JSON требуем у провайдера.
             # Инструменты на этом шаге не нужны: с ними OpenAI-совместимые
@@ -746,7 +790,27 @@ def _model_policy(
                 raise ValueError("Invalid native tool proposal: expected=%s got=%s" % (
                     expected_tool, [call.get("name") for call in calls]))
             definition = registry.get_definition(expected_tool)
-            definition.input_model.model_validate(calls[0]["args"])
+            try:
+                definition.input_model.model_validate(calls[0]["args"])
+            except ValueError as error:
+                if expected_tool != "find_companies":
+                    raise
+                # Одна структурная коррекция до SQL: ошибка аргументов становится
+                # ToolMessage, модель исправляет вызов в пределах общего бюджета.
+                correction = ToolMessage(
+                    content="Аргументы отклонены схемой, поиск не выполнялся. Исправь вызов: " + str(error)[:1500],
+                    tool_call_id=calls[0]["id"], name=expected_tool,
+                )
+                execution.model_calls += 1
+                response = await asyncio.wait_for(handler(bounded.override(
+                    messages=[*messages, proposal, correction],
+                )), timeout=timeout_s)
+                proposal = response.result[-1]
+                _record_usage(execution, proposal)
+                calls = proposal.tool_calls
+                if len(calls) != 1 or calls[0]["name"] != expected_tool:
+                    raise ValueError("Invalid corrected shortlist tool proposal")
+                definition.input_model.model_validate(calls[0]["args"])
         return response
 
     return enforce
@@ -818,8 +882,26 @@ def detail_arguments(message: str) -> dict:
     return result
 
 
+def is_shortlist_request(message: str) -> bool:
+    """Запрос про множество по критерию, а не про конкретного контрагента.
+
+    Сами пороги заполняет модель по схеме инструмента: это условия пользователя,
+    а не данные о компании. Применённые критерии backend показывает обратно.
+    """
+    text = message or ""
+    if any(is_valid_inn(value) for value in DIGIT_SEQUENCE_RE.findall(text)):
+        return False
+    if not SHORTLIST_CRITERION_RE.search(text):
+        return False
+    return bool(SHORTLIST_SCOPE_RE.search(text)) and bool(
+        SHORTLIST_VERB_RE.search(text) or COMPARISON_RE.search(text)
+    )
+
+
 def requested_tool(message: str) -> Optional[str]:
     """Small deterministic admission/router; it never validates answer prose."""
+    if is_shortlist_request(message):
+        return "find_companies"
     if COMPARISON_RE.search(message):
         return None
     if FULL_PHRASE_RE.search(message):
@@ -888,14 +970,24 @@ def _trusted_subject(inn, inns) -> str:
     return "\nДоверенный ИНН активной компании: " + str(inn)
 
 
-def inspect_comparison_request(message: str) -> Tuple[Optional[str], Optional[list]]:
-    """ИНН для сравнения в порядке упоминания; идентификаторы остаются за бэкендом."""
+def inspect_comparison_request(
+    message: str, active_inn: Optional[str] = None
+) -> Tuple[Optional[str], Optional[list]]:
+    """ИНН для сравнения в порядке упоминания; идентификаторы остаются за бэкендом.
+
+    Один ИНН после проверки компании означает «сравни с активной»: требовать
+    повторить уже названный ИНН — лишняя работа для пользователя.
+    """
     text = message or ""
     sequences = [value for value in DIGIT_SEQUENCE_RE.findall(text) if len(value) >= 8]
     explicit = re.findall(r"\bинн\s*[:№#-]?\s*([0-9]+)", text, re.I)
     ordered = list(dict.fromkeys(sequences + explicit))
     if any(not is_valid_inn(value) for value in ordered):
         return "invalid_inn", None
+    if len(ordered) == 1 and active_inn and is_valid_inn(active_inn):
+        if ordered[0] == active_inn:
+            return "comparison_needs_two", None
+        return None, [active_inn, ordered[0]]
     if len(ordered) < 2:
         return "comparison_needs_two", None
     if len(ordered) > MAX_COMPARISON_COMPANIES:

@@ -41,6 +41,9 @@ def next_actions(answer, context, *, contextual=False):
         return [action("Проверить контрагента", "Проверь контрагента ", "compose"),
                 action("Сравнить контрагентов", "Сравни контрагентов: ", "compose"),
                 action("Что умеет аналитик?", "Чем ты можешь помочь при выборе контрагента?")]
+    if domain == "shortlist":
+        return [action("Сравнить из списка", "Сравни контрагентов: ", "compose"),
+                action("Объяснить подборку", "Объясни проще")]
     if domain == "comparison":
         return ([action("Что уточнить перед выбором?"), action("Как условия сделки меняют выбор?")]
                 if contextual else [action("Кого выбрать и почему?"), action("Что уточнить у каждого контрагента?")])

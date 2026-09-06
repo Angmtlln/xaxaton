@@ -18,6 +18,7 @@ class ConversationState(AgentState):
     trusted_context: Optional[dict]
     # Сравнение хранится отдельно: trusted_context привязан к одной компании.
     comparison_context: Optional[dict]
+    shortlist_context: Optional[dict]
     user_context: Optional[list[str]]
     last_topic: Optional[str]
     last_answer_verified: Optional[bool]
