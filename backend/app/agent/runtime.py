@@ -676,6 +676,8 @@ def _model_policy(
             context = cached_context if expected_tool is None else normalized_tool_context(execution.result)
             schema = MasterAnswer.model_json_schema()
             schema.setdefault("required", []).append("suggested_actions")
+            if after_tool and expected_tool == "full_company_check":
+                schema["required"].append("risk_profile")
             news_prompt = ""
             if after_tool and expected_tool == "full_company_check" and execution.result.status != "error":
                 from .news import news_search_request

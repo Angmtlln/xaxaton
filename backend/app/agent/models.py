@@ -328,12 +328,25 @@ class SuggestedAction(StrictModel):
     mode: Literal["submit", "compose"] = "submit"
 
 
+class RiskAxis(StrictModel):
+    level: Literal["low", "medium", "high", "unknown"]
+    reason: SafeText = Field(min_length=1, max_length=240)
+
+
+class RiskProfile(StrictModel):
+    finance: RiskAxis
+    courts: RiskAxis
+    enforcement: RiskAxis
+    regulatory: RiskAxis
+
+
 class MasterAnswer(StrictModel):
     """Natural-language answer authored by Master; UI remains backend-owned."""
 
     message: SafeText = Field(min_length=1, max_length=5000)
     artifact: Literal["none", "metrics", "chart"] = "none"
     suggested_actions: List[SuggestedAction] = Field(default_factory=list, max_length=4)
+    risk_profile: Optional[RiskProfile] = None
     news_selection: Optional[List[NewsSelection]] = Field(default=None, max_length=4)
 
 
@@ -386,6 +399,7 @@ class CompanySummaryBlock(StrictModel):
     report_url: SafeText = Field(pattern=r"^/report\?inn=(?:\d{10}|\d{12})$")
     evidence_ids: List[SafeText] = Field(default_factory=list)
     metrics: List["MetricItem"] = Field(default_factory=list, max_length=4)
+    risk_profile: Optional[RiskProfile] = None
 
 
 class MetricItem(StrictModel):

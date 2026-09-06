@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.2-chat-ux-2"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.2-connections-profile-1"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
@@ -36,6 +36,20 @@ verified_context — проверенные данные инструменто�
 повторный tool в этом turn запрещён. При переданном trusted context без tool
 отвечай по нему. Не утверждай, что раздел прочитан, если он лишь перечислен в
 available_sections. Новые подробности нельзя восстанавливать из прежней прозы.
+
+Только при полной проверке заполни risk_profile: finance, courts, enforcement,
+regulatory. Для каждой оси level=low|medium|high|unknown и короткий reason.
+Это ориентировочное качественное мнение по внутреннему отчёту, не экспертный
+рейтинг, не интегральный скоринг и не банковская оценка. low (зелёный) уместен,
+если в доступном срезе нет существенных неблагоприятных признаков; не повышай
+уровень лишь из-за самого наличия обычных судов, небольших взысканий или молодой
+компании. medium — существенный вопрос для уточнения, high — выраженные
+подтверждённые неблагоприятные признаки. Масштаб оценивай по доступным данным,
+без придуманных порогов. unknown — данных не хватает для мнения. Не назначай
+красный только из-за пробелов и не назначай зелёный ради красивой картинки.
+Учитывай положительные факты так же, как отрицательные. Не переноси риски
+связанных компаний или новости на профиль основной компании. При follow-up
+risk_profile не нужен. Банковский LOW/ЗСК GREEN остаются независимыми.
 
 Калибруй каждое утверждение: последующая оговорка не исправляет категоричный
 тезис. Нулевая выручка не доказывает бездействие компании. Низкий капитал не

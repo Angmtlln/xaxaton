@@ -153,7 +153,7 @@ def tool_result_to_assistant(
 
     return AssistantResponse(
         message=message,
-        leading_artifact=_company_summary(data, evidence_by_id) if full and not contextual else None,
+        leading_artifact=_company_summary(data, evidence_by_id, master_answer) if full and not contextual else None,
         blocks=blocks,
         evidence=list(evidence_by_id.values()),
         suggested_actions=actions,
@@ -373,7 +373,7 @@ def _targeted_metrics(data: TargetedData) -> Optional[MetricGridBlock]:
     return MetricGridBlock(title="Показатели по вопросу", items=items) if items else None
 
 
-def _company_summary(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence]):
+def _company_summary(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence], master_answer=None):
     def value(fact_id):
         fact = data.facts.get(fact_id)
         if fact is None or fact.value is None:
@@ -393,6 +393,7 @@ def _company_summary(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evide
         report_url="/report?inn=%s" % inn,
         evidence_ids=[key for key in (*COMPANY_EVIDENCE_IDS, "fin.series") if key in evidence_by_id],
         metrics=_summary_metrics(data, evidence_by_id),
+        risk_profile=_risk_profile(data, master_answer),
     )
 
 
@@ -493,3 +494,28 @@ def _empty_chart() -> LineChartBlock:
 
 def _elapsed_ms(started: float) -> int:
     return max(0, int((time.perf_counter() - started) * 1000))
+
+
+def _risk_profile(data, answer):
+    """Qualitative LLM interpretation, with deterministic missing-data/policy bounds."""
+    from .models import RiskAxis, RiskProfile
+    proposed = answer.risk_profile if answer else None
+    def known(prefix):
+        return any(f.value is not None for key, f in data.facts.items() if key.startswith(prefix))
+    available = {
+        "finance": known(("fin.proceeds", "fin.profit", "fin.capitals")),
+        "courts": known(("court.defendant_count", "court.plaintiff_count", "court.common_count")),
+        "enforcement": known(("execproc.active_count", "execproc.total_count")),
+        "regulatory": any(data.sections.get(key) and data.sections[key].state in {"data", "empty"}
+                          for key in ("positive", "negative")),
+    }
+    # Old compact ToolResults may carry deterministic policy even without sections.
+    stops = [s for s in data.policy_signals if s.kind == "official_hard_stop" and s.value]
+    result = {}
+    for key, has_data in available.items():
+        axis = getattr(proposed, key) if proposed is not None else None
+        result[key] = axis if has_data and axis else RiskAxis(level="unknown", reason=(
+            "Недостаточно данных по направлению." if not has_data else "Оценка модели недоступна."))
+    if stops:
+        result["regulatory"] = RiskAxis(level="high", reason="В источнике есть официальные ограничительные сигналы; уточните их актуальность и охват.")
+    return RiskProfile(**result)

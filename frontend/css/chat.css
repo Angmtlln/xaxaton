@@ -1030,3 +1030,13 @@
 .connection-panel summary { cursor: pointer; padding: 7px 0; }
 .connection-panel small { display: block; overflow-wrap: anywhere; color: #676b75; }
 .connection-panel .muted { color: #676b75; font-size: 12px; }
+
+.risk-radar { height: auto; }
+.radar-sector { stroke-width: 1.2; fill-opacity: .45; }
+.radar-low { fill: #53b78c; stroke: #27845f; }
+.radar-medium { fill: #ebbb57; stroke: #a97817; }
+.radar-high { fill: #e76d70; stroke: #bd444b; }
+.radar-unknown { fill: #c4c9d2; stroke: #87909f; stroke-dasharray: 2 2; }
+.radar-explanation { font-size: 11px; line-height: 1.5; color: #666b75; }
+.radar-explanation summary { cursor: pointer; text-align: center; min-height: 30px; }
+.radar-explanation p { margin: 8px 0; }
