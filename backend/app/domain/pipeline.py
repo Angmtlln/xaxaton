@@ -13,6 +13,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.infrastructure import repository
+from app.infrastructure.progress import emit_progress
 from app.config import Settings
 from app.domain import facts as facts_mod
 from app.domain.facts import BLOCK_KEYS, FactBlock
@@ -133,6 +134,7 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
     """Полный проход; chat пропускает только legacy Summary, сохраняя аудит блоков."""
     started = time.perf_counter()
 
+    emit_progress("snapshot")
     snapshot = await repository.get_latest_snapshot(inn)
     if snapshot is None:
         raise CompanyNotFound(inn)
@@ -159,6 +161,7 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
             {key: blk.to_dict() for key, blk in blocks.items()})
 
     # 2. Четыре доменных агента параллельно.
+    emit_progress("analysis")
     block_results = await run_block_agents(client, settings, blocks, company, coverage)
 
     # 3. Summary-LLM поверх блочных резюме.
@@ -170,6 +173,7 @@ async def run_check(inn: str, settings: Settings, client: GroqClient,
     )
 
     # 4. Защитные слои.
+    emit_progress("verification")
     block_results, summary, guardrail_notes = enforce_guardrails(blocks, block_results, summary)
     statements = collect_statements(blocks, block_results, summary)
     metrics = grounding_metrics(statements)

@@ -104,8 +104,10 @@ function appendLoading() {
   const avatar = element('div', 'assistant-avatar', 'A');
   avatar.setAttribute('aria-hidden', 'true');
   const body = element('div', 'assistant-content assistant-loading');
-  const title = element('strong', null, 'Разбираюсь в вашем вопросе');
-  const note = element('span', null, 'Проверяю доступные данные и готовлю ответ');
+  body.setAttribute('role', 'status');
+  body.setAttribute('aria-live', 'polite');
+  const title = element('strong', 'loading-title', 'Отправляю запрос');
+  const note = element('span', 'loading-detail', 'Жду подтверждения от сервиса');
   const dots = element('span', 'loading-dots');
   dots.setAttribute('aria-hidden', 'true');
   dots.append(element('i'), element('i'), element('i'));
@@ -163,7 +165,11 @@ async function sendMessage(message) {
   scrollToLatest();
 
   try {
-    const { ok, payload } = await sendChatMessage(text, conversationId);
+    const { ok, payload } = await sendChatMessage(text, conversationId, (event) => {
+      loading.querySelector('.loading-title').textContent = event.title;
+      loading.querySelector('.loading-detail').textContent = event.detail;
+      loading.dataset.stage = event.stage;
+    });
     loading.remove();
     if (!ok) {
       appendRequestError(requestErrorText(payload));

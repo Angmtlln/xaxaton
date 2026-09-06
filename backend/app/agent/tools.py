@@ -11,6 +11,7 @@ from typing import Awaitable, Callable, Dict, List, Optional, Type
 from pydantic import BaseModel, ValidationError
 
 from app.api.schemas import CheckResponse
+from app.infrastructure.progress import emit_progress
 from app.config import Settings
 from app.llm.groq_client import GroqClient
 from app.domain.pipeline import CompanyNotFound, run_check
@@ -134,6 +135,8 @@ class ToolRegistry:
                 latency_ms=_elapsed_ms(started),
             )
 
+        emit_progress({"get_financial_data": "finance", "get_legal_data": "legal",
+                       "compare_companies": "comparison"}.get(name))
         try:
             result = await asyncio.wait_for(
                 definition.executor(context, parsed_args), timeout=definition.timeout_s

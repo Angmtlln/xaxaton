@@ -197,3 +197,19 @@ Master выбирает low/medium/high/unknown и краткий reason в су
 DB impact: новые необязательные поля только в Pydantic/JSON-контрактах;
 SQL-структура и сохранённые таблицы не меняются. Существующие ответы без профиля
 поддерживаются. Проверки: `tests/test_risk_profile.py`, `test_agent_response.py`.
+
+## Статусы обработки
+
+Рабочий frontend читает `POST /api/v1/chat/messages/stream` как NDJSON:
+`progress {stage,title,detail}`, служебный `heartbeat`, затем один `result {payload}`
+либо безопасный `error {detail}`. Обычный `/messages` сохранён. Нет текстового
+streaming токенов Master: меняются только короткие публичные статусы, а готовый
+ответ приходит целиком. Этапы отражают реальный код: snapshot → analysis →
+verification → connections → neighbours (если есть) → synthesis; узкие вопросы,
+контекст и граф имеют свои статусы. Heartbeat не придумывает этап или прогресс.
+
+События изолированы ContextVar на запрос, очередь ограничена. Разрыв потока
+отменяет выполняющуюся coroutine; оборванный ответ не считается успешным.
+Ошибки не раскрывают исключения провайдера. Статус доступен через aria-live.
+DB impact отсутствует, новые таблицы/сохранение статусов не добавлены.
+Проверки: `tests/test_chat_progress.py`, `test_chat_api.py`, `test_pipeline_mock.py`.

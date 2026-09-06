@@ -6,6 +6,7 @@ import logging
 import re
 
 from app.infrastructure import repository
+from app.infrastructure.progress import emit_progress
 from .data_sections import company_from_snapshot, report_of, safe_value
 from .models import CompanyConnections, ConnectionEdge, ConnectionNode, is_valid_inn
 
@@ -137,11 +138,14 @@ async def cross_check(snapshot):
     root = company_from_snapshot(snapshot).inn
     try:
         async with asyncio.timeout(4):
+            emit_progress("connections")
             candidates = await repository.get_connection_candidates()
             graph = discover_connections(snapshot, candidates[:CANDIDATE_LIMIT])
             if len(candidates) > CANDIDATE_LIMIT:
                 graph.state = 'partial'
                 graph.note = 'Достигнут лимит 10 000 карточек; поиск связей неполный.'
+            if graph.nodes[1:]:
+                emit_progress("neighbours")
             snapshots = await repository.get_snapshots_for_connections([n.inn for n in graph.nodes[1:]])
             by_inn = {company_from_snapshot(s).inn: s for s in snapshots}
             nodes = [graph.nodes[0]]

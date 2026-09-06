@@ -29,6 +29,7 @@ from .master_model import build_master_model
 from .models import CompanyRef, GroundingVerification, MasterAnswer, is_valid_inn
 from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
+from app.infrastructure.progress import emit_progress
 from .synthesis import (allowed_artifacts, normalized_tool_context,
                         parse_master_answer)
 from .tools import ToolContext, ToolRegistry, build_tool_registry
@@ -290,6 +291,7 @@ class MasterAgentRuntime:
 
         response = None
         if graph_context is not None:
+            emit_progress("graph")
             from .models import CompanyConnections, ConnectionGraphBlock
             graph = CompanyConnections.model_validate(graph_context["connections"])
             graph_message = ("Вот связи внутри доступного датасета. Выберите компанию на канве или в списке, чтобы открыть краткие сведения и запросить отдельный отчёт."
@@ -673,6 +675,7 @@ def _model_policy(
         overrides["messages"] = messages
 
         if answer_stage:
+            emit_progress("synthesis" if after_tool else "context")
             context = cached_context if expected_tool is None else normalized_tool_context(execution.result)
             schema = MasterAnswer.model_json_schema()
             schema.setdefault("required", []).append("suggested_actions")
