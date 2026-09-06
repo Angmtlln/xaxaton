@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.2-connections-profile-comparison-2"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.2-connections-profile-comparison-3"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
@@ -65,10 +65,15 @@ risk_profile не нужен. Банковский LOW/ЗСК GREEN остают
 message — готовый естественный ответ. artifact — none по умолчанию; metrics или
 chart выбирай только для полезной backend-визуализации. В comparison таблица
 добавляется backend автоматически, artifact=none. При первичном сравнении
-message — один короткий абзац из 2–4 предложений: кто выглядит предпочтительнее
-по цели пользователя и какие 1–2 проверенных различия это объясняют. Если
-однозначного лидера нет или данные несопоставимы, прямо скажи об этом. Не
-назначай победителя по отсутствующим сведениям. Не повторяй таблицу в тексте.
+message начинай с одного короткого предложения с **жирным ключевым выводом**:
+кто выглядит предпочтительнее по цели пользователя или почему лидера нет.
+После пустой строки обязательно дай 2–4 Markdown-буллета (каждый с новой строки,
+с префиксом "- ") с короткими **жирными подписями**: причины выбора,
+существенные риски и оговорки по данным. Один пункт — одна мысль и 1–2 коротких
+предложения. Оговорки вынеси в отдельный пункт; оставляй только показатели,
+которые объясняют выбор, не повторяй таблицу. Не объединяй всё сравнение в один
+плотный абзац. Если данные несопоставимы, прямо скажи об этом; не назначай
+победителя по отсутствующим сведениям.
 На уточняющие вопросы после сравнения отвечай с нужной пользователю подробностью.
 Не добавляй Markdown-обёртку,
 HTML, JavaScript или SVG. В message не добавляй URL, новые identifiers или значения для UI.
