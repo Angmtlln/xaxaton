@@ -236,6 +236,8 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             coverage_scope="Финансы и правовые данные" if len(data.focus) == 2 else
                 ("Только финансы" if data.focus == ["finance"] else "Только правовые данные"),
             gaps=item.gaps,
+            bank_risk_level=item.company.risk_level,
+            zsk_risk_level=item.company.zsk_risk_level,
         )
         for item in data.companies
     ]
@@ -245,9 +247,15 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
     ]
     rows = []
     for key, label, unit in ROW_SPECS:
-        if not any(key in mapping for mapping in by_company):
+        section = ("courts" if key.startswith("court.") else
+                   "enforcement" if key.startswith("execproc.") else
+                   "regulatory" if key.startswith("inspections.") else "finance")
+        if (section == "finance" and "finance" not in data.focus) or (
+            section != "finance" and "legal" not in data.focus
+        ):
             continue
         cells = []
+        values_by_period = {}
         for owner, mapping in zip(data.companies, by_company):
             fact_id = mapping.get(key)
             fact = data.facts.get(fact_id) if fact_id else None
@@ -255,20 +263,33 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
                 cells.append(ComparisonCell(display_value="Нет данных", state="no_data"))
             else:
                 display = display_fact_value(fact)
+                period = None
                 if ":fin." in fact.id and fact.id.rsplit(".", 1)[-1].isdigit():
-                    display += " · " + fact.id.rsplit(".", 1)[-1]
+                    period = fact.id.rsplit(".", 1)[-1]
+                    display += " · " + period
                 elif key == "proceeds_change_pct":
-                    section = owner.sections.get("finance_series")
-                    series = section.value if section else []
+                    series_section = owner.sections.get("finance_series")
+                    series = series_section.value if series_section else []
                     if len(series) >= 2:
-                        display += " · %s→%s" % (series[-2]["year"], series[-1]["year"])
+                        period = "%s→%s" % (series[-2]["year"], series[-1]["year"])
+                        display += " · " + period
+                # Пропуск не ноль; разные финансовые периоды не создают различие.
+                if section != "finance" or period is not None:
+                    values_by_period.setdefault(period, []).append(fact.value)
                 cells.append(ComparisonCell(
                     display_value=display,
                     state="data",
                     evidence_id=fact.id if fact.id in evidence_by_id else None,
                 ))
-        rows.append(ComparisonRow(id=key, label=label, unit=unit, cells=cells))
+        differs = any(len(values) >= 2 and any(value != values[0] for value in values[1:])
+                      for values in values_by_period.values())
+        rows.append(ComparisonRow(
+            id=key, label=label, unit=unit, cells=cells, section=section,
+            is_key_difference=differs and key not in {"execproc.total_count", "inspections.count"},
+        ))
     for index, (column, owner) in enumerate(zip(columns, data.companies)):
+        column.total_count = len(rows)
+        column.filled_count = sum(row.cells[index].state == "data" for row in rows)
         # Официальные ограничения первыми; далее одинаковые меры для всех карточек.
         for signal in sorted(data.policy_signals, key=lambda s: s.kind != "official_hard_stop"):
             if signal.id not in owner.policy_signal_ids:

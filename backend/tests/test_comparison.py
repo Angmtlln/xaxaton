@@ -294,6 +294,48 @@ async def test_summary_facts_keep_policy_provenance_and_table_periods(snapshots)
 async def test_finance_summary_does_not_claim_full_check_coverage(snapshots):
     response = await _runtime(None).run("Сравни финансы %s и %s" % (RICH, OTHER))
     assert all(col.coverage_scope == "Только финансы" for col in _table(response).columns)
+    assert all(col.total_count == 5 for col in _table(response).columns)
+
+
+@pytest.mark.asyncio
+async def test_comparison_headers_use_actual_counts_and_independent_bank_risks(snapshots):
+    snapshots[RICH]["document"]["report"]["baseInfo"]["riskLevel"] = "LOW"
+    snapshots[RICH]["document"]["report"]["zskRiskLevel"] = "RED"
+    response = await _runtime(None).run("Сравни %s и %s" % (RICH, EMPTY))
+    table = _table(response)
+    assert len(table.rows) == 10
+    for index, column in enumerate(table.columns):
+        assert column.total_count == 10
+        assert column.filled_count == sum(row.cells[index].state == "data" for row in table.rows)
+    assert table.columns[1].filled_count == 0
+    assert table.columns[0].bank_risk_level == "LOW"
+    assert table.columns[0].zsk_risk_level == "RED"
+    assert table.columns[1].bank_risk_level is None
+    assert {row.section for row in table.rows} == {"finance", "courts", "enforcement", "regulatory"}
+    # Метка ограничения сохраняет источник даже при независимом низком банковском риске.
+    assert table.columns[0].key_facts[0].evidence_id == RICH + ":flags.hard_stop_codes"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("left,right,left_year,right_year,expected", [
+    (100, 200, 2024, 2024, True),
+    (100, 100, 2024, 2024, False),
+    (100, 200, 2023, 2024, False),
+    (None, 200, 2024, 2024, False),
+    (0, 200, 2024, 2024, True),
+    (None, None, 2024, 2024, False),
+])
+async def test_key_differences_compare_values_not_gaps_or_periods(
+    snapshots, left, right, left_year, right_year, expected,
+):
+    snapshots[RICH] = _snapshot(RICH, "Первая", fin_rows=[_fin_row(left_year, left)])
+    snapshots[OTHER] = _snapshot(OTHER, "Вторая", fin_rows=[_fin_row(right_year, right)])
+    response = await _runtime(None).run("Сравни %s и %s" % (RICH, OTHER))
+    table = _table(response)
+    revenue = next(row for row in table.rows if row.id == "proceeds")
+    assert revenue.is_key_difference is expected
+    assert all(not row.is_key_difference for row in table.rows
+               if row.id in {"inspections.count", "execproc.total_count"})
 
 
 @pytest.mark.asyncio

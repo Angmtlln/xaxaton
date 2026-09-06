@@ -751,18 +751,16 @@
 }
 .comparison-summaries { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
 .comparison-summary { min-width: 0; padding: 16px; border: 1px solid var(--chat-line); border-radius: 12px; background: #fff; overflow-wrap: anywhere; scroll-snap-align: start; }
-.comparison-summary h3 { margin: 0; font-size: 16px; line-height: 1.35; }
+.comparison-summary h3 { margin: 0; font-size: 18px; line-height: 1.35; }
 .comparison-summary > .comparison-inn { margin: 5px 0 14px; }
-.comparison-summary-status { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; font-size: 12px; }
-.comparison-summary-status dt { color: var(--chat-muted); }
-.comparison-summary-status dd { margin: 0; font-weight: 600; }
-.comparison-summary-status .comparison-availability { margin: 0; padding: 3px 6px; border-radius: 5px; text-transform: none; letter-spacing: 0; }
+.comparison-coverage { margin: 0 0 8px; font-size: 13px; color: var(--chat-muted); }
+.comparison-ratings { display: flex; flex-wrap: wrap; gap: 5px 14px; font-size: 12px; color: var(--chat-muted); }
 .comparison-scope { margin: 8px 0 0; color: var(--chat-muted); font-size: 12px; line-height: 1.5; }
 .comparison-key-facts { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .comparison-key-facts li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: start; font-size: 13px; }
 .comparison-key-facts li > span { grid-column: 1; color: var(--chat-muted); font-size: 12px; }
 .comparison-key-facts strong { font-variant-numeric: tabular-nums; font-weight: 600; }
-.comparison-key-facts .evidence-jump { grid-column: 2; grid-row: 1 / span 2; min-height: 44px; margin: 0; padding: 8px 0; }
+.comparison-key-facts .evidence-jump { grid-column: 2; grid-row: 1 / span 2; }
 .comparison-gaps { margin-top: 8px; font-size: 12px; color: var(--chat-muted); }
 .comparison-gaps summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .comparison-gaps p { margin: 0 0 8px; line-height: 1.5; }
@@ -788,7 +786,7 @@
 
 .comparison-table th,
 .comparison-table td {
-  padding: 10px 12px;
+  padding: 6px 10px;
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid var(--border);
@@ -839,7 +837,7 @@
 .comparison-measure {
   font-weight: 400;
   color: var(--muted-foreground);
-  white-space: nowrap;
+  max-width: 230px;
 }
 
 .comparison-value {
@@ -851,11 +849,20 @@
   color: var(--muted-foreground);
 }
 
-.comparison-cell .evidence-jump {
-  margin-top: 6px;
-}
+.comparison-cell-content { display: inline-flex; align-items: center; gap: 5px; }
+.comparison-cell .comparison-value { white-space: nowrap; }
+.comparison-block .comparison-source, .comparison-summary .comparison-source { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 24px; min-height: 24px; margin: 0; padding: 0; border: 0; background: transparent; color: var(--chat-muted); cursor: pointer; font-size: 15px; }
+.comparison-source:hover { color: #ad3028; }
+.comparison-source:focus-visible, .comparison-controls button:focus-visible { outline: 2px solid #c83b32; outline-offset: 2px; }
+.comparison-controls { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 12px; }
+.comparison-controls button { min-height: 44px; padding: 8px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; font: inherit; font-size: 13px; cursor: pointer; color: var(--chat-muted); }
+.comparison-controls button[aria-pressed="true"] { background: #f0f1f3; border-color: var(--chat-line); color: #252831; font-weight: 600; }
+.comparison-controls button:disabled { opacity: .55; cursor: default; }
+.comparison-filter-note { margin: 0 0 12px; color: var(--chat-muted); font-size: 12px; line-height: 1.5; }
+.comparison-table .comparison-section th { padding: 10px; background: #f5f6f8; color: #555c68; font-size: 12px; font-weight: 600; }
 
 @media (max-width: 620px) {
+  .comparison-block .comparison-source, .comparison-summary .comparison-source { width: 44px; min-height: 44px; }
   .comparison-summaries { grid-auto-columns: calc(100% - 24px); }
   .comparison-summary { padding: 14px; }
   .comparison-measure { white-space: normal; min-width: 110px; }

@@ -464,6 +464,8 @@ class ComparisonRow(StrictModel):
     label: SafeText
     unit: Optional[SafeText] = None
     cells: List[ComparisonCell] = Field(min_length=2, max_length=5)
+    section: Literal["finance", "courts", "enforcement", "regulatory"] = "finance"
+    is_key_difference: bool = False
 
 
 class ComparisonSummaryFact(StrictModel):
@@ -479,6 +481,10 @@ class ComparisonColumn(StrictModel):
     coverage_scope: SafeText = ""
     gaps: List[SafeText] = Field(default_factory=list, max_length=10)
     key_facts: List[ComparisonSummaryFact] = Field(default_factory=list, max_length=3)
+    filled_count: Optional[int] = Field(default=None, ge=0, le=10)
+    total_count: Optional[int] = Field(default=None, ge=0, le=10)
+    bank_risk_level: Optional[SafeText] = None
+    zsk_risk_level: Optional[SafeText] = None
 
 
 class ComparisonTableBlock(StrictModel):

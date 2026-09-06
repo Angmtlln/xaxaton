@@ -31,10 +31,11 @@ function evidenceDomId(context, evidenceId) {
   return `evidence-${context.prefix}-${safe}`;
 }
 
-function evidenceButton(context, evidenceId) {
+function evidenceButton(context, evidenceId, compact = false) {
   const evidence = context.evidence.get(evidenceId);
   if (!evidence) return null;
-  const button = element('button', 'evidence-jump', 'Источник');
+  const button = element('button', compact ? 'evidence-jump comparison-source' : 'evidence-jump', compact ? 'ⓘ' : 'Источник');
+  if (compact) button.title = `${evidence.title || 'Источник'}: ${evidence.display_value || ''}`;
   button.type = 'button';
   button.setAttribute('aria-label', `Источник: ${evidence.title || evidence.fact_id || evidenceId}`);
   button.addEventListener('click', () => {
@@ -184,11 +185,15 @@ function evidenceWord(count) {
   return 'источников';
 }
 
-const AVAILABILITY_LABELS = {
-  DATA: 'Данные есть',
-  PARTIAL: 'Данные неполны',
-  NO_DATA: 'Данных нет',
-};
+const BANK_RISKS = { LOW: 'Низкий', MEDIUM: 'Средний', HIGH: 'Высокий' };
+const ZSK_RISKS = { GREEN: 'Зелёный', YELLOW: 'Жёлтый', RED: 'Красный' };
+
+function comparisonCoverage(block, column, index) {
+  const rows = safeArray(block.rows);
+  const total = column.total_count ?? rows.length;
+  const filled = column.filled_count ?? rows.filter(row => row.cells?.[index]?.state === 'data').length;
+  return `${filled} из ${total} показателей`;
+}
 
 function renderComparisonSummaries(block, context) {
   const section = element('section', 'comparison-overview');
@@ -198,18 +203,21 @@ function renderComparisonSummaries(block, context) {
   grid.tabIndex = 0;
   grid.setAttribute('role', 'region');
   grid.setAttribute('aria-label', 'Карточки контрагентов — прокрутка по горизонтали');
-  safeArray(block.columns).forEach((column) => {
+  safeArray(block.columns).forEach((column, index) => {
     const card = element('article', 'comparison-summary');
     card.append(element('h3', null, column.name || 'Контрагент'),
       element('p', 'comparison-inn', `ИНН ${column.inn || '—'}`));
-    const status = element('dl', 'comparison-summary-status');
-    // В сравнении нет общей оценки: банковские статусы не подменяют её.
-    status.append(element('dt', null, 'Общий риск'), element('dd', null, 'Не оценён'),
-      element('dt', null, 'Полнота данных'));
-    const availability = element('dd');
-    availability.appendChild(element('span', `comparison-availability availability-${column.availability || 'NO_DATA'}`,
-      AVAILABILITY_LABELS[column.availability] || 'Данных нет'));
-    status.appendChild(availability);
+    const coverage = element('p', 'comparison-coverage', comparisonCoverage(block, column, index));
+    coverage.title = 'Заполненные показатели этой таблицы; полнота исходных разделов может отличаться.';
+    card.appendChild(coverage);
+    const status = element('div', 'comparison-ratings');
+    const bank = BANK_RISKS[column.bank_risk_level];
+    const risk = element('span', 'comparison-bank-risk', `Риск по данным банка: ${bank || '—'}`);
+    risk.title = bank ? 'Оценка банка из исходного отчёта, не общий рейтинг AI.' : 'Источник не предоставил банковскую оценку риска.';
+    status.appendChild(risk);
+    if (ZSK_RISKS[column.zsk_risk_level]) {
+      status.appendChild(element('span', null, `ЗСК: ${ZSK_RISKS[column.zsk_risk_level]}`));
+    }
     card.appendChild(status);
     if (column.coverage_scope) card.appendChild(element('p', 'comparison-scope', column.coverage_scope));
     const facts = safeArray(column.key_facts);
@@ -218,7 +226,7 @@ function renderComparisonSummaries(block, context) {
       facts.forEach((fact) => {
         const item = element('li');
         item.append(element('span', null, fact.label), element('strong', null, fact.display_value));
-        const button = evidenceButton(context, fact.evidence_id);
+        const button = evidenceButton(context, fact.evidence_id, true);
         if (button) item.appendChild(button);
         list.appendChild(item);
       });
@@ -264,30 +272,90 @@ function renderComparisonTable(block, context) {
     cell.append(
       element('span', 'comparison-company', column.name || 'Контрагент'),
       element('span', 'comparison-inn', `ИНН ${column.inn || '—'}`),
-      element('span', `comparison-availability availability-${column.availability || 'NO_DATA'}`,
-        AVAILABILITY_LABELS[column.availability] || 'Данных нет'),
     );
     headRow.appendChild(cell);
   });
   head.appendChild(headRow);
 
   const body = element('tbody');
-  rows.forEach((row) => {
-    const line = element('tr');
-    const label = element('th', 'comparison-measure', row.label || 'Показатель');
-    label.scope = 'row';
-    line.appendChild(label);
-    safeArray(row.cells).forEach((cell) => {
-      const item = element('td', `comparison-cell cell-${cell.state || 'no_data'}`);
-      item.appendChild(element('span', 'comparison-value', cell.display_value || 'Нет данных'));
-      if (cell.evidence_id) {
-        const button = evidenceButton(context, cell.evidence_id);
-        if (button) item.appendChild(button);
-      }
-      line.appendChild(item);
+  const groups = [
+    ['finance', 'Финансы'], ['courts', 'Судебная нагрузка'],
+    ['enforcement', 'Исполнительные производства'], ['regulatory', 'Надзорные проверки'],
+  ];
+  // Старые сохранённые ответы не содержат метаданных различий.
+  const sectionOf = row => row.id?.startsWith('court.') ? 'courts'
+    : row.id?.startsWith('execproc.') ? 'enforcement'
+    : row.id?.startsWith('inspections.') ? 'regulatory' : row.section || 'finance';
+  const controls = element('div', 'comparison-controls');
+  controls.setAttribute('role', 'group');
+  controls.setAttribute('aria-label', 'Показатели сравнения');
+  const all = element('button', null, 'Все показатели');
+  const differences = element('button', null, 'Только ключевые различия');
+  const explanation = 'Различающиеся финансы, судебная нагрузка и действующие взыскания за сопоставимые периоды. Пропуски и общее число проверок или производств не включены.';
+  differences.title = explanation;
+  if (rows.some(row => typeof row.is_key_difference !== 'boolean')) {
+    differences.disabled = true;
+    differences.title = 'Повторите сравнение, чтобы получить проверенные различия для этого сохранённого ответа.';
+  }
+  const notice = element('p', 'comparison-filter-note');
+  notice.setAttribute('aria-live', 'polite');
+  all.type = differences.type = 'button';
+  controls.append(all, differences);
+  card.append(controls, notice);
+  const renderRows = onlyDifferences => {
+    all.setAttribute('aria-pressed', String(!onlyDifferences));
+    differences.setAttribute('aria-pressed', String(onlyDifferences));
+    const selected = rows.filter(row => !onlyDifferences || row.is_key_difference === true);
+    notice.textContent = onlyDifferences
+      ? `Показано ${selected.length} из ${rows.length}. ${explanation}` : '';
+    notice.hidden = !onlyDifferences;
+    body.replaceChildren();
+    groups.forEach(([key, title]) => {
+      const members = selected.filter(row => sectionOf(row) === key);
+      if (!members.length) return;
+      const heading = element('tr', 'comparison-section');
+      const group = element('th', null, title);
+      group.colSpan = columns.length + 1;
+      heading.appendChild(group);
+      body.appendChild(heading);
+      members.forEach(row => {
+        const line = element('tr');
+        line.dataset.measure = row.id;
+        const label = element('th', 'comparison-measure', row.label || 'Показатель');
+        label.scope = 'row';
+        line.appendChild(label);
+        safeArray(row.cells).forEach(cell => {
+          const item = element('td', `comparison-cell cell-${cell.state || 'no_data'}`);
+          const content = element('span', 'comparison-cell-content');
+          const missing = cell.state !== 'data';
+          const value = element('span', 'comparison-value', missing ? '—' : cell.display_value);
+          if (missing) {
+            value.title = 'Источник не предоставил значение';
+            value.setAttribute('aria-label', 'Источник не предоставил значение');
+            value.tabIndex = 0;
+          }
+          content.appendChild(value);
+          if (!missing && cell.evidence_id) {
+            const button = evidenceButton(context, cell.evidence_id, true);
+            if (button) content.appendChild(button);
+          }
+          item.appendChild(content);
+          line.appendChild(item);
+        });
+        body.appendChild(line);
+      });
     });
-    body.appendChild(line);
-  });
+    if (!selected.length) {
+      const row = element('tr');
+      const cell = element('td', 'chat-empty-state', 'Ключевых различий по сопоставимым данным нет. Все показатели доступны в соседней вкладке.');
+      cell.colSpan = columns.length + 1;
+      row.appendChild(cell);
+      body.appendChild(row);
+    }
+  };
+  all.addEventListener('click', () => renderRows(false));
+  differences.addEventListener('click', () => renderRows(true));
+  renderRows(false);
 
   table.append(head, body);
   scroller.appendChild(table);
@@ -343,11 +411,12 @@ export function buildAssistantMessage(payload, hooks = {}) {
     lead.classList.add('comparison-conclusion');
     lead.appendChild(element('h3', null, metadata.synthesis === 'model' ? 'AI-вывод' : 'Краткий итог'));
   }
-  if (metadata.status && metadata.status !== 'completed') lead.appendChild(statusBadge(metadata.status));
+  if (metadata.status && !['completed', 'partial'].includes(metadata.status)) lead.appendChild(statusBadge(metadata.status));
   appendProse(lead, payload.message || 'Ответ не сформирован.');
   body.appendChild(lead);
 
-  const blocks = safeArray(payload.blocks).filter((block) => !block || block.type !== 'evidence_list');
+  const blocks = safeArray(payload.blocks).filter((block) => !block || (block.type !== 'evidence_list'
+    && !(comparison && block.type === 'finding_list' && block.title === 'Метки источника')));
   if (blocks.length) {
     const stack = element('div', 'rich-stack');
     blocks.forEach((block) => {
