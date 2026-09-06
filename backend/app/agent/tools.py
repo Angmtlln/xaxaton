@@ -239,7 +239,7 @@ def build_tool_registry(settings: Settings) -> ToolRegistry:
         ToolDefinition(
             name="compare_companies",
             description=(
-                "Сравнение двух или трёх контрагентов по явно указанным валидным ИНН. "
+                "Сравнение от двух до пяти контрагентов по явно указанным валидным ИНН. "
                 "focus сужает сбор до finance или legal, если пользователь назвал приоритет. "
                 "Не запускать полную проверку каждой компании по отдельности."
             ),
@@ -248,7 +248,8 @@ def build_tool_registry(settings: Settings) -> ToolRegistry:
             risk_class="read_only",
             side_effects="none",
             timeout_s=settings.agent_tool_timeout_s,
-            result_size_limit=min(settings.agent_tool_result_max_chars, 80_000),
+            # До пяти компаний, с сохранением общего настраиваемого ограничения.
+            result_size_limit=min(settings.agent_tool_result_max_chars, 140_000),
             retry_policy="none",
             executor=execute_comparison,
         ),

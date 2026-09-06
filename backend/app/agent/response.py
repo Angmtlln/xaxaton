@@ -5,7 +5,7 @@ import time
 from typing import Dict, List, Optional
 
 from .models import (AssistantMetadata, AssistantResponse, ChartPoint, ChartSeries,
-                     ComparisonCell, ComparisonColumn, ComparisonRow,
+                     ComparisonCell, ComparisonColumn, ComparisonRow, ComparisonSummaryFact,
                      ComparisonTableBlock, CompanySummaryBlock, Evidence, FindingItem,
                      FindingListBlock, FullCompanyCheckData, LineChartBlock, MasterAnswer,
                      MetricGridBlock, MetricItem, ToolResult, SuggestedAction)
@@ -51,14 +51,14 @@ GUARD_MESSAGES = {
     "ambiguous_inn": "На этом этапе можно проверить только одного контрагента за запрос. Укажите один ИНН.",
     "unsupported_request": (
         "Доступны полная проверка, финансовые и юридические вопросы об одном контрагенте, "
-        "а также сравнение двух-трёх компаний. Напишите, например: «Проверь контрагента "
+        "а также сравнение двух–пяти компаний. Напишите, например: «Проверь контрагента "
         "6165169320», затем «А что у них с финансами?»."
     ),
     "comparison_needs_two": (
-        "Для сравнения укажите ИНН двух или трёх компаний в одном сообщении, например: "
+        "Для сравнения укажите ИНН от двух до пяти компаний в одном сообщении, например: "
         "«Сравни 6165169320 и 2311304742, важнее финансовая устойчивость»."
     ),
-    "comparison_limit": "За один раз можно сравнить не больше трёх компаний. Оставьте два или три ИНН.",
+    "comparison_limit": "За один раз можно сравнить не больше пяти компаний. Оставьте от двух до пяти ИНН.",
     "unknown_conversation": "Диалог истёк или не найден. Начните новый диалог и укажите ИНН контрагента.",
 }
 
@@ -188,9 +188,9 @@ def _fallback_message(context: dict) -> str:
     if context.get("domain") == "intro":
         return (
             "**Помогу разобраться в контрагенте:** проверить доступные сведения, "
-            "объяснить финансовые и судебные данные, сравнить две-три компании. "
+            "объяснить финансовые и судебные данные, сравнить от двух до пяти компаний. "
             "Сейчас ответ модели недоступен. Напишите задачу и ИНН для проверки "
-            "или два-три ИНН для сравнения."
+            "или от двух до пяти ИНН для сравнения."
         )
     if context.get("domain") == "comparison":
         return _comparison_fallback(context)
@@ -233,6 +233,9 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             inn=item.inn,
             name=item.company.short_name or item.company.full_name or item.inn,
             availability=item.availability,
+            coverage_scope="Финансы и правовые данные" if len(data.focus) == 2 else
+                ("Только финансы" if data.focus == ["finance"] else "Только правовые данные"),
+            gaps=item.gaps,
         )
         for item in data.companies
     ]
@@ -265,8 +268,29 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
                     evidence_id=fact.id if fact.id in evidence_by_id else None,
                 ))
         rows.append(ComparisonRow(id=key, label=label, unit=unit, cells=cells))
+    for index, (column, owner) in enumerate(zip(columns, data.companies)):
+        # Официальные ограничения первыми; далее одинаковые меры для всех карточек.
+        for signal in sorted(data.policy_signals, key=lambda s: s.kind != "official_hard_stop"):
+            if signal.id not in owner.policy_signal_ids:
+                continue
+            ref = next((ref for ref in signal.evidence_ids if ref in evidence_by_id), None)
+            if ref is not None:
+                column.key_facts.append(ComparisonSummaryFact(
+                    label=signal.label, display_value=evidence_by_id[ref].display_value,
+                    evidence_id=ref,
+                ))
+        for key in ("proceeds", "profit", "court.defendant_count", "execproc.active_amount", "capitals"):
+            row = next((row for row in rows if row.id == key), None)
+            if row is None:
+                continue
+            cell = row.cells[index]
+            if cell.state == "data" and cell.evidence_id is not None:
+                column.key_facts.append(ComparisonSummaryFact(
+                    label=row.label, display_value=cell.display_value, evidence_id=cell.evidence_id,
+                ))
+        column.key_facts = column.key_facts[:3]
     return ComparisonTableBlock(
-        title="Сравнение контрагентов",
+        title="Детальное сравнение",
         columns=columns,
         rows=rows[:10],
         empty_message=None if rows else "Сопоставимых показателей в карточках нет.",

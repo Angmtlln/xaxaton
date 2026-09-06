@@ -741,7 +741,34 @@
   .chat-composer-shell { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 }
 
-/* --- Сравнение контрагентов: одна таблица вместо нескольких отчётов --- */
+/* --- Детальная таблица сравнения --- */
+
+.comparison-overview { margin-bottom: 22px; }
+.comparison-overview > h2 { margin: 0 0 12px; font-size: 18px; }
+.comparison-browse { margin: 0 0 10px; font-size: 12px; color: var(--chat-muted); }
+@media (min-width: 621px) {
+  .comparison-overview:not(:has(.comparison-summary:nth-child(4))) .comparison-browse { display: none; }
+}
+.comparison-summaries { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
+.comparison-summary { min-width: 0; padding: 16px; border: 1px solid var(--chat-line); border-radius: 12px; background: #fff; overflow-wrap: anywhere; scroll-snap-align: start; }
+.comparison-summary h3 { margin: 0; font-size: 16px; line-height: 1.35; }
+.comparison-summary > .comparison-inn { margin: 5px 0 14px; }
+.comparison-summary-status { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; font-size: 12px; }
+.comparison-summary-status dt { color: var(--chat-muted); }
+.comparison-summary-status dd { margin: 0; font-weight: 600; }
+.comparison-summary-status .comparison-availability { margin: 0; padding: 3px 6px; border-radius: 5px; text-transform: none; letter-spacing: 0; }
+.comparison-scope { margin: 8px 0 0; color: var(--chat-muted); font-size: 12px; line-height: 1.5; }
+.comparison-key-facts { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.comparison-key-facts li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: start; font-size: 13px; }
+.comparison-key-facts li > span { grid-column: 1; color: var(--chat-muted); font-size: 12px; }
+.comparison-key-facts strong { font-variant-numeric: tabular-nums; font-weight: 600; }
+.comparison-key-facts .evidence-jump { grid-column: 2; grid-row: 1 / span 2; min-height: 44px; margin: 0; padding: 8px 0; }
+.comparison-gaps { margin-top: 8px; font-size: 12px; color: var(--chat-muted); }
+.comparison-gaps summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.comparison-gaps p { margin: 0 0 8px; line-height: 1.5; }
+.comparison-conclusion { border-left: 3px solid var(--chat-accent, #c83b32); padding: 2px 0 2px 16px; }
+.comparison-conclusion h3 { margin: 0 0 8px; font-size: 14px; }
+.comparison-scroll:focus-visible, .comparison-summaries:focus-visible, .comparison-gaps summary:focus-visible { outline: 2px solid #c83b32; outline-offset: 3px; }
 
 .comparison-block h3 {
   margin: 0 0 12px;
@@ -829,6 +856,10 @@
 }
 
 @media (max-width: 620px) {
+  .comparison-summaries { grid-auto-columns: calc(100% - 24px); }
+  .comparison-summary { padding: 14px; }
+  .comparison-measure { white-space: normal; min-width: 110px; }
+  .comparison-table thead th { min-width: 140px; }
   .comparison-table th,
   .comparison-table td {
     padding: 8px;

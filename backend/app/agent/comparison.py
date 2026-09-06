@@ -171,7 +171,7 @@ async def execute_comparison(context: ToolContext, args: BaseModel) -> ToolResul
         warnings.append("Не все финансовые строки имеют общий заполненный год; сравнение ограничено.")
 
     data = ComparisonData(
-        focus=focus, companies=companies, facts=facts, policy_signals=signals[:24],
+        focus=focus, companies=companies, facts=facts, policy_signals=signals[:40],
     )
     complete = all(item.availability == "DATA" for item in data.companies)
     return ToolResult(

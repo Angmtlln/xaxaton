@@ -45,14 +45,14 @@ class ComparisonCompanyData(StrictModel):
 
 
 class ComparisonData(StrictModel):
-    """Сравнение 2–3 контрагентов одним ToolResult вместо N полных отчётов."""
+    """Сравнение 2–5 контрагентов одним ToolResult вместо N полных отчётов."""
 
     domain: Literal["comparison"] = "comparison"
     focus: List[Literal["finance", "legal"]] = Field(min_length=1, max_length=2)
-    companies: List[ComparisonCompanyData] = Field(min_length=2, max_length=3)
+    companies: List[ComparisonCompanyData] = Field(min_length=2, max_length=5)
     facts: Dict[str, ToolFact]
     sections: Dict[str, DataSection] = Field(default_factory=dict)
-    policy_signals: List[PolicySignal] = Field(default_factory=list, max_length=24)
+    policy_signals: List[PolicySignal] = Field(default_factory=list, max_length=40)
 
     @model_validator(mode="after")
     def validate_fact_links(self):

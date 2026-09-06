@@ -190,6 +190,55 @@ const AVAILABILITY_LABELS = {
   NO_DATA: 'Данных нет',
 };
 
+function renderComparisonSummaries(block, context) {
+  const section = element('section', 'comparison-overview');
+  section.appendChild(element('h2', null, 'Контрагенты в сравнении'));
+  section.appendChild(element('p', 'comparison-browse', 'Листайте карточки, чтобы увидеть всех контрагентов →'));
+  const grid = element('div', 'comparison-summaries');
+  grid.tabIndex = 0;
+  grid.setAttribute('role', 'region');
+  grid.setAttribute('aria-label', 'Карточки контрагентов — прокрутка по горизонтали');
+  safeArray(block.columns).forEach((column) => {
+    const card = element('article', 'comparison-summary');
+    card.append(element('h3', null, column.name || 'Контрагент'),
+      element('p', 'comparison-inn', `ИНН ${column.inn || '—'}`));
+    const status = element('dl', 'comparison-summary-status');
+    // В сравнении нет общей оценки: банковские статусы не подменяют её.
+    status.append(element('dt', null, 'Общий риск'), element('dd', null, 'Не оценён'),
+      element('dt', null, 'Полнота данных'));
+    const availability = element('dd');
+    availability.appendChild(element('span', `comparison-availability availability-${column.availability || 'NO_DATA'}`,
+      AVAILABILITY_LABELS[column.availability] || 'Данных нет'));
+    status.appendChild(availability);
+    card.appendChild(status);
+    if (column.coverage_scope) card.appendChild(element('p', 'comparison-scope', column.coverage_scope));
+    const facts = safeArray(column.key_facts);
+    if (facts.length) {
+      const list = element('ul', 'comparison-key-facts');
+      facts.forEach((fact) => {
+        const item = element('li');
+        item.append(element('span', null, fact.label), element('strong', null, fact.display_value));
+        const button = evidenceButton(context, fact.evidence_id);
+        if (button) item.appendChild(button);
+        list.appendChild(item);
+      });
+      card.appendChild(list);
+    } else {
+      card.appendChild(element('p', 'comparison-scope', 'Ключевые факты недоступны.'));
+    }
+    const gaps = safeArray(column.gaps);
+    if (gaps.length) {
+      const details = element('details', 'comparison-gaps');
+      details.appendChild(element('summary', null, 'Пробелы данных'));
+      gaps.forEach((gap) => details.appendChild(element('p', null, gap)));
+      card.appendChild(details);
+    }
+    grid.appendChild(card);
+  });
+  section.appendChild(grid);
+  return section;
+}
+
 function renderComparisonTable(block, context) {
   const card = element('section', 'rich-block comparison-block');
   card.appendChild(element('h3', null, block.title || 'Сравнение контрагентов'));
@@ -202,12 +251,16 @@ function renderComparisonTable(block, context) {
   }
 
   const scroller = element('div', 'comparison-scroll');
+  scroller.tabIndex = 0;
+  scroller.setAttribute('role', 'region');
+  scroller.setAttribute('aria-label', 'Детальное сравнение — прокрутка по горизонтали');
   const table = element('table', 'comparison-table');
   const head = element('thead');
   const headRow = element('tr');
   headRow.appendChild(element('th', 'comparison-measure', 'Показатель'));
   columns.forEach((column) => {
     const cell = element('th');
+    cell.scope = 'col';
     cell.append(
       element('span', 'comparison-company', column.name || 'Контрагент'),
       element('span', 'comparison-inn', `ИНН ${column.inn || '—'}`),
@@ -279,11 +332,17 @@ export function buildAssistantMessage(payload, hooks = {}) {
     onSuggestion: hooks.onSuggestion,
   };
   context.evidenceButton = (id) => evidenceButton(context, id);
+  const comparison = safeArray(payload.blocks).find((block) => block?.type === 'comparison_table');
+  if (comparison) body.appendChild(renderComparisonSummaries(comparison, context));
   if (payload.leading_artifact) {
     body.appendChild(payload.leading_artifact.type === 'company_summary'
       ? renderDashboard(payload.leading_artifact, context) : renderUnsupportedBlock());
   }
   const lead = element('div', 'assistant-lead');
+  if (comparison) {
+    lead.classList.add('comparison-conclusion');
+    lead.appendChild(element('h3', null, metadata.synthesis === 'model' ? 'AI-вывод' : 'Краткий итог'));
+  }
   if (metadata.status && metadata.status !== 'completed') lead.appendChild(statusBadge(metadata.status));
   appendProse(lead, payload.message || 'Ответ не сформирован.');
   body.appendChild(lead);

@@ -90,7 +90,7 @@ class Evidence(StrictModel):
 class CompareCompaniesArgs(StrictModel):
     """Сравнение нескольких контрагентов одним вызовом, без N полных отчётов."""
 
-    inns: List[str] = Field(min_length=2, max_length=3)
+    inns: List[str] = Field(min_length=2, max_length=5)
     focus: Literal["finance", "legal", "both"] = "both"
 
     @field_validator("inns")
@@ -463,13 +463,22 @@ class ComparisonRow(StrictModel):
     id: SafeText
     label: SafeText
     unit: Optional[SafeText] = None
-    cells: List[ComparisonCell] = Field(min_length=2, max_length=3)
+    cells: List[ComparisonCell] = Field(min_length=2, max_length=5)
+
+
+class ComparisonSummaryFact(StrictModel):
+    label: SafeText
+    display_value: SafeText
+    evidence_id: SafeText
 
 
 class ComparisonColumn(StrictModel):
     inn: SafeText
     name: SafeText
     availability: Literal["DATA", "PARTIAL", "NO_DATA"]
+    coverage_scope: SafeText = ""
+    gaps: List[SafeText] = Field(default_factory=list, max_length=10)
+    key_facts: List[ComparisonSummaryFact] = Field(default_factory=list, max_length=3)
 
 
 class ComparisonTableBlock(StrictModel):
@@ -477,7 +486,7 @@ class ComparisonTableBlock(StrictModel):
 
     type: Literal["comparison_table"] = "comparison_table"
     title: SafeText
-    columns: List[ComparisonColumn] = Field(min_length=2, max_length=3)
+    columns: List[ComparisonColumn] = Field(min_length=2, max_length=5)
     rows: List[ComparisonRow] = Field(default_factory=list, max_length=10)
     empty_message: Optional[SafeText] = None
 
@@ -575,6 +584,9 @@ class AssistantResponse(StrictModel):
             elif isinstance(block, LineChartBlock):
                 referenced.extend(series.evidence_id for series in block.series)
             elif isinstance(block, ComparisonTableBlock):
+                referenced.extend(
+                    fact.evidence_id for column in block.columns for fact in column.key_facts
+                )
                 referenced.extend(
                     cell.evidence_id for row in block.rows for cell in row.cells
                     if cell.evidence_id is not None

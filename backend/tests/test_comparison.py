@@ -1,9 +1,10 @@
 """Сравнение контрагентов: один вызов инструмента, сопоставимые меры, границы."""
 import pytest
+from pydantic import ValidationError
 from langchain_core.messages import AIMessage
 
 from app.agent.comparison import execute_comparison, measure_key
-from app.agent.models import CompareCompaniesArgs, ComparisonTableBlock
+from app.agent.models import AssistantResponse, CompareCompaniesArgs, ComparisonTableBlock
 from app.agent.runtime import comparison_focus, inspect_comparison_request
 from app.agent.targeted_models import ComparisonData
 from app.agent.tools import ToolContext, build_tool_registry
@@ -86,23 +87,28 @@ async def test_fact_ids_stay_separable_per_company(snapshots):
 
 
 @pytest.mark.asyncio
-async def test_three_data_rich_companies_fit_the_evidence_contract(monkeypatch):
+async def test_five_data_rich_companies_fit_the_evidence_contract(monkeypatch):
     rows = [_fin_row(year, 100 + year) for year in range(2020, 2025)]
     store = {
         inn: _snapshot(inn, "ООО %s" % index, fin_rows=rows, defendants=8, hard_stop=True)
-        for index, inn in enumerate((RICH, EMPTY, OTHER), start=1)
+        for index, inn in enumerate((RICH, EMPTY, OTHER, "2311304742", "3711039473"), start=1)
     }
 
     async def get_latest_snapshot(inn):
         return store.get(inn)
 
     monkeypatch.setattr("app.infrastructure.repository.get_latest_snapshot", get_latest_snapshot)
-    result = await _compare([RICH, EMPTY, OTHER])
+    result = await _compare(list(store))
     data = ComparisonData.model_validate(result.data)
 
     assert len(result.evidence) <= 60
     assert set(data.facts) == {item.id for item in result.evidence}
     assert all(len(company.metric_ids) <= 10 for company in data.companies)
+    response = await _runtime(None).run("Сравни " + ", ".join(store))
+    table = _table(response)
+    assert len(table.columns) == 5
+    assert all(len(row.cells) == 5 for row in table.rows)
+    assert all(len(column.key_facts) == 3 for column in table.columns)
 
 
 @pytest.mark.asyncio
@@ -188,7 +194,9 @@ def test_comparison_focus_follows_the_user_priority():
     ("Сравни 6165169320 и 2901324364", None),
     ("Сравни этих поставщиков", "comparison_needs_two"),
     ("Сравни 6165169320 и 1234567890", "invalid_inn"),
-    ("Сравни 6165169320, 2901324364, 0278949271 и 2311304742", "comparison_limit"),
+    ("Сравни 6165169320, 2901324364, 0278949271 и 2311304742", None),
+    ("Сравни 6165169320, 2901324364, 0278949271, 2311304742 и 3711039473", None),
+    ("Сравни 6165169320, 2901324364, 0278949271, 2311304742, 3711039473 и 7813664770", "comparison_limit"),
 ])
 def test_comparison_request_guards(message, expected):
     reason, inns = inspect_comparison_request(message)
@@ -257,6 +265,35 @@ async def test_missing_company_data_is_shown_not_replaced_by_zero(snapshots):
     assert revenue.cells[1].state == "no_data"
     assert revenue.cells[1].display_value == "Нет данных"
     assert revenue.cells[1].evidence_id is None
+    assert table.columns[1].key_facts == []
+    assert table.columns[1].gaps
+
+
+@pytest.mark.asyncio
+async def test_summary_facts_keep_policy_provenance_and_table_periods(snapshots):
+    response = await _runtime(None).run("Сравни %s и %s" % (RICH, OTHER))
+    table = _table(response)
+    first = table.columns[0]
+    assert first.key_facts[0].evidence_id == RICH + ":flags.hard_stop_codes"
+    revenue = next(row for row in table.rows if row.id == "proceeds").cells[0]
+    fact = next(fact for fact in first.key_facts if fact.label == "Выручка")
+    assert fact.display_value == revenue.display_value
+    assert fact.evidence_id == revenue.evidence_id
+    assert first.coverage_scope == "Финансы и правовые данные"
+    assert "нет общего заполненного года" in " ".join(first.gaps)
+    known = {item.id for item in response.evidence}
+    assert all(fact.evidence_id in known for col in table.columns for fact in col.key_facts)
+    payload = response.model_dump(mode="json")
+    block = next(block for block in payload["blocks"] if block["type"] == "comparison_table")
+    block["columns"][0]["key_facts"][0]["evidence_id"] = "invented"
+    with pytest.raises(ValidationError, match="Неизвестные evidence"):
+        AssistantResponse.model_validate(payload)
+
+
+@pytest.mark.asyncio
+async def test_finance_summary_does_not_claim_full_check_coverage(snapshots):
+    response = await _runtime(None).run("Сравни финансы %s и %s" % (RICH, OTHER))
+    assert all(col.coverage_scope == "Только финансы" for col in _table(response).columns)
 
 
 @pytest.mark.asyncio

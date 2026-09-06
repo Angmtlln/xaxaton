@@ -25,6 +25,7 @@ class ConversationState(AgentState):
 
 TRUSTED_DOMAIN_LIMIT = 45_000
 TRUSTED_CONTEXT_LIMIT = 110_000
+COMPARISON_CONTEXT_LIMIT = 180_000  # До пяти компаний с отдельным provenance.
 
 
 def merge_trusted_context(current: Optional[dict], observation: dict) -> dict:
@@ -84,7 +85,7 @@ def store_comparison_context(observation: dict) -> dict:
                                  for item in companies):
         raise ValueError("Comparison context needs at least two identified companies")
     encoded = json.dumps(observation, ensure_ascii=False, separators=(",", ":"))
-    if len(encoded) > TRUSTED_CONTEXT_LIMIT:
+    if len(encoded) > COMPARISON_CONTEXT_LIMIT:
         raise ValueError("Comparison context is too large")
     return json.loads(encoded)
 

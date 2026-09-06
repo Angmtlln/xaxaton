@@ -408,9 +408,9 @@ def test_registry_exposes_four_bounded_tools():
         assert contract["risk_class"] == "read_only"
         assert contract["retry_policy"] == "none"
         assert contract["input_schema"]["additionalProperties"] is False
-    # Сравнение ограничено тремя компаниями: это не путь для массовой выгрузки.
+    # Сравнение ограничено пятью компаниями: это не путь для массовой выгрузки.
     inns = by_name["compare_companies"]["input_schema"]["properties"]["inns"]
-    assert (inns["minItems"], inns["maxItems"]) == (2, 3)
+    assert (inns["minItems"], inns["maxItems"]) == (2, 5)
 
 
 @pytest.mark.asyncio

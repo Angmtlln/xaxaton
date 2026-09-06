@@ -107,7 +107,7 @@ message + conversation_id
   → trusted state checkpoint
 ```
 
-На turn разрешён один domain tool call. Простой full-check, comparison с 2–3
+На turn разрешён один domain tool call. Простой full-check, comparison с 2–5
 явными ИНН и finance/legal follow-up активной компании обходят model routing.
 Обычный успешный turn использует один Master synthesis; сложные допустимые
 команды сохраняют model routing. Contextual follow-up и «Объясни проще» используют

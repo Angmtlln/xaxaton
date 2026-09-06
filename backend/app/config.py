@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     agent_verifier_timeout_s: float = 75.0
     agent_tool_timeout_s: float = 150.0
     agent_run_timeout_s: float = 300.0
-    agent_tool_result_max_chars: int = 120_000
+    agent_tool_result_max_chars: int = 140_000
     # gpt-oss тратит часть ответа на рассуждения. На "low" ответ короче в
     # четыре раза, влезает в лимит токенов и не обрывается на середине JSON.
     groq_reasoning_effort: str = "low"

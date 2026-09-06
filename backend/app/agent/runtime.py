@@ -39,8 +39,8 @@ log = logging.getLogger(__name__)
 MAX_AGENT_MODEL_CALLS = 2
 MAX_TOTAL_MODEL_CALLS = 5
 MAX_TOOL_CALLS = 1
-# Сравнение идёт одним вызовом инструмента, но не более трёх компаний.
-MAX_COMPARISON_COMPANIES = 3
+# Сравнение идёт одним вызовом инструмента, но не более пяти компаний.
+MAX_COMPARISON_COMPANIES = 5
 # GLM-5.3-Flash учитывает reasoning в output budget. Routing короткий;
 # synthesis, verifier и repair имеют раздельные конечные лимиты.
 ROUTER_MAX_TOKENS = 512
@@ -782,7 +782,7 @@ def is_direct_request(message: str, target: Optional[str]) -> bool:
     if target == "compare_companies":
         return bool(re.fullmatch(
             r"сравни(?:те)?\s+(?:компании\s+|контрагентов\s+)?[0-9]{10,12}"
-            r"(?:\s*(?:,|и)\s*[0-9]{10,12}){1,2}", text
+            r"(?:\s*(?:,|и)\s*[0-9]{10,12}){1,4}", text
         ))
     return False
 

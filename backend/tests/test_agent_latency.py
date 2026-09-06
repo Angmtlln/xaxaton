@@ -138,19 +138,25 @@ def test_comparison_identifiers_use_all_verified_companies():
 
 
 @pytest.mark.asyncio
-async def test_direct_three_company_comparison_has_one_model_call(monkeypatch):
+@pytest.mark.parametrize('count', [2, 3, 5])
+async def test_direct_comparison_has_one_model_call(monkeypatch, count):
     from test_comparison import _snapshot
-    inns = ['6165169320', '2901324364', '0278949271']
+    inns = ['6165169320', '2901324364', '0278949271', '2311304742', '3711039473'][:count]
     async def snapshot(inn):
         assert inn in inns
         return _snapshot(inn, 'Компания ' + inn)
     monkeypatch.setattr('app.infrastructure.repository.get_latest_snapshot', snapshot)
     model = _model(_answer('Данных недостаточно для выбора.'))
     runtime = _runtime(model, direct_dispatch=True, grounding_debug=False)
-    response = await runtime.run('Сравни 6165169320, 2901324364 и 0278949271')
+    response = await runtime.run('Сравни ' + ', '.join(inns))
     assert response.metadata.model_calls == response.metadata.tool_calls == 1
     assert response.metadata.synthesis == 'model'
     assert response.metadata.grounding_status == 'not_requested'
     table = next(block for block in response.blocks if block.type == 'comparison_table')
     assert [column.inn for column in table.columns] == inns
     assert not model._tool_bindings
+    follow_up = await runtime.run('Кого выбрать и почему?', response.conversation_id)
+    assert follow_up.metadata.tool_calls == 0
+    assert follow_up.metadata.model_calls == 1
+    assert follow_up.metadata.synthesis == 'model'
+    assert follow_up.blocks == []

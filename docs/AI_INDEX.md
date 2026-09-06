@@ -114,8 +114,9 @@ POST /api/v1/chat/messages
 - реализованы multi-turn context в InMemorySaver, одна active_company, targeted
   finance/legal без полного pipeline, отдельный trusted context и контекстные
   follow-up без повторного tool call;
-- реализовано сравнение двух-трёх контрагентов: `compare_companies` собирает все
-  компании одним вызовом, таблицу `comparison_table` строит backend, а состояние
+- реализовано сравнение 2–5 контрагентов: `compare_companies` собирает все
+  компании одним вызовом; сначала показаны компактные карточки и короткий вывод,
+  затем таблица `comparison_table`. Карточки и таблицу строит backend, а состояние
   сравнения хранится отдельно от `trusted_context` и не перезаписывает активную
   компанию;
 - штатный online path Master — `z-ai/glm-5.3-flash` через OpenRouter;
