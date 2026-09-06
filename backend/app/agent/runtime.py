@@ -218,6 +218,16 @@ class MasterAgentRuntime:
             target = requested_tool(message)
             if identifier_reply and reason is None:
                 target = pending_target or "full_company_check"
+            if no_explicit_inn and active and re.search(
+                r"(?:отч[её]т|провер\w*|анализ).*?(?:связанн|соседн)|(?:связанн|соседн).*?(?:отч[её]т|анализ)", message, re.I
+            ) and not re.search(r"\bграф|\bсхем", message, re.I):
+                related_context = select_trusted_context(trusted_store, "full_check") or {}
+                links = related_context.get("connections") or {}
+                neighbours = [n for n in links.get("nodes", []) if n["inn"] != active["inn"]]
+                if links.get("total_companies") == 1 and len(neighbours) == 1:
+                    inn, target = neighbours[0]["inn"], "full_company_check"
+                else:
+                    reason, target = "related_company_ambiguous", None
             switching_company = bool(active and inn and active["inn"] != inn)
             turn_user_context = [] if switching_company else user_context
             turn_last_topic = None if switching_company else last_topic

@@ -23,3 +23,7 @@ dist/
 # Кодом не используются. Уберите строку, если хотите хранить их в репозитории.
 materials/
 contractors_audit.snapshot.json
+
+# Browser verification artifacts
+.playwright-cli/
+output/playwright/

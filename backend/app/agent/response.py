@@ -45,6 +45,7 @@ SUMMARY_METRICS = {
 }
 
 GUARD_MESSAGES = {
+    "related_company_ambiguous": "Укажите ИНН связанной компании для отдельного отчёта — его можно выбрать на графе.",
     "missing_inn": "Укажите ИНН контрагента. После выбора компании можно задавать вопросы без повторного ИНН.",
     "invalid_inn": "Проверьте ИНН: нужны 10 или 12 цифр с корректными контрольными знаками.",
     "ambiguous_inn": "На этом этапе можно проверить только одного контрагента за запрос. Укажите один ИНН.",
@@ -147,6 +148,8 @@ def tool_result_to_assistant(
         actions = [SuggestedAction(label="Построить граф связей", prompt="Построй граф связей"),
                    *[a for a in actions if "граф" not in a.label.casefold()]][:4]
         message += "\n\nМогу показать найденные связи на графе — нажмите «Построить граф связей»."
+    if full and connections.get("state") == "unavailable":
+        message += "\n\n" + connections["note"]
     if full and master_answer is None and connections.get("nodes"):
         from .connections import fallback_connections_text
         message += fallback_connections_text(connections)

@@ -97,6 +97,42 @@ async def test_full_check_graph_and_neighbour_report(monkeypatch, documents):
     assert graph.leading_artifact is None and graph.blocks[0].type == 'connection_graph'
     assert graph.blocks[0].graph.total_edges == 5
     assert graph.active_company.inn == A
-    second = await runtime.run('Проверь контрагента ' + B, graph.conversation_id)
+    second = await runtime.run('Сделай отдельный отчёт по связанной компании', graph.conversation_id)
     assert second.active_company.inn == B and second.metadata.tool_calls == 1
     assert second.leading_artifact.inn == B
+
+
+def test_many_neighbours_are_bounded_and_not_reported_as_complete(documents):
+    rows = copy.deepcopy(snapshots(documents)[:10])
+    for row in rows:
+        row['document']['report']['baseInfo']['email'] = 'shared@example.org'
+    graph = discover_connections(rows[0], rows)
+    assert graph.state == 'partial'
+    assert graph.total_companies == 9 and len(graph.nodes) == 7
+    assert len(graph.edges) <= 30
+    assert {e.target for e in graph.edges} <= {n.inn for n in graph.nodes}
+
+
+@pytest.mark.asyncio
+async def test_neighbour_report_needs_inn_when_ambiguous(monkeypatch, documents):
+    from app.agent.runtime import MasterAgentRuntime
+    from app.agent.tools import ToolContext, build_tool_registry
+    from app.config import Settings
+    from app.llm.groq_client import GroqClient
+    rows = copy.deepcopy(snapshots(documents))
+    for inn in (A, '1684017097'):
+        root(rows, inn)['document']['report']['baseInfo']['email'] = 'shared@example.org'
+    async def get(inn): return root(rows, inn)
+    async def candidates(): return rows
+    async def batch(inns): return [root(rows, inn) for inn in inns]
+    monkeypatch.setattr('app.infrastructure.repository.get_latest_snapshot', get)
+    monkeypatch.setattr('app.infrastructure.repository.get_connection_candidates', candidates)
+    monkeypatch.setattr('app.infrastructure.repository.get_snapshots_for_connections', batch)
+    settings = Settings(llm_mock=True)
+    runtime = MasterAgentRuntime(model=None, model_name='offline', registry=build_tool_registry(settings),
+        model_timeout_s=5, run_timeout_s=20, tool_context=ToolContext(settings, GroqClient(settings), False))
+    first = await runtime.run('Проверь контрагента ' + A)
+    second = await runtime.run('Отдельный отчёт по связанной компании', first.conversation_id)
+    assert second.metadata.status == 'needs_input' and second.metadata.tool_calls == 0
+    assert second.active_company.inn == A
+    assert 'Укажите ИНН' in second.message

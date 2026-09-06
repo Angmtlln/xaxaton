@@ -8,7 +8,7 @@ import re
 from app.infrastructure import repository
 from app.infrastructure.progress import emit_progress
 from .data_sections import company_from_snapshot, report_of, safe_value
-from .models import CompanyConnections, ConnectionEdge, ConnectionNode, is_valid_inn
+from .models import CompanyConnections, ConnectionEdge, ConnectionNode, ToolFact, is_valid_inn
 
 log = logging.getLogger(__name__)
 MAX_NEIGHBOURS = 6
@@ -128,6 +128,13 @@ def review_node(node, snapshot):
         if key in legal.facts:
             observations.append(legal.facts[key])
     c = company_from_snapshot(snapshot)
+    for key, label, value, ref in (
+        ('bank.risk_level', 'Оценка банка', c.risk_level, 'report.baseInfo.riskLevel'),
+        ('bank.zsk_level', 'ЗСК', c.zsk_risk_level, 'report.zskRiskLevel'),
+        ('company.status', 'Статус компании', c.status, 'report.status.status'),
+    ):
+        if value is not None and not any(f.id == key for f in observations):
+            observations.append(ToolFact(id=key, label=label, value=value, field_ref=ref, source='raw'))
     gaps = list(dict.fromkeys(finance.gaps + legal.gaps))[:8]
     return node.model_copy(update={'snapshot_id': c.snapshot_id, 'report_date': c.report_date,
         'observations': observations[:12], 'gaps': gaps,

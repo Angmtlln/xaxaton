@@ -43,7 +43,8 @@ export function renderConnections(block, context) {
       safeArray(node.observations).forEach((fact) => {
         const row = element('details', 'connection-observation');
         const value = fact.value == null ? 'Нет данных' : typeof fact.value === 'object'
-          ? JSON.stringify(fact.value) : String(fact.value);
+          ? Array.isArray(fact.value) ? fact.value.map(v => typeof v === 'object' ? v.meaning || v.name || 'Сведения источника' : String(v)).join('; ') || 'Не выявлены' : 'Сведения источника'
+          : typeof fact.value === 'number' ? new Intl.NumberFormat('ru-RU').format(fact.value) : String(fact.value);
         row.append(element('summary', null, `${fact.label}: ${value} ${fact.unit || ''}`),
           element('small', null, `Источник: ${fact.field_ref}`));
         detail.append(row);
