@@ -8,7 +8,7 @@ from .models import (AssistantMetadata, AssistantResponse, ChartPoint, ChartSeri
                      ComparisonCell, ComparisonColumn, ComparisonRow,
                      ComparisonTableBlock, CompanySummaryBlock, Evidence, FindingItem,
                      FindingListBlock, FullCompanyCheckData, LineChartBlock, MasterAnswer,
-                     MetricGridBlock, MetricItem, ToolResult)
+                     MetricGridBlock, MetricItem, ToolResult, SuggestedAction)
 from .prompt import MASTER_PROMPT_VERSION
 from .synthesis import normalized_tool_context, verified_evidence
 from .comparison import ROW_SPECS, measure_key
@@ -140,12 +140,23 @@ def tool_result_to_assistant(
         coverage_state = (context.get("coverage") or {}).get("state", "DATA")
     partial = (result is not None and result.status == "partial") or coverage_state != "DATA"
 
+    actions = next_actions(master_answer, context, contextual=contextual)
+    connections = context.get("connections") or {}
+    if full and not contextual and connections.get("total_edges", 0) > 2:
+        # Guaranteed product affordance, independent of model button selection.
+        actions = [SuggestedAction(label="Построить граф связей", prompt="Построй граф связей"),
+                   *[a for a in actions if "граф" not in a.label.casefold()]][:4]
+        message += "\n\nМогу показать найденные связи на графе — нажмите «Построить граф связей»."
+    if full and master_answer is None and connections.get("nodes"):
+        from .connections import fallback_connections_text
+        message += fallback_connections_text(connections)
+
     return AssistantResponse(
         message=message,
         leading_artifact=_company_summary(data, evidence_by_id) if full and not contextual else None,
         blocks=blocks,
         evidence=list(evidence_by_id.values()),
-        suggested_actions=next_actions(master_answer, context, contextual=contextual),
+        suggested_actions=actions,
         metadata=AssistantMetadata(
             agent_run_id=agent_run_id,
             check_run_id=data.check_run_id if full and not contextual else None,

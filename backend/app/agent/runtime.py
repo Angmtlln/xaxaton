@@ -263,6 +263,15 @@ class MasterAgentRuntime:
                 )
             )
 
+        graph_context = None
+        if re.search(r"\bграф\w*\s+связ|\bсхем\w*\s+связ", message, re.I) and not comparison_request:
+            if reason is None and not switching_company and not requests_refresh(message):
+                graph_context = select_trusted_context(trusted_store, "full_check")
+                if graph_context is not None and graph_context.get("connections") is not None:
+                    target, selected_context, preselected_tool = None, graph_context, False
+                else:
+                    graph_context = None
+
         # A free opening stays in the same bounded Master loop, with no domain
         # tools or factual company context. Invalid identifiers still hit guards.
         if not active and not comparison_store and reason in {"missing_inn", "comparison_needs_two"}:
@@ -280,7 +289,18 @@ class MasterAgentRuntime:
         )
 
         response = None
-        if reason is not None or (target is None and selected_context is None):
+        if graph_context is not None:
+            from .models import CompanyConnections, ConnectionGraphBlock
+            graph = CompanyConnections.model_validate(graph_context["connections"])
+            graph_message = ("Вот связи внутри доступного датасета. Выберите компанию на канве или в списке, чтобы открыть краткие сведения и запросить отдельный отчёт."
+                             if graph.edges else graph.note if graph.state != "complete" else
+                             "В проверенном наборе карточек пересечения не найдены. Это не исключает связей за его пределами.")
+            response = tool_result_to_assistant(None, trusted_context=graph_context,
+                master_answer=MasterAnswer(message=graph_message), agent_run_id=run_id,
+                routing="deterministic_guard", model=model_name, started=started, contextual=True)
+            response.metadata.synthesis = "deterministic"
+            response.blocks = [ConnectionGraphBlock(graph=graph)] if graph.edges else []
+        elif reason is not None or (target is None and selected_context is None):
             response = guard_response(reason or "unsupported_request", run_id, started)
         else:
             try:

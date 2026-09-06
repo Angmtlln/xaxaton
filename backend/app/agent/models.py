@@ -474,6 +474,12 @@ class ComparisonTableBlock(StrictModel):
         return self
 
 
+class ConnectionGraphBlock(StrictModel):
+    type: Literal["connection_graph"] = "connection_graph"
+    title: SafeText = "Связи внутри датасета"
+    graph: CompanyConnections
+
+
 class EvidenceListBlock(StrictModel):
     type: Literal["evidence_list"] = "evidence_list"
     title: SafeText
@@ -488,6 +494,7 @@ UIBlock = Annotated[
         LineChartBlock,
         FindingListBlock,
         ComparisonTableBlock,
+        ConnectionGraphBlock,
         EvidenceListBlock,
     ],
     Field(discriminator="type"),

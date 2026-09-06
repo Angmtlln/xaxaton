@@ -7,7 +7,7 @@ from app.agent.models import CompanyConnections
 A, B = '7805327192', '4720028039'
 
 def snapshots(documents):
-    return [{'document': d} for d in documents]
+    return [{'document': d, 'inn': d['report']['baseInfo']['inn'], 'short_name': d['report']['baseInfo'].get('shortName')} for d in documents]
 
 def root(rows, inn=A):
     return next(s for s in rows if s['document']['report']['baseInfo']['inn'] == inn)
@@ -70,3 +70,33 @@ async def test_failed_cross_check_is_not_no_connections(monkeypatch, documents):
     monkeypatch.setattr('app.agent.connections.repository.get_connection_candidates', fail)
     graph = await cross_check(root(snapshots(documents)))
     assert graph.state == 'unavailable' and 'не подтверждено' in graph.note
+
+@pytest.mark.asyncio
+async def test_full_check_graph_and_neighbour_report(monkeypatch, documents):
+    from app.agent.runtime import MasterAgentRuntime
+    from app.agent.tools import ToolContext, build_tool_registry
+    from app.config import Settings
+    from app.llm.groq_client import GroqClient
+    rows = snapshots(documents)
+    async def get(inn): return root(rows, inn)
+    async def candidates(): return rows
+    async def batch(inns): return [root(rows, inn) for inn in inns]
+    monkeypatch.setattr('app.infrastructure.repository.get_latest_snapshot', get)
+    monkeypatch.setattr('app.infrastructure.repository.get_connection_candidates', candidates)
+    monkeypatch.setattr('app.infrastructure.repository.get_snapshots_for_connections', batch)
+    settings = Settings(llm_mock=True)
+    runtime = MasterAgentRuntime(model=None, model_name='offline', registry=build_tool_registry(settings), model_timeout_s=5, run_timeout_s=20,
+                                 tool_context=ToolContext(settings, GroqClient(settings), False))
+    first = await runtime.run('Проверь контрагента ' + A)
+    assert first.active_company.inn == A
+    assert first.metadata.tool_calls == 1
+    assert first.suggested_actions[0].label == 'Построить граф связей'
+    assert B in first.message and 'fnsBlocking' not in first.message  # readable source meaning
+    graph = await runtime.run('Построй граф связей', first.conversation_id)
+    assert graph.metadata.tool_calls == graph.metadata.model_calls == 0
+    assert graph.leading_artifact is None and graph.blocks[0].type == 'connection_graph'
+    assert graph.blocks[0].graph.total_edges == 5
+    assert graph.active_company.inn == A
+    second = await runtime.run('Проверь контрагента ' + B, graph.conversation_id)
+    assert second.active_company.inn == B and second.metadata.tool_calls == 1
+    assert second.leading_artifact.inn == B

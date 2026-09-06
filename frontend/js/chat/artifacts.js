@@ -3,6 +3,7 @@
 import { element, safeArray, numericValue } from '../shared/dom.js';
 import { buildChart } from './chart.js';
 import { renderDashboard } from './dashboard.js';
+import { renderConnections } from './connections.js';
 import { renderNews } from './news.js';
 import { appendProse } from './prose.js';
 
@@ -248,6 +249,7 @@ const BLOCK_RENDERERS = {
   line_chart: renderLineChart,
   finding_list: renderFindingList,
   comparison_table: renderComparisonTable,
+  connection_graph: renderConnections,
   evidence_list: renderEvidenceList,
 };
 
@@ -274,6 +276,7 @@ export function buildAssistantMessage(payload, hooks = {}) {
     evidence: new Map(safeArray(payload.evidence).filter((item) => item && item.id)
       .map((item) => [item.id, item])),
     onReportUrl: hooks.onReportUrl,
+    onSuggestion: hooks.onSuggestion,
   };
   context.evidenceButton = (id) => evidenceButton(context, id);
   if (payload.leading_artifact) {

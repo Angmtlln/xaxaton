@@ -157,3 +157,17 @@ async def cross_check(snapshot):
         log.warning('Dataset cross-check unavailable for %s', root, exc_info=True)
         return CompanyConnections(root_inn=root, state='unavailable',
                                   note='Внутренняя кросс-проверка недоступна; отсутствие связей не подтверждено.')
+
+
+def fallback_connections_text(connections):
+    parts = []
+    for node in connections.get('nodes', [])[1:]:
+        reasons = list(dict.fromkeys(e['label'] for e in connections['edges'] if e['target'] == node['inn']))
+        facts = node.get('observations', [])
+        stops = [v.get('meaning', v.get('code')) for f in facts if f['id'] == 'flags.hard_stop_codes'
+                 for v in (f.get('value') or [])]
+        review = ('В кратком срезе есть сигналы источника: ' + ', '.join(stops) + '.') if stops else (
+            'Краткий срез получен; автоматический вывод о благонадёжности не формировался.'
+            if node['review_state'] in {'reviewed', 'partial'} else 'Данные для краткого обзора недоступны.')
+        parts.append(f"{node['name']}, ИНН {node['inn']}: {', '.join(reasons)}. {review} Можно запросить отдельный отчёт по этому ИНН.")
+    return '\n\nСвязанные компании: ' + ' '.join(parts) if parts else ''

@@ -1004,3 +1004,29 @@
   .landing-mode .chat-app::before { font-size: 100vw; bottom: 3vh; }
   .landing-mode .landing-footer { gap: 10px 20px; }
 }
+
+/* Verified dataset graph, touch and keyboard controls. */
+.connection-panel { min-width: 0; }
+.connection-toolbar, .connection-company-list { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+.connection-toolbar span { color: #6a6d75; font-size: 12px; }
+.connection-control { min-height: 44px; padding: 8px 13px; border: 1px solid #d8dbe1; background: #fff; border-radius: 12px; color: #292c34; cursor: pointer; font: inherit; overflow-wrap: anywhere; }
+.connection-control:hover, .connection-control:focus-visible { border-color: #e34b52; outline: 2px solid #efb5b8; }
+.connection-canvas { border: 1px solid #e1e3e8; border-radius: 16px; background: radial-gradient(#d9dce3 1px, transparent 1px) 0 0 / 18px 18px; overflow: hidden; }
+.connection-canvas svg { display: block; width: 100%; min-height: 220px; }
+.connection-node { cursor: grab; touch-action: none; }
+.connection-node:active { cursor: grabbing; }
+.connection-node rect { fill: #fff; stroke: #a7aebd; stroke-width: 1.5; }
+.connection-node.is-root rect { fill: #fff1f1; stroke: #d84b52; }
+.connection-node:focus-visible rect { stroke: #d84b52; stroke-width: 3; }
+.connection-node text { fill: #252a34; font: 600 13px sans-serif; pointer-events: none; }
+.connection-node .connection-node-inn { fill: #687080; font: 12px sans-serif; }
+.connection-edge { fill: none; stroke: #9a91b0; stroke-width: 1.6; }
+.edge-address, .edge-email, .edge-phone, .edge-website, .edge-shared_related { stroke-dasharray: 5 4; }
+.connection-edge-number { fill: #66537e; font: 12px sans-serif; paint-order: stroke; stroke: #fff; stroke-width: 4; }
+.connection-detail { background: #f7f8fa; border-radius: 12px; padding: 16px; overflow-wrap: anywhere; }
+.connection-detail h4 { margin: 0 0 8px; }
+.connection-source-list { margin-top: 16px; }
+.connection-source-list li { margin: 10px 0; }
+.connection-panel summary { cursor: pointer; padding: 7px 0; }
+.connection-panel small { display: block; overflow-wrap: anywhere; color: #676b75; }
+.connection-panel .muted { color: #676b75; font-size: 12px; }
