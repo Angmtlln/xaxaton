@@ -1,10 +1,10 @@
 """HTTP-слой: по одному роутеру на ресурс, схемы Swagger — в app/api/schemas.py."""
 from fastapi import APIRouter
 
-from . import chat, checks, companies, health, pages
+from . import chat, checks, companies, health, pages, exports
 
 api_router = APIRouter()
-for module in (chat, checks, companies, health):
+for module in (chat, checks, companies, health, exports):
     api_router.include_router(module.router)
 
 pages_router = pages.router

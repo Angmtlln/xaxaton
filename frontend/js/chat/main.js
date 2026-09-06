@@ -34,6 +34,7 @@ function syncLayout() {
 }
 
 function updateActions() {
+  thread.querySelectorAll('.export-actions button').forEach(button => { button.disabled = form.hasAttribute('aria-busy'); });
   const rows = [...thread.querySelectorAll('.suggested-actions')];
   rows.forEach((row, index) => {
     row.hidden = index !== rows.length - 1 || row.closest('article') !== thread.lastElementChild;
@@ -141,6 +142,7 @@ function appendAssistantMessage(payload) {
     },
     onSuggestion: (action) => {
       if (form.hasAttribute('aria-busy')) return;
+      if (action.type === 'export_pdf') { exportPdf(payload.conversation_id, action.result_id); return; }
       if (action.mode === 'submit') { sendMessage(action.prompt); return; }
       input.value = action.prompt;
       resizeInput();
@@ -150,6 +152,37 @@ function appendAssistantMessage(payload) {
   thread.appendChild(article);
   registerTurn(payload, article);
   updateActions();
+}
+
+async function exportPdf(cid, resultId) {
+  if (form.hasAttribute('aria-busy')) return;
+  setBusy(true);
+  const loading = appendLoading();
+  loading.querySelector('.loading-title').textContent = 'Готовим PDF';
+  loading.querySelector('.loading-detail').textContent = 'Сохраняем результат с графиками и источниками';
+  scrollToLatest();
+  let payload;
+  try {
+    const response = await fetch(`/api/v1/chat/${encodeURIComponent(cid)}/exports`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ result_id: resultId }),
+    });
+    const file = await response.json();
+    if (!response.ok) throw new Error(typeof file.detail === 'string' ? file.detail : 'Не удалось создать PDF. Попробуйте ещё раз.');
+    payload = { message: 'PDF готов.', conversation_id: cid, attachments: [file],
+      metadata: { status: 'completed', agent_run_id: `pdf-${file.id}` } };
+  } catch (error) {
+    payload = { message: error.message || 'Не удалось создать PDF.', conversation_id: cid,
+      suggested_actions: [{ type: 'export_pdf', label: 'Повторить экспорт PDF', result_id: resultId }],
+      metadata: { status: 'error', agent_run_id: `pdf-error-${Date.now()}` } };
+  } finally {
+    loading.remove();
+    setBusy(false);
+  }
+  appendAssistantMessage(payload);
+  conversationHistory.push({ role: 'assistant', payload });
+  saveConversation();
+  scrollToLatest();
 }
 
 function appendRequestError(message) {

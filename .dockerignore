@@ -11,3 +11,8 @@ design/prototype/node_modules/
 design/prototype/dist/
 contractors_audit.snapshot.json
 materials/
+
+# Local backend runtime is not part of the Linux image.
+backend/.venv/
+backend/.pytest_cache/
+backend/**/__pycache__/

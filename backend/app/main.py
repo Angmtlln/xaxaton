@@ -88,6 +88,7 @@ async def lifespan(app: FastAPI):
     except Exception as exc:                              # noqa: BLE001
         log.error("Не удалось подключиться к БД: %s", exc)
     yield
+    app.state.conversation_store.exports.close()
     await app.state.groq.aclose()
     await close_pool()
 

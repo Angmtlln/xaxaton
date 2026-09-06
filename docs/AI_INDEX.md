@@ -22,6 +22,7 @@
 | выбор N по показателям, «из найденных», подтверждение порядка | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md), [`RANKING_ACCEPTANCE.md`](RANKING_ACCEPTANCE.md) | `backend/app/agent/ranking.py`, `shortlist.py`, `runtime.py`, `backend/tests/test_ranking.py` |
 | агентный подбор под задачу, мини-сводки, финалисты | [`COUNTERPARTY_SELECTION.md`](COUNTERPARTY_SELECTION.md) | `backend/app/agent/selection.py`, `selection_runtime.py`, `selection_models.py`, `backend/tests/test_counterparty_selection.py` |
 | подборка по критериям, боковая навигация | [`AMIR_INTEGRATION.md`](AMIR_INTEGRATION.md) | `backend/app/agent/shortlist.py`, `backend/db/migrations/004_company_shortlist.sql`, `frontend/js/chat/navigation.js` |
+| экспорт результата в PDF | [`PDF_EXPORT.md`](PDF_EXPORT.md) | `backend/app/agent/pdf_export.py`, `backend/app/api/routes/exports.py`, `frontend/pdf.html` |
 | рабочий интерфейс демо | [`CHAT_UI.md`](CHAT_UI.md), `frontend/index.html`, `frontend/report.html` | `frontend/js/chat/main.js`, `frontend/js/report/main.js`, `frontend/css/chat.css` |
 | визуальный React-прототип | [`design/prototype/README.md`](../design/prototype/README.md) | `design/prototype/app/` |
 | тестирование всего прохода | `backend/tests/test_pipeline_mock.py` | `backend/tests/conftest.py`, `backend/scripts/demo_offline.py` |

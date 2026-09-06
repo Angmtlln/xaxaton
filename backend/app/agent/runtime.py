@@ -143,12 +143,17 @@ class MasterAgentRuntime:
                     stack.enter_async_context(self.conversation_store.session(conversation_id)),
                     timeout=max(0, deadline - time.monotonic()),
                 )
+                from .pdf_export import handles_pdf_request, pdf_chat_response
+                if handles_pdf_request(message):
+                    return await pdf_chat_response(self.conversation_store, cid, message, run_id, started)
                 binding = self.conversation_store.pin_master_model(
                     cid, (self.model, self.model_name, self.model_provider)
                 )
-                return await self._run_conversation(
+                response = await self._run_conversation(
                     message, cid, run_id, started, deadline, binding
                 )
+                self.conversation_store.exports.capture(cid, response)
+                return response
         except asyncio.TimeoutError:
             response = runtime_timeout_response(run_id, started, tool_calls=0)
             response.conversation_id = conversation_id

@@ -653,6 +653,20 @@ class AssistantMetadata(StrictModel):
     repair_attempts: int = Field(default=0, ge=0, le=1)
 
 
+class ExportPdfAction(StrictModel):
+    type: Literal["export_pdf"] = "export_pdf"
+    label: SafeText = "Экспортировать в PDF"
+    result_id: SafeText
+
+
+class PdfAttachment(StrictModel):
+    id: SafeText
+    filename: SafeText
+    mime_type: Literal["application/pdf"] = "application/pdf"
+    size_bytes: int = Field(gt=0)
+    download_url: SafeText
+
+
 class AssistantResponse(StrictModel):
     message: SafeText
     external_news: List[ExternalNews] = Field(default_factory=list, max_length=4)
@@ -662,10 +676,11 @@ class AssistantResponse(StrictModel):
     leading_artifact: Optional[CompanySummaryBlock] = None
     blocks: List[UIBlock] = Field(default_factory=list, max_length=10)
     evidence: List[Evidence] = Field(default_factory=list, max_length=60)
-    suggested_actions: List[Union[SafeText, SuggestedAction]] = Field(default_factory=list, max_length=4)
+    suggested_actions: List[Union[SafeText, SuggestedAction, ExportPdfAction]] = Field(default_factory=list, max_length=4)
     metadata: AssistantMetadata
     conversation_id: Optional[str] = None
     active_company: Optional[CompanyRef] = None
+    attachments: List[PdfAttachment] = Field(default_factory=list, max_length=1)
 
     @model_validator(mode="after")
     def validate_evidence_references(self) -> "AssistantResponse":

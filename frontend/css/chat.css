@@ -1322,3 +1322,8 @@ body.landing-mode .chat-nav {
 @media (prefers-reduced-motion: reduce) {
   .turn-highlight { animation: none; }
 }
+
+.pdf-file-card { margin: 16px 0; padding: 16px; border: 1px solid #e1e3e8; border-radius: 12px; background: #fff; }
+.pdf-file-card a { display: block; color: #b52424; font-weight: 600; }
+.pdf-file-card small { display: block; margin-top: 8px; color: #687080; overflow-wrap: anywhere; }
+.export-actions { margin-top: 12px; }

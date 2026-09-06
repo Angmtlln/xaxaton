@@ -4,6 +4,7 @@ from typing import Callable, Optional
 
 progress_sink: ContextVar[Optional[Callable[[dict], None]]] = ContextVar('progress_sink', default=None)
 STAGES = {
+    'pdf_export': ('Готовим PDF', 'Сохраняем результат с графиками и источниками.'),
     'selection_filter': ('Отбираю по условиям', 'Применяю фильтры к загруженной базе.'),
     'selection_review': ('Анализирую карточки', 'Готовлю краткие оценки всех кандидатов под вашу задачу.'),
     'selection_finalists': ('Выбираю финалистов', 'Сопоставляю аргументы по всем рассмотренным компаниям.'),

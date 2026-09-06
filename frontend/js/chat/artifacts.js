@@ -568,21 +568,55 @@ export function buildAssistantMessage(payload, hooks = {}) {
     title: 'Источники ответа', evidence_ids: [...context.evidence.keys()],
   }, context));
 
+  safeArray(payload.attachments).forEach(file => {
+    const expected = `/api/v1/chat/${payload.conversation_id}/exports/${file.id}`;
+    if (file.mime_type !== 'application/pdf' || file.download_url !== expected) return;
+    const card = element('div', 'pdf-file-card');
+    const link = element('a', null, 'Скачать PDF');
+    link.href = expected;
+    link.download = file.filename;
+    link.addEventListener('click', async event => {
+      event.preventDefault();
+      if (link.getAttribute('aria-busy') === 'true') return;
+      link.setAttribute('aria-busy', 'true');
+      link.textContent = 'Скачиваем PDF…';
+      try {
+        const response = await fetch(expected);
+        if (!response.ok) throw new Error('Файл недоступен. Повторите экспорт из исходного результата.');
+        const url = URL.createObjectURL(await response.blob());
+        const download = document.createElement('a');
+        download.href = url;
+        download.download = file.filename;
+        download.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        link.textContent = 'Скачать PDF';
+      } catch (error) {
+        link.textContent = error.message || 'Не удалось скачать PDF. Нажмите, чтобы повторить.';
+      } finally {
+        link.removeAttribute('aria-busy');
+      }
+    });
+    card.append(link, element('small', null, `${file.filename} · ${Math.ceil(file.size_bytes / 1024)} КБ`));
+    body.appendChild(card);
+  });
+
   const actions = safeArray(payload.suggested_actions);
   if (actions.length) {
     const actionRow = element('div', 'suggested-actions');
+    const exportRow = element('div', 'export-actions');
     actions.forEach((action) => {
       const suggestion = typeof action === 'string'
         ? { label: action, prompt: action, mode: 'compose' } : action;
-      if (!suggestion || typeof suggestion.label !== 'string' || typeof suggestion.prompt !== 'string') return;
+      if (!suggestion || typeof suggestion.label !== 'string' || (suggestion.type !== 'export_pdf' && typeof suggestion.prompt !== 'string')) return;
       const button = element('button', 'suggested-action', suggestion.label);
       button.type = 'button';
       button.addEventListener('click', () => {
         if (hooks.onSuggestion) hooks.onSuggestion(suggestion);
       });
-      actionRow.appendChild(button);
+      (suggestion.type === 'export_pdf' ? exportRow : actionRow).appendChild(button);
     });
-    body.appendChild(actionRow);
+    if (actionRow.children.length) body.appendChild(actionRow);
+    if (exportRow.children.length) body.appendChild(exportRow);
   }
 
   const news = renderNews(payload, prefix);

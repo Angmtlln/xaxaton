@@ -1,0 +1,47 @@
+/* Only the export document uses these overrides; desktop/mobile UI is unchanged. */
+.pdf-page { background: #fff; color: #252831; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.pdf-page #pdf-content { width: 100%; margin: 0; padding: 0; }
+.pdf-page .chat-message { display: block; margin: 0; padding: 0; width: 100%; }
+.pdf-page .assistant-content { width: 100%; max-width: none; min-width: 0; }
+.pdf-page .assistant-avatar, .pdf-page button, .pdf-page .suggested-actions,
+.pdf-page .comparison-controls, .pdf-page .comparison-filter-note,
+.pdf-page .company-report-link, .pdf-page .comparison-table-hint,
+.pdf-page .evidence-toggle, .pdf-page .news-controls { display: none !important; }
+.pdf-page .assistant-lead, .pdf-page .assistant-lead p { max-width: none; }
+.pdf-page .comparison-table-wrap, .pdf-page .comparison-scroll,
+.pdf-page .comparison-block, .pdf-page .evidence-list,
+.pdf-page .news-track { overflow: visible !important; max-height: none !important; }
+.pdf-page table { width: 100% !important; min-width: 0 !important; table-layout: fixed; }
+.pdf-page thead { display: table-header-group; }
+.pdf-page th, .pdf-page td { position: static !important; min-width: 0 !important; width: auto; padding: 7px !important; font-size: 10px; overflow-wrap: anywhere; }
+.pdf-page tr, .pdf-page .evidence-item, .pdf-page .news-card { break-inside: avoid; }
+.pdf-page h2, .pdf-page h3, .pdf-page h4, .pdf-page .pdf-disclosure-title { break-after: avoid; }
+.pdf-page .comparison-summaries { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pdf-page .comparison-summary { min-width: 0; break-inside: avoid; }
+.pdf-page .company-summary { break-inside: avoid; align-items: start; grid-template-columns: minmax(0, 1fr) 170px; }
+.pdf-page svg { max-width: 100%; height: auto; }
+.pdf-page .news-track { display: block; }
+.pdf-page .news-card { width: auto; min-width: 0; margin-bottom: 12px; }
+.pdf-page a, .pdf-page code { overflow-wrap: anywhere; white-space: normal; }
+.pdf-page .comparison-cell-content { flex-wrap: wrap; }
+.pdf-cell-note { display: block; width: 100%; color: #687080; font-size: 9px; line-height: 1.35; }
+.pdf-page .evidence-item { padding: 8px 0; }
+.pdf-page .evidence-item p { margin: 4px 0; }
+.pdf-page .evidence-item code { font-size: 9px; }
+.pdf-page * { animation: none !important; transition: none !important; }
+
+.pdf-page .comparison-summaries { grid-auto-flow: row; grid-auto-columns: auto; overflow: visible; }
+.pdf-page .comparison-browse { display: none !important; }
+.pdf-page .news-strip { display: block; overflow: visible; }
+.pdf-page .risk-radar { display: block !important; }
+.pdf-page .comparison-section-title { position: static; max-width: none; }
+
+.pdf-page .company-summary > .radar-explanation { grid-column: 1 / -1; }
+.pdf-page .company-summary > .radar-explanation .pdf-disclosure-title { text-align: left; }
+.pdf-page .radar-explanation p { margin: 4px 0; }
+.pdf-page .evidence-list { display: block; background: transparent; }
+.pdf-page .evidence-item { border-bottom: 1px solid #e1e3e8; }
+.pdf-page .comparison-section { break-after: avoid; }
+
+.pdf-disclosure-title { margin-bottom: 8px; }
+.pdf-disclosure-title small { margin-left: 8px; color: #687080; }
