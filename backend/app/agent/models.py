@@ -454,6 +454,8 @@ class FindingListBlock(StrictModel):
 
 
 class ComparisonCell(StrictModel):
+    tone: Literal["neutral", "positive", "attention", "risk"] = "neutral"
+    interpretation: Optional[SafeText] = None
     display_value: SafeText
     state: Literal["data", "no_data"]
     evidence_id: Optional[SafeText] = None

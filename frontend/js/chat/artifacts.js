@@ -263,6 +263,11 @@ function renderComparisonTable(block, context) {
   scroller.setAttribute('role', 'region');
   scroller.setAttribute('aria-label', 'Детальное сравнение — прокрутка по горизонтали');
   const table = element('table', 'comparison-table');
+  table.style.setProperty('--company-count', columns.length);
+  const colgroup = element('colgroup');
+  colgroup.appendChild(element('col', 'comparison-measure-col'));
+  columns.forEach(() => colgroup.appendChild(element('col', 'comparison-company-col')));
+  table.appendChild(colgroup);
   const head = element('thead');
   const headRow = element('tr');
   headRow.appendChild(element('th', 'comparison-measure', 'Показатель'));
@@ -273,6 +278,20 @@ function renderComparisonTable(block, context) {
       element('span', 'comparison-company', column.name || 'Контрагент'),
       element('span', 'comparison-inn', `ИНН ${column.inn || '—'}`),
     );
+    if (columns.length > 2 && context.onSuggestion) {
+      const remove = element('button', 'comparison-remove', '×');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Убрать ${column.name} из сравнения`);
+      remove.title = 'Сравнить оставшиеся компании и обновить AI-вывод';
+      remove.addEventListener('click', () => {
+        const remaining = columns.filter(item => item.inn !== column.inn).map(item => item.inn);
+        const scope = rows.every(row => row.section === 'finance') ? ' по финансам'
+          : rows.every(row => row.section !== 'finance') ? ' по правовым данным' : '';
+        context.onSuggestion({ mode: 'submit', prompt: `Сравни ${remaining.join(', ')}${scope}` });
+      });
+      cell.appendChild(remove);
+      cell.classList.add('comparison-removable');
+    }
     headRow.appendChild(cell);
   });
   head.appendChild(headRow);
@@ -314,7 +333,8 @@ function renderComparisonTable(block, context) {
       const members = selected.filter(row => sectionOf(row) === key);
       if (!members.length) return;
       const heading = element('tr', 'comparison-section');
-      const group = element('th', null, title);
+      const group = element('th');
+      group.appendChild(element('span', 'comparison-section-title', title));
       group.colSpan = columns.length + 1;
       heading.appendChild(group);
       body.appendChild(heading);
@@ -328,7 +348,13 @@ function renderComparisonTable(block, context) {
           const item = element('td', `comparison-cell cell-${cell.state || 'no_data'}`);
           const content = element('span', 'comparison-cell-content');
           const missing = cell.state !== 'data';
-          const value = element('span', 'comparison-value', missing ? '—' : cell.display_value);
+          const tone = !missing && ['positive', 'attention', 'risk'].includes(cell.tone) ? cell.tone : 'neutral';
+          const value = element('span', `comparison-value comparison-tone-${tone}`, missing ? '—' : cell.display_value);
+          if (!missing && cell.interpretation) {
+            value.title = cell.interpretation;
+            value.setAttribute('aria-label', `${cell.display_value}. ${cell.interpretation}`);
+            value.tabIndex = 0;
+          }
           if (missing) {
             value.title = 'Источник не предоставил значение';
             value.setAttribute('aria-label', 'Источник не предоставил значение');
@@ -360,6 +386,10 @@ function renderComparisonTable(block, context) {
   table.append(head, body);
   scroller.appendChild(table);
   card.appendChild(scroller);
+  const hint = columns.length > 2
+    ? 'Прокручивайте таблицу. × — новое сравнение без компании, с обновлённым AI-выводом.'
+    : 'Прокручивайте таблицу: показатели и названия компаний закреплены.';
+  card.appendChild(element('p', 'comparison-table-hint', hint));
   return card;
 }
 

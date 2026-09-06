@@ -226,6 +226,43 @@ def _comparison_names(data: ComparisonData) -> Dict[str, str]:
     }
 
 
+def _comparison_value(fact, key, unit):
+    value = fact.value
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return display_fact_value(fact)
+    if unit == "руб":
+        scale, suffix = next(((scale, suffix) for scale, suffix in
+                              ((1e9, "млрд"), (1e6, "млн"), (1e3, "тыс"))
+                              if abs(value) >= scale), (1, ""))
+        number = f"{value / scale:,.2f}".rstrip("0").rstrip(".")
+        return number.replace(",", " ").replace(".", ",") + (f" {suffix}" if suffix else "") + " ₽"
+    if unit == "%":
+        number = f"{value:+,.1f}" if key == "proceeds_change_pct" and value else f"{value:,.1f}"
+        return number.replace(",", " ").replace(".", ",") + "%"
+    return f"{value:,g}".replace(",", " ").replace(".", ",")
+
+
+def _comparison_signal(key, value):
+    # Только однозначные свойства самой меры, без общего скоринга и порогов суммы.
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return "neutral", None
+    if key == "proceeds_change_pct":
+        if value > 0:
+            return "positive", "Выручка выросла относительно предыдущего года"
+        if value < 0:
+            return "attention", "Выручка снизилась относительно предыдущего года"
+    if key == "profit":
+        if value < 0:
+            return "risk", "Убыток за указанный период"
+        if value > 0:
+            return "positive", "Положительная прибыль за указанный период"
+    if key == "capitals" and value < 0:
+        return "risk", "Отрицательный собственный капитал"
+    if key == "execproc.active_amount" and value > 0:
+        return "attention", "Есть действующие взыскания; требуется оценка обстоятельств"
+    return "neutral", None
+
+
 def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence]):
     """Одна таблица вместо N отчётов; значения берутся из проверенных фактов."""
     columns = [
@@ -262,7 +299,8 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             if fact is None or fact.value is None:
                 cells.append(ComparisonCell(display_value="Нет данных", state="no_data"))
             else:
-                display = display_fact_value(fact)
+                display = _comparison_value(fact, key, unit)
+                tone, interpretation = _comparison_signal(key, fact.value)
                 period = None
                 if ":fin." in fact.id and fact.id.rsplit(".", 1)[-1].isdigit():
                     period = fact.id.rsplit(".", 1)[-1]
@@ -271,13 +309,14 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
                     series_section = owner.sections.get("finance_series")
                     series = series_section.value if series_section else []
                     if len(series) >= 2:
-                        period = "%s→%s" % (series[-2]["year"], series[-1]["year"])
+                        period = "%s → %s" % (series[-2]["year"], series[-1]["year"])
                         display += " · " + period
                 # Пропуск не ноль; разные финансовые периоды не создают различие.
                 if section != "finance" or period is not None:
                     values_by_period.setdefault(period, []).append(fact.value)
                 cells.append(ComparisonCell(
                     display_value=display,
+                    tone=tone, interpretation=interpretation,
                     state="data",
                     evidence_id=fact.id if fact.id in evidence_by_id else None,
                 ))

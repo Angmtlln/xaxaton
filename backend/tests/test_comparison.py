@@ -513,3 +513,34 @@ async def test_comparison_does_not_overwrite_the_active_company(snapshots, monke
 
     assert checked.active_company.inn == RICH
     assert compared.active_company.inn == RICH
+
+
+@pytest.mark.parametrize('value,unit,key,expected', [
+    (60700000, 'руб', 'proceeds', '60,7 млн ₽'),
+    (1020000, 'руб', 'court.defendant_amount', '1,02 млн ₽'),
+    (-26249000, 'руб', 'profit', '-26,25 млн ₽'),
+    (0, 'руб', 'profit', '0 ₽'),
+    (697.4, '%', 'proceeds_change_pct', '+697,4%'),
+    (-15.8, '%', 'proceeds_change_pct', '-15,8%'),
+    (6, None, 'court.defendant_count', '6'),
+])
+def test_compact_comparison_numbers(value, unit, key, expected):
+    from types import SimpleNamespace
+    from app.agent.response import _comparison_value
+    assert _comparison_value(SimpleNamespace(value=value), key, unit) == expected
+
+
+@pytest.mark.parametrize('key,value,tone', [
+    ('proceeds_change_pct', 10, 'positive'),
+    ('proceeds_change_pct', -10, 'attention'),
+    ('profit', -1, 'risk'), ('profit', 1, 'positive'),
+    ('capitals', -1, 'risk'), ('execproc.active_amount', 1, 'attention'),
+    ('accounts_payable', 9999999999, 'neutral'),
+    ('court.defendant_count', 999, 'neutral'),
+    ('profit', None, 'neutral'), ('profit', 0, 'neutral'),
+])
+def test_comparison_color_does_not_invent_risk_from_absolute_size(key, value, tone):
+    from app.agent.response import _comparison_signal
+    actual, explanation = _comparison_signal(key, value)
+    assert actual == tone
+    assert bool(explanation) == (tone != 'neutral')
