@@ -1,8 +1,8 @@
 /* Chat result and public stage stream. A truncated stream is never a success. */
-export async function sendChatMessage(message, conversationId, onProgress) {
+export async function sendChatMessage(message, conversationId, onProgress, companySelection = null) {
   const response = await fetch('/api/v1/chat/messages/stream', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, conversation_id: conversationId }),
+    body: JSON.stringify({ message, conversation_id: conversationId, ...(companySelection ? { company_selection: companySelection } : {}) }),
   });
   if (!response.ok || !response.headers.get('content-type')?.includes('application/x-ndjson')) {
     let payload = null;

@@ -39,7 +39,7 @@ from .tools import ToolContext, ToolRegistry, build_tool_registry
 
 log = logging.getLogger(__name__)
 MAX_AGENT_MODEL_CALLS = 2
-MAX_TOTAL_MODEL_CALLS = 6  # Three routing/answer calls plus optional verifier/repair/verifier.
+MAX_TOTAL_MODEL_CALLS = 7  # Name resolution + three routing/answer calls + optional verifier/repair/verifier.
 MAX_TOOL_CALLS = 1
 # Сравнение идёт одним вызовом инструмента, но не более пяти компаний.
 MAX_COMPARISON_COMPANIES = 5
@@ -50,7 +50,7 @@ ANSWER_MAX_TOKENS = 4096
 VERIFIER_MAX_TOKENS = 4096
 REPAIR_MAX_TOKENS = 4096
 GRAPH_RECURSION_LIMIT = 16  # Two sequential tools plus middleware and final answer.
-TOOL_BUNDLE_VERSION = "counterparty-tools-3.1.0"
+TOOL_BUNDLE_VERSION = "counterparty-tools-3.2.0"
 DIGIT_SEQUENCE_RE = re.compile(r"(?<![0-9])[0-9]+(?![0-9])")
 CHECK_WORD_RE = re.compile(r"\bпров(?:ерь(?:те)?|ер(?:ить|ка|ку|ьте))\b", re.I)
 BROAD_TARGET_RE = re.compile(r"\b(?:контрагент\w*|компан\w*|организац\w*|юрлиц\w*|инн)\b", re.I)
@@ -108,7 +108,9 @@ class MasterAgentRuntime:
         verifier_reasoning_effort: Optional[str] = None,
         grounding_debug: bool = False,
         direct_dispatch: bool = True,
+        name_resolution: bool = True,
     ):
+        self.name_resolution = name_resolution
         self.grounding_debug = grounding_debug
         self.direct_dispatch = direct_dispatch
         self.model = model
@@ -126,7 +128,7 @@ class MasterAgentRuntime:
         self.conversation_store = conversation_store or ConversationStore()
         self.model_provider = model_provider or ("local" if model is None else "custom")
 
-    async def run(self, message: str, conversation_id: Optional[str] = None):
+    async def run(self, message: str, conversation_id: Optional[str] = None, company_selection: Optional[dict] = None):
         run_id, started = str(uuid.uuid4()), time.perf_counter()
         deadline = time.monotonic() + self.run_timeout_s
         log.info(
@@ -150,7 +152,7 @@ class MasterAgentRuntime:
                     cid, (self.model, self.model_name, self.model_provider)
                 )
                 response = await self._run_conversation(
-                    message, cid, run_id, started, deadline, binding
+                    message, cid, run_id, started, deadline, binding, company_selection
                 )
                 self.conversation_store.exports.capture(cid, response)
                 return response
@@ -183,7 +185,7 @@ class MasterAgentRuntime:
             )
             return response
 
-    async def _run_conversation(self, message, cid, run_id, started, deadline, binding):
+    async def _run_conversation(self, message, cid, run_id, started, deadline, binding, company_selection=None):
         model, model_name, model_provider = binding
         execution = LangChainToolExecution(run_id=run_id)
         config = {"configurable": {"thread_id": cid}, "recursion_limit": GRAPH_RECURSION_LIMIT}
@@ -194,9 +196,27 @@ class MasterAgentRuntime:
         )
         previous = (await state_agent.aget_state(config)).values
         from .selection_runtime import handles_selection, run_selection_turn
-        if handles_selection(message, previous):
+        if handles_selection(message, previous) and not company_selection and not previous.get("pending_company_search"):
             return await run_selection_turn(self, message, cid, run_id, started, deadline,
                                             binding, previous, state_agent, config, execution)
+        original_message = message
+        name_result = None
+        if self.name_resolution or company_selection:
+            from .name_resolution import resolve_name
+            name_result = await resolve_name(self, message, previous, model, run_id, started,
+                                             deadline, company_selection)
+            if name_result.response is not None:
+                response = name_result.response
+                response.conversation_id = cid
+                response.active_company = CompanyRef.model_validate(previous["active_company"]) if previous.get("active_company") else None
+                history = list(previous.get("messages", [])) + [HumanMessage(content=message), AIMessage(content=response.message)]
+                await self.conversation_store.checkpointer.adelete_thread(cid)
+                await state_agent.aupdate_state(config, {**previous,
+                    "messages": history[-2 * self.conversation_store.max_turns:],
+                    "pending_company_search": name_result.pending,
+                    "last_answer_verified": False}, as_node="model")
+                return response
+            message = name_result.message
         active = previous.get("active_company")
         trusted_store = previous.get("trusted_context")
         shortlist_store = previous.get("shortlist_context")
@@ -445,8 +465,8 @@ class MasterAgentRuntime:
 
         response.conversation_id = cid
         response.active_company = CompanyRef.model_validate(active) if active else None
-        response.metadata.model_calls = execution.model_calls
-        response.metadata.tool_calls = execution.tool_calls
+        response.metadata.model_calls = execution.model_calls + (name_result.model_calls if name_result else 0)
+        response.metadata.tool_calls = execution.tool_calls + (name_result.search_calls if name_result else 0)
         answer_verified = response.metadata.grounding_status in {
             "verified", "repaired", "skipped_rewrite", "fallback"
         }
@@ -455,7 +475,7 @@ class MasterAgentRuntime:
             previous.get("active_company") and active != previous.get("active_company")
         )
         history = ([] if changed_company else list(previous.get("messages", []))) + [
-            HumanMessage(content=message), AIMessage(content=response.message)
+            HumanMessage(content=original_message), AIMessage(content=response.message)
         ]
         history = history[-2 * self.conversation_store.max_turns:]
         if not (switching_company and not changed_company):
@@ -471,6 +491,7 @@ class MasterAgentRuntime:
                 "comparison_context": comparison_store,
                 "shortlist_context": shortlist_store,
                 "pending_selection": pending_selection,
+                "pending_company_search": None,
                 "counterparty_selection": previous.get("counterparty_selection"),
                 "pending_counterparty_selection": None,
                 "last_topic": last_topic,
@@ -482,8 +503,8 @@ class MasterAgentRuntime:
             "agent_run_finished run_id=%s conversation_id=%s status=%s model_calls=%s "
             "tool_calls=%s routing=%s synthesis=%s grounding=%s repairs=%s latency_ms=%s "
             "input_tokens=%s output_tokens=%s",
-            run_id, cid, response.metadata.status, execution.model_calls,
-            execution.tool_calls, response.metadata.routing, response.metadata.synthesis,
+            run_id, cid, response.metadata.status, response.metadata.model_calls,
+            response.metadata.tool_calls, response.metadata.routing, response.metadata.synthesis,
             response.metadata.grounding_status, response.metadata.repair_attempts,
             int((time.perf_counter() - started) * 1000), execution.input_tokens,
             execution.output_tokens,

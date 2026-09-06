@@ -160,3 +160,50 @@ async def test_restart_and_audited_mock_pipeline_via_mcp(mcp_database,monkeypatc
         assert saved and saved['inn']=='7805327192'
     finally:
         await client.aclose(); await database.close_pool()
+
+
+@pytest.mark.asyncio
+async def test_name_search_sql_and_mcp_parity(mcp_database):
+    """Fixtures are written only to the disposable test database, never the demo DB."""
+    db = mcp_database
+    names = [
+        ('9910000001', 'ООО «Ёлка Тест»', 'Общество с ограниченной ответственностью «Ёлка Тест»'),
+        ('9910000002', 'АО «Елка Тест»', None),
+        ('9910000003', 'ООО «Ёлка Тест Плюс»', None),
+        ('9910000004', 'ООО «Супер Ёлка Тест»', None),
+        ('9910000005', 'ООО «100%_Тест»', None),
+        ('9910000006', 'ООО «100AAТест»', None),
+        ('9910000007', 'ООО «Ёлка Тест»', None),
+        ('9910000008', 'ООО «Ёлка Тест»', None),
+        ('9910000009', 'ООО «Ёлка Тест»', None),
+        ('9910000010', 'ООО «Ёлка Тест»', None),
+        ('9910000011', 'ООО «Иное имя»', 'Общество с ограниченной ответственностью «Полное уникальное имя»'),
+    ]
+    with psycopg.connect(db.admin_dsn) as conn:
+        # Applying the migration twice checks existing-DB upgrade and idempotence.
+        for _ in range(2): conn.execute((ROOT/'db/migrations/008_company_name_search.sql').read_text())
+        for inn, short, full in names:
+            cid = conn.execute('INSERT INTO core.companies(inn,short_name,full_name) VALUES (%s,%s,%s) RETURNING id', (inn,short,full)).fetchone()[0]
+            conn.execute("INSERT INTO core.report_snapshots(company_id,report_date,address) VALUES (%s,'2026-01-01','Москва')", (cid,))
+    try:
+        async with AsyncConnectionPool(db.admin_dsn,open=False,kwargs={'row_factory':dict_row}) as pool:
+            direct = PostgresCompanyDataReader(pool)
+            mcp = McpCompanyDataReader(db.url)
+            for query in ['елка тест', '  ООО  «ЁЛКА   ТЕСТ»  ', 'Общество с ограниченной ответственностью Ёлка Тест',
+                          'Ёлка', 'лка тест', '100%_', '100AA', 'Полное уникальное имя', 'СовсемНеСуществует', '9910000001']:
+                expected = await direct.search_companies(query)
+                assert await mcp.search_companies(query) == expected
+            found = await direct.search_companies('елка тест')
+            assert found['total'] == 8 and found['exact_total'] == 6 and len(found['rows']) == 5
+            assert all(r['match'] == 'exact' for r in found['rows'])
+            assert [r['inn'] for r in found['rows']] == sorted(r['inn'] for r in found['rows'])
+            assert (await direct.search_companies('100%_'))['rows'][0]['inn'] == '9910000005'
+            assert (await direct.search_companies('Полное уникальное имя'))['exact_total'] == 1
+            assert (await direct.search_companies('  ООО  ')) == {'rows': [], 'total': 0, 'exact_total': 0}
+            prefixes = await direct.search_companies('Супер Ёлка')
+            assert prefixes['rows'][0]['match'] == 'prefix'
+            partial = await direct.search_companies('лка тест плюс')
+            assert partial['rows'][0]['match'] == 'partial'
+    finally:
+        with psycopg.connect(db.admin_dsn) as conn:
+            conn.execute('DELETE FROM core.companies WHERE inn = ANY(%s)', ([n[0] for n in names],))

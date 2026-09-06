@@ -19,6 +19,7 @@
 | API и формат ответа | `backend/app/api/routes/`, `backend/app/api/schemas.py` | `backend/app/domain/pipeline.py`, Swagger `/docs` |
 | MCP-доступ к карточкам, запуск и откат | [`MCP_DATA_ACCESS.md`](MCP_DATA_ACCESS.md) | `backend/app/mcp_data/`, `backend/app/infrastructure/company_reader.py`, `company_postgres.py`, `backend/scripts/setup_mcp_access.py` |
 | PostgreSQL и аудит | [`backend/docs/db_design.md`](../backend/docs/db_design.md), `backend/db/schema.sql` | `backend/app/infrastructure/repository.py`, `backend/scripts/load_snapshot.py` |
+| поиск по названию, подсказки и выбор компании | [`COMPANY_NAME_SEARCH.md`](COMPANY_NAME_SEARCH.md) | `backend/app/agent/name_resolution.py`, `backend/app/domain/company_search.py`, `frontend/js/chat/company-search.js` |
 | поиск по деятельности / ОКВЭД | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md) | `backend/app/agent/shortlist.py`, `backend/app/infrastructure/repository.py`, `backend/db/migrations/005_shortlist_activity.sql` |
 | выбор N по показателям, «из найденных», подтверждение порядка | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md), [`RANKING_ACCEPTANCE.md`](RANKING_ACCEPTANCE.md) | `backend/app/agent/ranking.py`, `shortlist.py`, `runtime.py`, `backend/tests/test_ranking.py` |
 | агентный подбор под задачу, мини-сводки, финалисты | [`COUNTERPARTY_SELECTION.md`](COUNTERPARTY_SELECTION.md) | `backend/app/agent/selection.py`, `selection_runtime.py`, `selection_models.py`, `backend/tests/test_counterparty_selection.py` |
@@ -150,7 +151,7 @@ POST /api/v1/chat/messages
   и качественный профиль AI по четырём направлениям с пояснениями; банковские оценки независимы;
 - реализованы PDF-экспорт, кросс-проверка внутренних связей и граф по запросу;
   при числе рёбер > 2 полная проверка предлагает открыть граф;
-- persistent history в БД, универсальный name resolution, отдельный deal-risk
+- persistent history в БД, внешний поиск компаний, отдельный deal-risk
   tool и потоковая выдача текста Master не реализованы; публичные статусы
   этапов передаются NDJSON;
 - реализован MCP-сервер чтения и клиент; Docker использует MCP по умолчанию,
@@ -160,6 +161,8 @@ POST /api/v1/chat/messages
 
 Перед изменением статуса сверяйся с кодом и обновляй этот раздел в том же
 коммите.
+
+Поиск одной компании по краткому/полному названию и подсказки реализованы: [COMPANY_NAME_SEARCH.md](COMPANY_NAME_SEARCH.md).
 
 ## Команды входа
 

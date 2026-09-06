@@ -19,6 +19,7 @@ class ConversationState(AgentState):
     # Сравнение хранится отдельно: trusted_context привязан к одной компании.
     comparison_context: Optional[dict]
     shortlist_context: Optional[dict]
+    pending_company_search: Optional[dict]
     pending_selection: Optional[dict]
     # Backend profiles and separately labelled LLM interpretations, not prose history.
     counterparty_selection: Optional[dict]

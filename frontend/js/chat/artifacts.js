@@ -501,6 +501,20 @@ function renderCompanyShortlist(block) {
   return card;
 }
 
+function renderCompanyChoice(block, context) {
+  const list = element('section', 'company-choice');
+  list.setAttribute('aria-label', 'Выбор компании');
+  safeArray(block.rows).forEach((company, index) => {
+    const button = element('button', 'company-option');
+    button.type = 'button';
+    button.append(element('strong', null, `${index + 1}. ${company.name}`),
+      element('span', null, `ИНН ${company.inn}${company.address ? ` · ${company.address}` : ''}`));
+    button.addEventListener('click', () => context.onCompanyChoice?.(company, block.search_id));
+    list.appendChild(button);
+  });
+  return list;
+}
+
 const BLOCK_RENDERERS = {
   company_card: renderDashboard,
   text: renderTextBlock,
@@ -509,6 +523,7 @@ const BLOCK_RENDERERS = {
   finding_list: renderFindingList,
   comparison_table: renderComparisonTable,
   company_shortlist: renderCompanyShortlist,
+  company_choice: renderCompanyChoice,
   connection_graph: renderConnections,
   evidence_list: renderEvidenceList,
 };
@@ -537,6 +552,7 @@ export function buildAssistantMessage(payload, hooks = {}) {
       .map((item) => [item.id, item])),
     onReportUrl: hooks.onReportUrl,
     onSuggestion: hooks.onSuggestion,
+    onCompanyChoice: hooks.onCompanyChoice,
   };
   context.evidenceButton = (id) => evidenceButton(context, id);
   const comparison = safeArray(payload.blocks).find((block) => block?.type === 'comparison_table');

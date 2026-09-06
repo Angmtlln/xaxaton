@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
 from app.agent.models import FindCompaniesArgs
+from app.domain.company_search import CompanySearchArgs, CompanySearchResult
 
 VERSION = 'company-data-v1'
 MAX_RESULT_BYTES = 8 * 1024 * 1024
@@ -142,6 +143,10 @@ class CandidatesReply(Reply):
     rows: list[Candidate] = Field(max_length=10001)
 
 
+class NameSearchReply(CompanySearchResult, Reply):
+    pass
+
+
 class StatusReply(Reply):
     database: bool
 
@@ -151,6 +156,7 @@ INPUTS = {
     'get_selection_snapshots': SnapshotIdsArgs,
     'list_companies': CatalogArgs,
     'find_companies': SearchArgs,
+    'search_companies': CompanySearchArgs,
     'get_connection_candidates': CandidatesArgs,
     'get_snapshots_for_connections': NeighboursArgs,
     'data_source_status': EmptyArgs,
@@ -160,6 +166,7 @@ OUTPUTS = {
     'get_selection_snapshots': SnapshotsReply,
     'list_companies': CatalogReply,
     'find_companies': SearchReply,
+    'search_companies': NameSearchReply,
     'get_connection_candidates': CandidatesReply,
     'get_snapshots_for_connections': SnapshotsReply,
     'data_source_status': StatusReply,
@@ -169,7 +176,7 @@ OUTPUTS = {
 def wrap_result(operation, value):
     if operation == 'get_latest_snapshot':
         return {'snapshot': value}
-    if operation in {'find_companies', 'data_source_status'}:
+    if operation in {'find_companies', 'search_companies', 'data_source_status'}:
         return value
     return {'rows': value}
 
@@ -179,6 +186,6 @@ def unwrap_result(operation, reply):
     value.pop('version', None)
     if operation == 'get_latest_snapshot':
         return value['snapshot']
-    if operation in {'find_companies', 'data_source_status'}:
+    if operation in {'find_companies', 'search_companies', 'data_source_status'}:
         return value
     return value['rows']

@@ -54,6 +54,7 @@ async def test_real_protocol_discovery_and_all_read_operations(mcp_url):
     assert await reader.get_selection_snapshots([1]) == [snapshot]
     assert await reader.get_selection_snapshots([]) == []
     assert (await reader.list_companies())[0]['filled_blocks'] == 0
+    assert (await reader.search_companies('Тест'))['exact_total'] == 1
     found = await reader.find_companies(min_proceeds=0)
     assert 'eligible_total' not in found
     assert found['rows'][0]['proceeds'] == Decimal('999999999999999999.99')

@@ -27,6 +27,7 @@ async def create_chat_message(
     return await runtime.run(
         payload.message,
         conversation_id=str(payload.conversation_id) if payload.conversation_id else None,
+        company_selection=payload.company_selection.model_dump() if payload.company_selection else None,
     )
 
 
@@ -49,7 +50,8 @@ async def chat_events(runtime, payload):
         try:
             emit_progress('accepted')
             response = await runtime.run(payload.message,
-                conversation_id=str(payload.conversation_id) if payload.conversation_id else None)
+                conversation_id=str(payload.conversation_id) if payload.conversation_id else None,
+                company_selection=payload.company_selection.model_dump() if payload.company_selection else None)
             await queue.put({'type': 'result', 'payload': response.model_dump(mode='json')})
         except Exception:
             logging.getLogger(__name__).exception('Chat stream failed')

@@ -7,6 +7,7 @@ from app.api.deps import settings_dep
 from app.api.schemas import CompanyListItem, CoverageOut, ErrorOut, FactsResponse
 from app.api.serialization import company_out, isoformat_rows
 from app.config import Settings
+from app.domain.company_search import CompanySearchResult
 from app.domain import facts as facts_mod
 from app.infrastructure import repository
 
@@ -27,6 +28,15 @@ async def list_companies(
                                            zsk_risk_level=zsk_risk_level,
                                            min_filled_blocks=min_filled_blocks, query=q)
     return isoformat_rows(rows)
+
+
+@router.get("/search", response_model=CompanySearchResult,
+            summary="Поиск компании по названию или части ИНН")
+async def search_companies(q: str = Query(..., min_length=2, max_length=256),
+                           limit: int = Query(5, ge=1, le=5)):
+    if len(q.strip()) < 2:
+        raise HTTPException(status_code=422, detail="Введите минимум два символа названия")
+    return await repository.search_companies(query=q, limit=limit)
 
 
 @router.get("/{inn}/facts", response_model=FactsResponse,

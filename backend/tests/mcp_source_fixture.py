@@ -29,6 +29,9 @@ class FixtureReader:
     async def list_companies(self, **kwargs):
         return [{k: SNAPSHOT[k] for k in ('inn','short_name','snapshot_id','report_date','risk_level','zsk_risk_level')} |
                 {'filled_blocks': 0, 'negative_count': 0}]
+    async def search_companies(self, query, limit=5):
+        return {'rows': [{'inn': INN, 'name': 'Тест', 'full_name': None, 'address': None,
+                          'snapshot_id': 1, 'match': 'exact'}], 'total': 1, 'exact_total': 1}
     async def find_companies(self, **kwargs):
         return {'total': 1, 'rows': [{k: SNAPSHOT[k] for k in ('inn','short_name','snapshot_id','report_date','risk_level','zsk_risk_level')} |
             {'fin_year': 2025, 'proceeds': Decimal('999999999999999999.99'), 'profit': Decimal('-1.01'),

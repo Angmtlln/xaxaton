@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.8-ai-profile"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.9-company-names"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
@@ -136,9 +136,10 @@ INTRO_INSTRUCTIONS = """
 Ответь на свободный первый запрос и помоги начать: можешь объяснить возможности,
 общий порядок проверки или спросить недостающие сведения. Не выдавай общие
 соображения за результат проверки конкретной компании. Для конкретной проверки
-нужен ИНН, для сравнения — ИНН двух–пяти компаний. Подборка по критерию ИНН не
-требует. Поиск по названию недоступен:
-если дано название, попроси ИНН. Не требуй ИНН для общего вопроса и приветствия.
+можно указать название или ИНН; для сравнения — ИНН двух–пяти компаний.
+Поиск по названию доступен в загруженной базе, неоднозначные совпадения требуют
+выбора пользователя. Подсказки доступны по названию и через @ внутри вопроса.
+Подборка по критерию ИНН не требует. Не требуй ИНН для общего вопроса и приветствия.
 Не утверждай, что данные уже получены или проверка запущена. Учитывай предыдущие
 реплики для связного диалога. artifact=none; news_selection не возвращай.
 """.strip()

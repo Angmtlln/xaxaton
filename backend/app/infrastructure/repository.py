@@ -1,4 +1,5 @@
 """Доступ к данным: чтение карточек и запись прогонов агента."""
+import asyncio
 import json
 import logging
 from typing import Any, Dict, List, Optional
@@ -29,6 +30,24 @@ async def list_companies(limit: int = 50, offset: int = 0,
                          min_filled_blocks: Optional[int] = None,
                          query: Optional[str] = None) -> List[Dict[str, Any]]:
     return await get_company_reader().list_companies(limit=limit, offset=offset, risk_level=risk_level, zsk_risk_level=zsk_risk_level, min_filled_blocks=min_filled_blocks, query=query)
+
+
+async def search_companies(query: str, limit: int = 5) -> Dict[str, Any]:
+    from app.domain.company_search import CompanySearchArgs, CompanySearchResult
+    args = CompanySearchArgs(query=query, limit=limit)
+    from psycopg import Error as DatabaseError
+    from pydantic import ValidationError
+    from app.mcp_data.errors import CompanySourceError, InvalidSourceResponse, SourceTimeout
+    try:
+        found = await asyncio.wait_for(
+            get_company_reader().search_companies(**args.model_dump()), timeout=10)
+        return CompanySearchResult.model_validate(found).model_dump()
+    except TimeoutError:
+        raise SourceTimeout() from None
+    except DatabaseError:
+        raise CompanySourceError() from None
+    except ValidationError:
+        raise InvalidSourceResponse() from None
 
 
 async def get_cached_facts(snapshot_id: int, calculator_ver: str) -> Dict[str, Any]:

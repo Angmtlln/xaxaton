@@ -12,6 +12,7 @@ def setup():
         raise ValueError('Set MCP_DB_PASSWORD in the environment')
     with psycopg.connect(os.environ['DATABASE_URL']) as conn:
         conn.execute((Path(__file__).resolve().parents[1] / 'db/migrations/007_mcp_read_access.sql').read_text())
+        conn.execute((Path(__file__).resolve().parents[1] / 'db/migrations/008_company_name_search.sql').read_text())
         exists = conn.execute("SELECT 1 FROM pg_roles WHERE rolname='contractors_mcp'").fetchone()
         if not exists:
             conn.execute('CREATE ROLE contractors_mcp LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION')

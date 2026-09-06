@@ -5,7 +5,11 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 
+from app.domain.company_search import CompanySelectionInput
+
+
 class ChatMessageRequest(BaseModel):
+    company_selection: Optional[CompanySelectionInput] = None
     model_config = ConfigDict(extra="forbid")
 
     message: str = Field(

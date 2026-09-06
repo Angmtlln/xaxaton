@@ -91,7 +91,7 @@ class McpCompanyDataReader:
                                 raise InvalidSourceResponse()
                             if operation == 'get_snapshots_for_connections' and any(r['inn'] not in params['inns'] for r in value):
                                 raise InvalidSourceResponse()
-                            rows = len(value) if isinstance(value, list) else len(value.get('rows', [])) if operation == 'find_companies' else int(value is not None)
+                            rows = len(value) if isinstance(value, list) else len(value.get('rows', [])) if operation in {'find_companies', 'search_companies'} else int(value is not None)
                             return value
         except Exception as exc:
             error = source_error(exc); code = error.code
@@ -103,6 +103,7 @@ class McpCompanyDataReader:
     async def get_latest_snapshot(self, inn): return await self._read('get_latest_snapshot', {'inn': inn})
     async def get_selection_snapshots(self, snapshot_ids): return await self._read('get_selection_snapshots', {'snapshot_ids': snapshot_ids})
     async def list_companies(self, **kwargs): return await self._read('list_companies', kwargs)
+    async def search_companies(self, query, limit=5): return await self._read('search_companies', {'query': query, 'limit': limit})
     async def find_companies(self, **kwargs): return await self._read('find_companies', kwargs)
     async def get_connection_candidates(self, limit=10001): return await self._read('get_connection_candidates', {'limit': limit})
     async def get_snapshots_for_connections(self, inns): return await self._read('get_snapshots_for_connections', {'inns': inns})

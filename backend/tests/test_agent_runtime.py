@@ -86,13 +86,15 @@ def _settings(**overrides):
     )
 
 
-def _runtime(model, settings=None, *, direct_dispatch=False, grounding_debug=True):
+def _runtime(model, settings=None, *, direct_dispatch=False, grounding_debug=True, name_resolution=False):
     # Existing routing/grounding suites cover the optional debug path explicitly.
     # Production defaults are tested separately in test_agent_latency.py.
     settings = settings or _settings()
     client = GroqClient(settings)
     return MasterAgentRuntime(
         model=model,
+        # These suites isolate analytical routing; name resolution has its own end-to-end suite.
+        name_resolution=name_resolution,
         direct_dispatch=direct_dispatch,
         grounding_debug=grounding_debug,
         model_name="fake-router" if model is not None else None,

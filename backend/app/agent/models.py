@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from app.domain.company_search import CompanyMatch
 from datetime import date
 from typing import Annotated, Dict, List, Literal, Optional, Union
 
@@ -619,6 +620,13 @@ class EvidenceListBlock(StrictModel):
     evidence_ids: List[SafeText] = Field(default_factory=list, max_length=60)
 
 
+class CompanyChoiceBlock(StrictModel):
+    type: Literal["company_choice"] = "company_choice"
+    search_id: SafeText
+    rows: List[CompanyMatch] = Field(min_length=1, max_length=5)
+    total: int = Field(ge=1)
+
+
 UIBlock = Annotated[
     Union[
         CompanyCardBlock,
@@ -628,6 +636,7 @@ UIBlock = Annotated[
         FindingListBlock,
         ComparisonTableBlock,
         CompanyShortlistBlock,
+        CompanyChoiceBlock,
         ConnectionGraphBlock,
         EvidenceListBlock,
     ],
@@ -639,7 +648,7 @@ class AssistantMetadata(StrictModel):
     agent_run_id: SafeText
     check_run_id: Optional[SafeText] = None
     status: Literal["completed", "partial", "needs_input", "error"]
-    tool_calls: int = Field(ge=0, le=1)
+    tool_calls: int = Field(ge=0, le=3)
     routing: Literal["model", "deterministic_fallback", "deterministic_guard"]
     model: Optional[SafeText] = None
     prompt_version: SafeText

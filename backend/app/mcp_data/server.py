@@ -19,7 +19,7 @@ from app.infrastructure.company_postgres import PostgresCompanyDataReader
 from .contracts import (VERSION, MAX_RESULT_BYTES, INPUTS, OUTPUTS, wrap_result,
                         SnapshotArgs, SnapshotIdsArgs, CatalogArgs, SearchArgs,
                         CandidatesArgs, NeighboursArgs, SnapshotReply, SnapshotsReply,
-                        CatalogReply, SearchReply, CandidatesReply, StatusReply)
+                        CatalogReply, SearchReply, CandidatesReply, StatusReply, CompanySearchArgs, NameSearchReply)
 
 log = logging.getLogger(__name__)
 
@@ -91,6 +91,11 @@ def create_server(reader=None):
     async def list_companies(params: CatalogArgs) -> CatalogReply:
         """Read the paginated company catalog, up to 200 rows."""
         return await invoke('list_companies', params)
+
+    @server.tool(annotations=annotations)
+    async def search_companies(params: CompanySearchArgs) -> NameSearchReply:
+        """Search company identities by name, with exact count before limit."""
+        return await invoke('search_companies', params)
 
     @server.tool(annotations=annotations)
     async def find_companies(params: SearchArgs) -> SearchReply:

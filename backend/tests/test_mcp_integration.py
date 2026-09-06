@@ -19,6 +19,7 @@ async def test_all_facade_reads_use_mcp_without_direct_fallback(mcp_url, monkeyp
     assert (await repository.get_selection_snapshots([1])) == [snapshot]
     assert (await repository.list_companies())[0]['inn'] == INN
     assert (await repository.find_companies(min_proceeds=0))['total'] == 1
+    assert (await repository.search_companies('Тест'))['exact_total'] == 1
     assert (await repository.get_connection_candidates())[0]['inn'] == INN
     assert (await repository.get_snapshots_for_connections([INN])) == [snapshot]
     settings.mcp_server_url = 'http://127.0.0.1:1/mcp'

@@ -1,5 +1,6 @@
 /* Экран диалога: состояние беседы, отправка сообщений и подписки на события.
    Рендер артефактов живёт в artifacts.js, сетевой вызов — в api.js. */
+import { attachCompanySearch } from './company-search.js';
 import { element } from '../shared/dom.js';
 import { buildAssistantMessage } from './artifacts.js';
 import { requestErrorText, sendChatMessage } from './api.js';
@@ -7,6 +8,7 @@ import { registerTurn, resetNavigation } from './navigation.js';
 
 const form = document.getElementById('chat-form');
 const input = document.getElementById('chat-input');
+const companySearch = attachCompanySearch(input);
 const composerHint = document.getElementById('composer-hint');
 const MESSAGE_LIMIT = 4000;
 const sendButton = document.getElementById('send-button');
@@ -35,6 +37,9 @@ function syncLayout() {
 
 function updateActions() {
   thread.querySelectorAll('.export-actions button').forEach(button => { button.disabled = form.hasAttribute('aria-busy'); });
+  thread.querySelectorAll('.company-choice').forEach((block) => {
+    block.querySelectorAll('button').forEach((button) => { button.disabled = form.hasAttribute('aria-busy') || block.closest('article') !== thread.lastElementChild; });
+  });
   const rows = [...thread.querySelectorAll('.suggested-actions')];
   rows.forEach((row, index) => {
     row.hidden = index !== rows.length - 1 || row.closest('article') !== thread.lastElementChild;
@@ -53,15 +58,16 @@ function saveConversation() {
 function showActiveCompany() {
   activeCompanyBar.hidden = !conversationId && !conversationHistory.length;
   input.placeholder = activeCompany ? 'Уточните по компании'
-    : 'Опишите задачу…';
+    : 'Название, ИНН или вопрос…';
   activeCompanyLabel.textContent = sessionExpired
-    ? 'Сессия истекла · следующий запрос начнёт новый диалог, укажите ИНН'
+    ? 'Сессия истекла · следующий запрос начнёт новый диалог, укажите название или ИНН'
     : activeCompany
     ? `${activeCompany.name || 'Контрагент'} · ИНН ${activeCompany.inn}`
     : 'Компания ещё не выбрана';
 }
 
 function resetConversation() {
+  companySearch.close();
   if (form.hasAttribute('aria-busy')) return;
   const draft = sessionExpired ? input.value : '';
   conversationId = null;
@@ -87,12 +93,13 @@ function resizeInput() {
   input.setCustomValidity(invalid ? `Максимум ${MESSAGE_LIMIT} символов. Сейчас ${length}. Сократите запрос.` : '');
   input.setAttribute('aria-invalid', String(invalid));
   composerHint.textContent = invalid ? `${length} / ${MESSAGE_LIMIT} · сократите запрос, текст сохранён`
-    : `До ${MESSAGE_LIMIT} символов · ответы по доступным данным`;
+    : 'Название или ИНН · @ — подсказки внутри вопроса';
   input.style.height = 'auto';
   input.style.height = `${Math.min(input.scrollHeight, 132)}px`;
 }
 
 function setBusy(value) {
+  if (value) companySearch.close();
   input.disabled = value;
   sendButton.disabled = value;
   newConversationButton.disabled = value;
@@ -136,6 +143,7 @@ function appendLoading() {
 function appendAssistantMessage(payload) {
   const article = buildAssistantMessage(payload, {
     index: thread.children.length,
+    onCompanyChoice: (company, searchId) => sendMessage(`Выбираю ${company.name}, ИНН ${company.inn}`, { search_id: searchId, inn: company.inn }),
     onReportUrl: (url) => {
       lastReportLink.href = url;
       lastReportLink.hidden = false;
@@ -198,7 +206,7 @@ function appendRequestError(message) {
   saveConversation();
 }
 
-async function sendMessage(message) {
+async function sendMessage(message, companySelection = null) {
   const text = String(message || '').trim();
   if (!text || form.hasAttribute('aria-busy')) return;
   if (Array.from(text).length > MESSAGE_LIMIT) {
@@ -225,7 +233,7 @@ async function sendMessage(message) {
       loading.querySelector('.loading-title').textContent = event.title;
       loading.querySelector('.loading-detail').textContent = event.detail;
       loading.dataset.stage = event.stage;
-    });
+    }, companySelection);
     loading.remove();
     if (!ok) {
       appendRequestError(requestErrorText(payload));
@@ -269,7 +277,7 @@ form.addEventListener('submit', (event) => {
 input.addEventListener('input', () => { resizeInput(); saveConversation(); });
 window.addEventListener('resize', resizeInput);
 input.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+  if (!event.defaultPrevented && event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
     form.requestSubmit();
   }

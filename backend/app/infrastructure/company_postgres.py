@@ -61,6 +61,37 @@ class PostgresCompanyDataReader:
                 await cur.execute(sql, {"ids": snapshot_ids})
                 return await cur.fetchall()
 
+    async def search_companies(self, query: str, limit: int = 5) -> Dict[str, Any]:
+        from app.domain.company_search import CompanySearchArgs, CompanySearchResult
+        args = CompanySearchArgs(query=query, limit=limit)
+        # strpos/left treat %, _ and backslash literally, without LIKE escaping.
+        sql = """
+        WITH q AS (SELECT core.normalize_company_name(%(query)s) AS key),
+        matches AS (
+          SELECT v.inn, v.name, v.full_name, v.address, v.snapshot_id,
+                 CASE WHEN q.key IN (v.short_key, v.full_key, v.inn) THEN 0
+                      WHEN left(v.short_key, length(q.key)) = q.key
+                        OR left(v.full_key, length(q.key)) = q.key
+                        OR left(v.inn, length(q.key)) = q.key THEN 1 ELSE 2 END AS priority
+          FROM core.v_company_name_search v CROSS JOIN q
+          WHERE length(q.key) >= 2 AND (strpos(v.short_key, q.key) > 0
+            OR strpos(v.full_key, q.key) > 0 OR left(v.inn, length(q.key)) = q.key)
+        ), page AS (
+          SELECT inn, name, full_name, address, snapshot_id,
+                 CASE priority WHEN 0 THEN 'exact' WHEN 1 THEN 'prefix' ELSE 'partial' END AS match,
+                 priority
+          FROM matches ORDER BY priority, inn LIMIT %(limit)s
+        )
+        SELECT (SELECT count(*) FROM matches) AS total,
+               (SELECT count(*) FROM matches WHERE priority = 0) AS exact_total,
+               COALESCE((SELECT jsonb_agg(to_jsonb(page) - 'priority' ORDER BY priority, inn)
+                         FROM page), '[]'::jsonb) AS rows
+        """
+        async with self._pool().connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(sql, args.model_dump())
+                return CompanySearchResult.model_validate(await cur.fetchone()).model_dump()
+
     async def list_companies(self, limit: int = 50, offset: int = 0,
                              risk_level: Optional[str] = None,
                              zsk_risk_level: Optional[str] = None,
