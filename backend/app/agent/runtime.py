@@ -594,7 +594,8 @@ class MasterAgentRuntime:
                     candidate = parse_master_answer(
                         message_text(final),
                         allowed_artifacts=allowed_artifacts(execution.last_successful(), contextual=contextual),
-                        allow_risk_profile=False,
+                        allow_risk_profile=(execution.last_successful() is not None
+                                            and execution.last_successful().metadata.tool == "full_company_check"),
                     )
             except Exception as exc:  # noqa: BLE001
                 log.info("agent_model_fallback run_id=%s reason=%s detail=%s", run_id, type(exc).__name__, str(exc)[:400])
@@ -841,7 +842,10 @@ def _model_policy(
                     name="user_context"))
             schema = MasterAnswer.model_json_schema()
             schema.setdefault("required", []).append("suggested_actions")
-            schema["properties"].pop("risk_profile", None)
+            if after_tool and actual_tool == "full_company_check":
+                schema["required"].append("risk_profile")
+            else:
+                schema["properties"].pop("risk_profile", None)
             news_prompt = ""
             if news_enabled and after_tool and actual_tool == "full_company_check" and execution.result.status != "error":
                 from .news import news_search_request

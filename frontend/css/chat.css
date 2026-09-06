@@ -1078,9 +1078,11 @@
 .radar-medium { fill: #ebbb57; stroke: #a97817; }
 .radar-high { fill: #e76d70; stroke: #bd444b; }
 .radar-unknown { fill: #c4c9d2; stroke: #87909f; stroke-dasharray: 2 2; }
-.radar-explanation { font-size: 11px; line-height: 1.5; color: #666b75; }
-.radar-explanation summary { cursor: pointer; text-align: center; min-height: 30px; }
-.radar-explanation p { margin: 8px 0; }
+@media (min-width: 821px) {
+  .company-summary { grid-template-columns: minmax(0, 1fr) 195.5px; }
+  .radar-panel, .risk-radar { width: 195.5px; }
+  .risk-radar svg { width: 195.5px; height: 172.5px; }
+}
 
 /* Закрепление действует внутри прокручиваемой таблицы. */
 .comparison-scroll { --comparison-measure-width: 240px; --comparison-company-width: 260px; max-height: 65vh; overflow: auto; isolation: isolate; }

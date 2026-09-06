@@ -114,6 +114,9 @@ Do not attempt to prove semantic entailment of every sentence with handcrafted r
 - Frontend renders only allowlisted artifacts.
 - Backend hydrates metrics, charts, links and evidence from verified data.
 - Master explains what the verified data means.
+- Explicit product exception: `risk_profile` is the Master's qualitative AI opinion,
+  not a verified metric or bank rating. It may color the four radar axes, while the
+  backend preserves unknown for missing data and official hard-stop overrides.
 
 ## Engineering scope
 

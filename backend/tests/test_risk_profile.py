@@ -14,10 +14,10 @@ def proposal(level='low'):
 
 
 @pytest.mark.parametrize('level', ['low', 'medium', 'high'])
-def test_model_cannot_color_axes_or_soften_source_hard_stop(check_payload, level):
+def test_model_colors_axes_but_cannot_soften_source_hard_stop(check_payload, level):
     data, _ = _compact_check(CheckResponse.model_validate(check_payload))
     profile = _risk_profile(data, proposal(level))
-    assert profile.finance.level == 'unknown'
+    assert profile.finance.level == level
     assert profile.regulatory.level == 'high'
     assert data.company.risk_level == check_payload['company']['risk_level']
 
@@ -69,3 +69,26 @@ async def test_comparison_debug_repair_ignores_unused_broken_profile():
     )
     assert repaired.message == 'Исправленное пояснение'
     assert repaired.risk_profile is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('direct', [True, False])
+async def test_full_check_keeps_ai_profile_and_requests_it_only_after_tool(monkeypatch, check_payload, direct):
+    import json
+    from langchain_core.messages import AIMessage
+    from test_agent_runtime import _model, _runtime, _tool_call, _settings
+    async def full(*args, **kwargs):
+        return check_payload
+    monkeypatch.setattr('app.agent.tools.run_check', full)
+    answers = [AIMessage(content=proposal('medium').model_dump_json())]
+    if not direct:
+        answers.insert(0, AIMessage(content='', tool_calls=[_tool_call()]))
+    model = _model(*answers)
+    result = await _runtime(model, settings=_settings(web_news_enabled=False),
+                            direct_dispatch=direct, grounding_debug=False).run('Проверь контрагента 6165169320')
+    assert result.metadata.synthesis == 'model'
+    assert result.leading_artifact.risk_profile.finance.level == 'medium'
+    assert result.leading_artifact.risk_profile.regulatory.level == 'high'
+    system = model._messages[-1][0].content
+    schema = json.loads(system.split('Схема финального JSON: ')[1].split('\n')[0])
+    assert 'risk_profile' in schema['required']

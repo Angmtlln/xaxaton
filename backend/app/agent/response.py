@@ -673,8 +673,9 @@ def _elapsed_ms(started: float) -> int:
 
 
 def _risk_profile(data, answer):
-    """Only backend policy can color an axis; model opinions remain in prose."""
+    """Qualitative LLM interpretation, with deterministic missing-data/policy bounds."""
     from .models import RiskAxis, RiskProfile
+    proposed = answer.risk_profile if answer else None
     def known(prefix):
         return any(f.value is not None for key, f in data.facts.items() if key.startswith(prefix))
     available = {
@@ -688,9 +689,9 @@ def _risk_profile(data, answer):
     stops = [s for s in data.policy_signals if s.kind == "official_hard_stop" and s.value]
     result = {}
     for key, has_data in available.items():
-        result[key] = RiskAxis(level="unknown", reason=(
-            "Недостаточно данных по направлению." if not has_data else
-            "Данные доступны; формальный уровень риска не назначен."))
+        axis = getattr(proposed, key) if proposed is not None else None
+        result[key] = axis if has_data and axis else RiskAxis(level="unknown", reason=(
+            "Недостаточно данных по направлению." if not has_data else "Оценка модели недоступна."))
     if stops:
         result["regulatory"] = RiskAxis(level="high", reason="В источнике есть официальные ограничительные сигналы; уточните их актуальность и охват.")
     return RiskProfile(**result)
