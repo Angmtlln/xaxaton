@@ -40,6 +40,20 @@ async def get_latest_snapshot(inn: str) -> Optional[Dict[str, Any]]:
             return await cur.fetchone()
 
 
+async def get_selection_snapshots(snapshot_ids: List[int]) -> List[Dict[str, Any]]:
+    """Read only the bounded exact snapshots selected by the filter query."""
+    if not snapshot_ids:
+        return []
+    if len(snapshot_ids) > 50:
+        raise ValueError("Selection is limited to 50 snapshots")
+    sql = SNAPSHOT_SQL.replace("c.inn = %(inn)s", "s.id = ANY(%(ids)s)").replace(
+        "ORDER  BY s.report_date DESC\nLIMIT  1", "ORDER BY c.inn, s.id")
+    async with get_pool().connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(sql, {"ids": snapshot_ids})
+            return await cur.fetchall()
+
+
 async def list_companies(limit: int = 50, offset: int = 0,
                          risk_level: Optional[str] = None,
                          zsk_risk_level: Optional[str] = None,

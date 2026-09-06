@@ -20,6 +20,9 @@ class ConversationState(AgentState):
     comparison_context: Optional[dict]
     shortlist_context: Optional[dict]
     pending_selection: Optional[dict]
+    # Backend profiles and separately labelled LLM interpretations, not prose history.
+    counterparty_selection: Optional[dict]
+    pending_counterparty_selection: Optional[dict]
     user_context: Optional[list[str]]
     last_topic: Optional[str]
     last_answer_verified: Optional[bool]

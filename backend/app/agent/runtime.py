@@ -190,6 +190,10 @@ class MasterAgentRuntime:
             checkpointer=self.conversation_store.checkpointer,
         )
         previous = (await state_agent.aget_state(config)).values
+        from .selection_runtime import handles_selection, run_selection_turn
+        if handles_selection(message, previous):
+            return await run_selection_turn(self, message, cid, run_id, started, deadline,
+                                            binding, previous, state_agent, config, execution)
         active = previous.get("active_company")
         trusted_store = previous.get("trusted_context")
         shortlist_store = previous.get("shortlist_context")
@@ -438,6 +442,8 @@ class MasterAgentRuntime:
                 "comparison_context": comparison_store,
                 "shortlist_context": shortlist_store,
                 "pending_selection": pending_selection,
+                "counterparty_selection": previous.get("counterparty_selection"),
+                "pending_counterparty_selection": None,
                 "last_topic": last_topic,
                 "last_answer_verified": answer_verified,
             },

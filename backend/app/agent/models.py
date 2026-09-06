@@ -644,7 +644,7 @@ class AssistantMetadata(StrictModel):
     prompt_version: SafeText
     latency_ms: int = Field(ge=0)
     error_code: Optional[SafeText] = None
-    model_calls: int = Field(default=0, ge=0, le=5)
+    model_calls: int = Field(default=0, ge=0, le=8)
     synthesis: Literal["deterministic", "model", "fallback"] = "deterministic"
     grounding_status: Literal[
         "not_requested",

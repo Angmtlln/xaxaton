@@ -1,0 +1,756 @@
+[
+  {
+    "request": "Подбери 3 лучших поставщиков: компании занимающиеся торговлей и с выручкой от 100 млн. Работа без аванса, важна устойчивость поставок.",
+    "response": {
+      "message": "Условия: Деятельность: торговлей (основной или дополнительный ОКВЭД); выручка от 100.0 млн ₽. Найдено: 24; проанализировано: 24.\n\nСравнение частичное (partial): по трём финалистам раскрыты финансы и судебные данные, но полные суммы исполнительных производств и данные о надзорных проверках неполны, а фактическая торговая деятельность и готовность работать без аванса не подтверждены отчётностью. Поэтому «лучших» объявить нельзя — можно лишь сопоставить подтверждённые обстоятельства.\n\nКомпромиссы:\n- ООО «ЭКОТОРГ М» — самая сильная финансовая база: выручка 4,53 млрд руб. (2025), прибыль 328,7 млн, капитал 833 млн, 12 лет истории. Минусы: снижение выручки на 14,3% г/г, 12 исков на 73,6 млн, 123 исполнительных производства (действующее — 500 руб., но суммы большинства не раскрыты).\n- ООО «ЛИДЕРТЕКС» — выручка 3,73 млрд, прибыль 276,3 млн, капитал 593 млн, растущая прибыль и капитал. Минусы: выручка −15,8% г/г, кредиторка 2,13 млрд, денежные средства всего 6,4 млн, 17 исков на 28,3 млн, 37 исполнительных производств.\n- ООО «АГРОФРУТ» — выручка 4,31 млрд, но капитал лишь 128,6 млн при кредиторке 1,26 млрд, снижение выручки два года подряд, метка «массовый адрес», 13 действующих исполнительных производств. Наименее устойчивый профиль из трёх для работы без аванса.\n\nОграничения: иски не равны признанному долгу; выручка и прибыль не гарантируют оплату после поставки; устойчивость поставок (склад, логистика, ассортимент) отчётностью не подтверждается. Перед договором без аванса рекомендуется запросить у каждого реквизиты, уточнить действующие исполнительные производства и условия отсрочки, начать с пробных поставок.\n\n**ООО \"ЭКОТОРГ М\" · ИНН 3123346195**\nООО «ЭКОТОРГ М» (Люберцы, 2014 г.р.). Выручка 2025 — 4,53 млрд руб. (−14,3% г/г), прибыль 328,7 млн руб., капитал 833 млн руб. Риск-уровень LOW, ZSK GREEN. 12 дел ответчиком на 73,6 млн руб., 123 исполнительных производства.\nОграничения: Снижение выручки в 2025; кредиторская задолженность 1,05 млрд руб.; действующие исполнительные производства и иски требуют уточнения.\n\n**ООО \"ЛИДЕРТЕКС\" · ИНН 3711039473**\nООО «ЛИДЕРТЕКС» (Иваново, 2015 г.р.). Выручка 2025 — 3,73 млрд руб. (−15,8% г/г), прибыль 276,3 млн руб., капитал 593 млн руб. Риск-уровень LOW, ZSK GREEN. 17 дел ответчиком на 28,3 млн руб., 37 исполнительных производств.\nОграничения: Снижение выручки в 2025; кредиторская задолженность 2,13 млрд руб.; денежные средства всего 6,4 млн руб.; действующие исполнительные производства.\n\n**ООО \"АГРОФРУТ\" · ИНН 7724398540**\nООО «АГРОФРУТ» (Москва, 2017 г.р.). Выручка 2025 — 4,31 млрд руб. (−9% г/г), прибыль 96,98 млн руб., капитал 128,6 млн руб. Риск-уровень LOW, ZSK GREEN. 6 дел ответчиком на 36,4 млн руб., 86 исполнительных производств. Метка «массовый адрес».\nОграничения: Снижение выручки два года подряд; кредиторская задолженность 1,26 млрд руб. при капитале 128,6 млн; массовый адрес регистрации; действующие исполнительные производства.",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [
+        {
+          "type": "comparison_table",
+          "title": "Детальное сравнение",
+          "columns": [
+            {
+              "years_from_registration": 12,
+              "signal_status": "attention",
+              "inn": "3123346195",
+              "name": "ООО \"ЭКОТОРГ М\"",
+              "availability": "PARTIAL",
+              "coverage_scope": "Финансы и правовые данные",
+              "gaps": [
+                "Не все суммы исполнительных производств раскрыты; полная сумма неизвестна.",
+                "Данные о надзорных проверках отсутствуют."
+              ],
+              "key_facts": [
+                {
+                  "tone": "attention",
+                  "label": "С осторожностью",
+                  "display_value": "действующие исполнительные производства, арбитражные дела в роли ответчика",
+                  "evidence_id": "3123346195:flags.attention_codes"
+                },
+                {
+                  "tone": "neutral",
+                  "label": "Выручка",
+                  "display_value": "4,53 млрд ₽ · 2025",
+                  "evidence_id": "3123346195:fin.proceeds.2025"
+                },
+                {
+                  "tone": "positive",
+                  "label": "Прибыль (убыток)",
+                  "display_value": "328,67 млн ₽ · 2025",
+                  "evidence_id": "3123346195:fin.profit.2025"
+                }
+              ],
+              "filled_count": 9,
+              "total_count": 10,
+              "bank_risk_level": "LOW",
+              "zsk_risk_level": "GREEN"
+            },
+            {
+              "years_from_registration": 10,
+              "signal_status": "attention",
+              "inn": "3711039473",
+              "name": "ООО \"ЛИДЕРТЕКС\"",
+              "availability": "PARTIAL",
+              "coverage_scope": "Финансы и правовые данные",
+              "gaps": [
+                "Не все суммы исполнительных производств раскрыты; полная сумма неизвестна.",
+                "Результаты части надзорных проверок не раскрыты."
+              ],
+              "key_facts": [
+                {
+                  "tone": "attention",
+                  "label": "С осторожностью",
+                  "display_value": "действующие исполнительные производства, арбитражные дела в роли ответчика",
+                  "evidence_id": "3711039473:flags.attention_codes"
+                },
+                {
+                  "tone": "neutral",
+                  "label": "Выручка",
+                  "display_value": "3,73 млрд ₽ · 2025",
+                  "evidence_id": "3711039473:fin.proceeds.2025"
+                },
+                {
+                  "tone": "positive",
+                  "label": "Прибыль (убыток)",
+                  "display_value": "276,31 млн ₽ · 2025",
+                  "evidence_id": "3711039473:fin.profit.2025"
+                }
+              ],
+              "filled_count": 9,
+              "total_count": 10,
+              "bank_risk_level": "LOW",
+              "zsk_risk_level": "GREEN"
+            },
+            {
+              "years_from_registration": 9,
+              "signal_status": "attention",
+              "inn": "7724398540",
+              "name": "ООО \"АГРОФРУТ\"",
+              "availability": "PARTIAL",
+              "coverage_scope": "Финансы и правовые данные",
+              "gaps": [
+                "Часть балансовых статей последнего года не раскрыта; ограничения каждого расчёта указаны отдельно.",
+                "Не все суммы исполнительных производств раскрыты; полная сумма неизвестна.",
+                "Данные о надзорных проверках отсутствуют."
+              ],
+              "key_facts": [
+                {
+                  "tone": "attention",
+                  "label": "С осторожностью",
+                  "display_value": "действующие исполнительные производства, массовый адрес регистрации, арбитражные дела в роли ответчика",
+                  "evidence_id": "7724398540:flags.attention_codes"
+                },
+                {
+                  "tone": "neutral",
+                  "label": "Выручка",
+                  "display_value": "4,31 млрд ₽ · 2025",
+                  "evidence_id": "7724398540:fin.proceeds.2025"
+                },
+                {
+                  "tone": "positive",
+                  "label": "Прибыль (убыток)",
+                  "display_value": "96,98 млн ₽ · 2025",
+                  "evidence_id": "7724398540:fin.profit.2025"
+                }
+              ],
+              "filled_count": 9,
+              "total_count": 10,
+              "bank_risk_level": "LOW",
+              "zsk_risk_level": "GREEN"
+            }
+          ],
+          "rows": [
+            {
+              "id": "proceeds",
+              "label": "Выручка",
+              "unit": "руб",
+              "cells": [
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "4,53 млрд ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3123346195:fin.proceeds.2025"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "3,73 млрд ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3711039473:fin.proceeds.2025"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "4,31 млрд ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "7724398540:fin.proceeds.2025"
+                }
+              ],
+              "section": "finance",
+              "is_key_difference": true
+            },
+            {
+              "id": "profit",
+              "label": "Прибыль (убыток)",
+              "unit": "руб",
+              "cells": [
+                {
+                  "tone": "positive",
+                  "interpretation": "Положительная прибыль за указанный период",
+                  "display_value": "328,67 млн ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3123346195:fin.profit.2025"
+                },
+                {
+                  "tone": "positive",
+                  "interpretation": "Положительная прибыль за указанный период",
+                  "display_value": "276,31 млн ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3711039473:fin.profit.2025"
+                },
+                {
+                  "tone": "positive",
+                  "interpretation": "Положительная прибыль за указанный период",
+                  "display_value": "96,98 млн ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "7724398540:fin.profit.2025"
+                }
+              ],
+              "section": "finance",
+              "is_key_difference": true
+            },
+            {
+              "id": "capitals",
+              "label": "Собственный капитал",
+              "unit": "руб",
+              "cells": [
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "833,38 млн ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3123346195:fin.capitals.2025"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "593,06 млн ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3711039473:fin.capitals.2025"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "128,63 млн ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "7724398540:fin.capitals.2025"
+                }
+              ],
+              "section": "finance",
+              "is_key_difference": true
+            },
+            {
+              "id": "accounts_payable",
+              "label": "Кредиторская задолженность",
+              "unit": "руб",
+              "cells": [
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "1,05 млрд ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3123346195:fin.accounts_payable.2025"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "2,13 млрд ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "3711039473:fin.accounts_payable.2025"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "1,26 млрд ₽ · 2025",
+                  "state": "data",
+                  "evidence_id": "7724398540:fin.accounts_payable.2025"
+                }
+              ],
+              "section": "finance",
+              "is_key_difference": true
+            },
+            {
+              "id": "proceeds_change_pct",
+              "label": "Изменение выручки год к году",
+              "unit": "%",
+              "cells": [
+                {
+                  "tone": "attention",
+                  "interpretation": "Выручка снизилась относительно предыдущего года",
+                  "display_value": "-14,3% · 2024 → 2025",
+                  "state": "data",
+                  "evidence_id": "3123346195:fin.proceeds_change_pct"
+                },
+                {
+                  "tone": "attention",
+                  "interpretation": "Выручка снизилась относительно предыдущего года",
+                  "display_value": "-15,8% · 2024 → 2025",
+                  "state": "data",
+                  "evidence_id": "3711039473:fin.proceeds_change_pct"
+                },
+                {
+                  "tone": "attention",
+                  "interpretation": "Выручка снизилась относительно предыдущего года",
+                  "display_value": "-9,0% · 2024 → 2025",
+                  "state": "data",
+                  "evidence_id": "7724398540:fin.proceeds_change_pct"
+                }
+              ],
+              "section": "finance",
+              "is_key_difference": true
+            },
+            {
+              "id": "court.defendant_count",
+              "label": "Дел в роли ответчика",
+              "unit": null,
+              "cells": [
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "12",
+                  "state": "data",
+                  "evidence_id": "3123346195:court.defendant_count"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "17",
+                  "state": "data",
+                  "evidence_id": "3711039473:court.defendant_count"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "6",
+                  "state": "data",
+                  "evidence_id": "7724398540:court.defendant_count"
+                }
+              ],
+              "section": "courts",
+              "is_key_difference": true
+            },
+            {
+              "id": "court.defendant_amount",
+              "label": "Сумма исков к компании",
+              "unit": "руб",
+              "cells": [
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "73,62 млн ₽",
+                  "state": "data",
+                  "evidence_id": "3123346195:court.defendant_amount"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "28,28 млн ₽",
+                  "state": "data",
+                  "evidence_id": "3711039473:court.defendant_amount"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "36,39 млн ₽",
+                  "state": "data",
+                  "evidence_id": "7724398540:court.defendant_amount"
+                }
+              ],
+              "section": "courts",
+              "is_key_difference": true
+            },
+            {
+              "id": "execproc.total_count",
+              "label": "Исполнительных производств",
+              "unit": null,
+              "cells": [
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "123",
+                  "state": "data",
+                  "evidence_id": "3123346195:execproc.total_count"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "37",
+                  "state": "data",
+                  "evidence_id": "3711039473:execproc.total_count"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "86",
+                  "state": "data",
+                  "evidence_id": "7724398540:execproc.total_count"
+                }
+              ],
+              "section": "enforcement",
+              "is_key_difference": false
+            },
+            {
+              "id": "execproc.active_amount",
+              "label": "Сумма действующих производств",
+              "unit": "руб",
+              "cells": [
+                {
+                  "tone": "attention",
+                  "interpretation": "Есть действующие взыскания; требуется оценка обстоятельств",
+                  "display_value": "500 ₽",
+                  "state": "data",
+                  "evidence_id": "3123346195:execproc.active_amount"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "Нет данных",
+                  "state": "no_data",
+                  "evidence_id": null
+                },
+                {
+                  "tone": "attention",
+                  "interpretation": "Есть действующие взыскания; требуется оценка обстоятельств",
+                  "display_value": "158,95 тыс ₽",
+                  "state": "data",
+                  "evidence_id": "7724398540:execproc.active_amount"
+                }
+              ],
+              "section": "enforcement",
+              "is_key_difference": true
+            },
+            {
+              "id": "inspections.count",
+              "label": "Надзорных проверок",
+              "unit": null,
+              "cells": [
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "Нет данных",
+                  "state": "no_data",
+                  "evidence_id": null
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "16",
+                  "state": "data",
+                  "evidence_id": "3711039473:inspections.count"
+                },
+                {
+                  "tone": "neutral",
+                  "interpretation": null,
+                  "display_value": "Нет данных",
+                  "state": "no_data",
+                  "evidence_id": null
+                }
+              ],
+              "section": "regulatory",
+              "is_key_difference": false
+            }
+          ],
+          "empty_message": null
+        }
+      ],
+      "evidence": [
+        {
+          "id": "3123346195:fin.proceeds_change_pct",
+          "fact_id": "3123346195:fin.proceeds_change_pct",
+          "source": "derived_metric",
+          "title": "Изменение выручки год к году",
+          "field_ref": "report.finReports[1].common.proceeds; report.finReports[0].common.proceeds",
+          "display_value": "-14,3 %",
+          "unit": "%"
+        },
+        {
+          "id": "3123346195:court.defendant_count",
+          "fact_id": "3123346195:court.defendant_count",
+          "source": "derived_metric",
+          "title": "Дел в роли ответчика",
+          "field_ref": "report.arbitrationCases[].defendantCount",
+          "display_value": "12",
+          "unit": "шт"
+        },
+        {
+          "id": "3123346195:court.defendant_amount",
+          "fact_id": "3123346195:court.defendant_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков к компании",
+          "field_ref": "report.arbitrationCases[].defendantAmount",
+          "display_value": "73 616 050 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3123346195:execproc.total_count",
+          "fact_id": "3123346195:execproc.total_count",
+          "source": "derived_metric",
+          "title": "Исполнительных производств всего",
+          "field_ref": "report.executionProceedings[]",
+          "display_value": "123",
+          "unit": "шт"
+        },
+        {
+          "id": "3123346195:execproc.active_amount",
+          "fact_id": "3123346195:execproc.active_amount",
+          "source": "derived_metric",
+          "title": "Сумма действующих производств",
+          "field_ref": "report.executionProceedings[].amount",
+          "display_value": "500 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3123346195:flags.attention_codes",
+          "fact_id": "3123346195:flags.attention_codes",
+          "source": "source_signal",
+          "title": "Метки, требующие уточнения",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "действующие исполнительные производства, арбитражные дела в роли ответчика",
+          "unit": null
+        },
+        {
+          "id": "3711039473:fin.proceeds_change_pct",
+          "fact_id": "3711039473:fin.proceeds_change_pct",
+          "source": "derived_metric",
+          "title": "Изменение выручки год к году",
+          "field_ref": "report.finReports[1].common.proceeds; report.finReports[0].common.proceeds",
+          "display_value": "-15,8 %",
+          "unit": "%"
+        },
+        {
+          "id": "3711039473:court.defendant_count",
+          "fact_id": "3711039473:court.defendant_count",
+          "source": "derived_metric",
+          "title": "Дел в роли ответчика",
+          "field_ref": "report.arbitrationCases[].defendantCount",
+          "display_value": "17",
+          "unit": "шт"
+        },
+        {
+          "id": "3711039473:court.defendant_amount",
+          "fact_id": "3711039473:court.defendant_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков к компании",
+          "field_ref": "report.arbitrationCases[].defendantAmount",
+          "display_value": "28 280 247 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3711039473:execproc.total_count",
+          "fact_id": "3711039473:execproc.total_count",
+          "source": "derived_metric",
+          "title": "Исполнительных производств всего",
+          "field_ref": "report.executionProceedings[]",
+          "display_value": "37",
+          "unit": "шт"
+        },
+        {
+          "id": "3711039473:inspections.count",
+          "fact_id": "3711039473:inspections.count",
+          "source": "derived_metric",
+          "title": "Проверок надзорных органов",
+          "field_ref": "report.inspections[]",
+          "display_value": "16",
+          "unit": "шт"
+        },
+        {
+          "id": "3711039473:flags.attention_codes",
+          "fact_id": "3711039473:flags.attention_codes",
+          "source": "source_signal",
+          "title": "Метки, требующие уточнения",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "действующие исполнительные производства, арбитражные дела в роли ответчика",
+          "unit": null
+        },
+        {
+          "id": "7724398540:fin.proceeds_change_pct",
+          "fact_id": "7724398540:fin.proceeds_change_pct",
+          "source": "derived_metric",
+          "title": "Изменение выручки год к году",
+          "field_ref": "report.finReports[1].common.proceeds; report.finReports[0].common.proceeds",
+          "display_value": "-9 %",
+          "unit": "%"
+        },
+        {
+          "id": "7724398540:court.defendant_count",
+          "fact_id": "7724398540:court.defendant_count",
+          "source": "derived_metric",
+          "title": "Дел в роли ответчика",
+          "field_ref": "report.arbitrationCases[].defendantCount",
+          "display_value": "6",
+          "unit": "шт"
+        },
+        {
+          "id": "7724398540:court.defendant_amount",
+          "fact_id": "7724398540:court.defendant_amount",
+          "source": "derived_metric",
+          "title": "Сумма исков к компании",
+          "field_ref": "report.arbitrationCases[].defendantAmount",
+          "display_value": "36 389 259 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "7724398540:execproc.total_count",
+          "fact_id": "7724398540:execproc.total_count",
+          "source": "derived_metric",
+          "title": "Исполнительных производств всего",
+          "field_ref": "report.executionProceedings[]",
+          "display_value": "86",
+          "unit": "шт"
+        },
+        {
+          "id": "7724398540:execproc.active_amount",
+          "fact_id": "7724398540:execproc.active_amount",
+          "source": "derived_metric",
+          "title": "Сумма действующих производств",
+          "field_ref": "report.executionProceedings[].amount",
+          "display_value": "158 950 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "7724398540:flags.attention_codes",
+          "fact_id": "7724398540:flags.attention_codes",
+          "source": "source_signal",
+          "title": "Метки, требующие уточнения",
+          "field_ref": "report.reputationalRisks.negative[].code",
+          "display_value": "действующие исполнительные производства, массовый адрес регистрации, арбитражные дела в роли ответчика",
+          "unit": null
+        },
+        {
+          "id": "3123346195:fin.proceeds.2025",
+          "fact_id": "3123346195:fin.proceeds.2025",
+          "source": "raw_fact",
+          "title": "Выручка за 2025 год",
+          "field_ref": "report.finReports[0].common.proceeds",
+          "display_value": "4 532 419 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3711039473:fin.proceeds.2025",
+          "fact_id": "3711039473:fin.proceeds.2025",
+          "source": "raw_fact",
+          "title": "Выручка за 2025 год",
+          "field_ref": "report.finReports[0].common.proceeds",
+          "display_value": "3 730 752 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "7724398540:fin.proceeds.2025",
+          "fact_id": "7724398540:fin.proceeds.2025",
+          "source": "raw_fact",
+          "title": "Выручка за 2025 год",
+          "field_ref": "report.finReports[0].common.proceeds",
+          "display_value": "4 309 870 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3123346195:fin.profit.2025",
+          "fact_id": "3123346195:fin.profit.2025",
+          "source": "raw_fact",
+          "title": "Прибыль за 2025 год",
+          "field_ref": "report.finReports[0].common.profit",
+          "display_value": "328 673 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3711039473:fin.profit.2025",
+          "fact_id": "3711039473:fin.profit.2025",
+          "source": "raw_fact",
+          "title": "Прибыль за 2025 год",
+          "field_ref": "report.finReports[0].common.profit",
+          "display_value": "276 311 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "7724398540:fin.profit.2025",
+          "fact_id": "7724398540:fin.profit.2025",
+          "source": "raw_fact",
+          "title": "Прибыль за 2025 год",
+          "field_ref": "report.finReports[0].common.profit",
+          "display_value": "96 981 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3123346195:fin.capitals.2025",
+          "fact_id": "3123346195:fin.capitals.2025",
+          "source": "raw_fact",
+          "title": "Собственный капитал за 2025 год",
+          "field_ref": "report.finReports[0].liabilities.capitals",
+          "display_value": "833 384 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3711039473:fin.capitals.2025",
+          "fact_id": "3711039473:fin.capitals.2025",
+          "source": "raw_fact",
+          "title": "Собственный капитал за 2025 год",
+          "field_ref": "report.finReports[0].liabilities.capitals",
+          "display_value": "593 058 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "7724398540:fin.capitals.2025",
+          "fact_id": "7724398540:fin.capitals.2025",
+          "source": "raw_fact",
+          "title": "Собственный капитал за 2025 год",
+          "field_ref": "report.finReports[0].liabilities.capitals",
+          "display_value": "128 634 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3123346195:fin.accounts_payable.2025",
+          "fact_id": "3123346195:fin.accounts_payable.2025",
+          "source": "raw_fact",
+          "title": "Кредиторская задолженность за 2025 год",
+          "field_ref": "report.finReports[0].liabilities.shortTermLiabilities.accountsPayable",
+          "display_value": "1 050 118 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "3711039473:fin.accounts_payable.2025",
+          "fact_id": "3711039473:fin.accounts_payable.2025",
+          "source": "raw_fact",
+          "title": "Кредиторская задолженность за 2025 год",
+          "field_ref": "report.finReports[0].liabilities.shortTermLiabilities.accountsPayable",
+          "display_value": "2 128 099 000 ₽",
+          "unit": "руб"
+        },
+        {
+          "id": "7724398540:fin.accounts_payable.2025",
+          "fact_id": "7724398540:fin.accounts_payable.2025",
+          "source": "raw_fact",
+          "title": "Кредиторская задолженность за 2025 год",
+          "field_ref": "report.finReports[0].liabilities.shortTermLiabilities.accountsPayable",
+          "display_value": "1 258 462 000 ₽",
+          "unit": "руб"
+        }
+      ],
+      "suggested_actions": [
+        "Почему эти?",
+        "Объясни проще"
+      ],
+      "metadata": {
+        "agent_run_id": "ec8b912f-4638-4c70-862d-577802e1ed49",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 1,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.4-metric-selection-v1/selection-v1",
+        "latency_ms": 92799,
+        "error_code": null,
+        "model_calls": 6,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "conversation_id": "77ec7493-3ef4-4bbd-8fef-bcb11eb6ba7b",
+      "active_company": null
+    }
+  },
+  {
+    "request": "Почему эти?",
+    "response": {
+      "message": "Финалисты выбраны по совокупности подтверждённых фактов под задачу «торговля, выручка от 100 млн, устойчивость и оплата после поставки». Все три — действующие компании с LOW/GREEN профилем, многолетней историей и выручкой в миллиарды рублей: ЭКОТОРГ М (4,53 млрд, прибыль 328,7 млн, капитал 833 млн, 12 лет), ЛИДЕРТЕКС (3,73 млрд, прибыль 276,3 млн, капитал 593 млн, 10 лет), АГРОФРУТ (4,31 млрд, прибыль 96,98 млн, капитал 128,6 млн, 9 лет). ЭЛЕКТРОЛИД показал лучший рост выручки и прибыли, но исключён из финалистов из-за ZSK YELLOW, 65 исков на 494,9 млн и 178 исполнительных производств при кредиторке 3,57 млрд — для работы без аванса это требует дополнительной проверки. МАКСМАРКЕТ отсеян однозначно: конкурсное производство и жёсткие стоп-факторы (банкротство, фиктивный адрес, блокировка счетов) несовместимы с бесперебойностью поставок. Компромиссы: у всех финалистов выручка в 2025 снизилась год к году, есть действующие исполнительные производства и иски (у ЭКОТОРГ М 73,6 млн, у ЛИДЕРТЕКС 28,3 млн, у АГРОФРУТ 36,4 млн — суммы малы относительно выручки, но сами производства требуют уточнения); у АГРОФРУТ дополнительно метка «массовый адрес» и кредиторка, превышающая капитал почти в 10 раз. Ограничения: у части компаний не раскрыты полные суммы исполнительных производств и данные о проверках, часть балансовых статей отсутствует — это не доказывает риск, но не позволяет гарантировать безопасность сделки без допроверки. Порядок в order отражает убывание устойчивости профиля: капитал, история, масштаб исков.",
+      "external_news": [],
+      "external_news_status": null,
+      "leading_artifact": null,
+      "blocks": [],
+      "evidence": [],
+      "suggested_actions": [
+        "Почему эти?",
+        "Объясни проще"
+      ],
+      "metadata": {
+        "agent_run_id": "cc8cf8b7-87ee-4188-99cb-ed0fc540251f",
+        "check_run_id": null,
+        "status": "partial",
+        "tool_calls": 0,
+        "routing": "model",
+        "model": "z-ai/glm-5.3-flash",
+        "prompt_version": "master-risk-playbook-0.3.4-metric-selection-v1/selection-v1",
+        "latency_ms": 8990,
+        "error_code": null,
+        "model_calls": 2,
+        "synthesis": "model",
+        "grounding_status": "not_requested",
+        "repair_attempts": 0
+      },
+      "conversation_id": "77ec7493-3ef4-4bbd-8fef-bcb11eb6ba7b",
+      "active_company": null
+    }
+  }
+]

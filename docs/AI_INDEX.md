@@ -19,6 +19,7 @@
 | PostgreSQL и аудит | [`backend/docs/db_design.md`](../backend/docs/db_design.md), `backend/db/schema.sql` | `backend/app/infrastructure/repository.py`, `backend/scripts/load_snapshot.py` |
 | поиск по деятельности / ОКВЭД | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md) | `backend/app/agent/shortlist.py`, `backend/app/infrastructure/repository.py`, `backend/db/migrations/005_shortlist_activity.sql` |
 | выбор N по показателям, «из найденных», подтверждение порядка | [`ACTIVITY_SEARCH.md`](ACTIVITY_SEARCH.md), [`RANKING_ACCEPTANCE.md`](RANKING_ACCEPTANCE.md) | `backend/app/agent/ranking.py`, `shortlist.py`, `runtime.py`, `backend/tests/test_ranking.py` |
+| агентный подбор под задачу, мини-сводки, финалисты | [`COUNTERPARTY_SELECTION.md`](COUNTERPARTY_SELECTION.md) | `backend/app/agent/selection.py`, `selection_runtime.py`, `selection_models.py`, `backend/tests/test_counterparty_selection.py` |
 | подборка по критериям, боковая навигация | [`AMIR_INTEGRATION.md`](AMIR_INTEGRATION.md) | `backend/app/agent/shortlist.py`, `backend/db/migrations/004_company_shortlist.sql`, `frontend/js/chat/navigation.js` |
 | рабочий интерфейс демо | [`CHAT_UI.md`](CHAT_UI.md), `frontend/index.html`, `frontend/report.html` | `frontend/js/chat/main.js`, `frontend/js/report/main.js`, `frontend/css/chat.css` |
 | визуальный React-прототип | [`design/prototype/README.md`](../design/prototype/README.md) | `design/prototype/app/` |
@@ -124,6 +125,9 @@ POST /api/v1/chat/messages
   компанию;
 - реализован поиск по деятельности в основном и дополнительных ОКВЭД одновременно
   с финансовыми условиями; источники совпадений показывает backend ([ACTIVITY_SEARCH.md](ACTIVITY_SEARCH.md));
+- реализован подбор под цель сотрудничества: до 50 кандидатов, пакетные LLM-сводки,
+  до пяти финалистов и сравнение; факты и интерпретации хранятся раздельно
+  ([COUNTERPARTY_SELECTION.md](COUNTERPARTY_SELECTION.md));
 - штатный online path Master — `z-ai/glm-5.3-flash` через OpenRouter;
   доменные агенты независимо используют Groq;
 - full-check synthesis включает OpenRouter web plugin: 0–4 новости возвращаются

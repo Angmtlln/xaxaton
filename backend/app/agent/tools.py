@@ -72,6 +72,7 @@ class ToolContext:
     settings: Settings
     client: GroqClient
     persist: bool = True
+    selection_session: object = None
 
 
 ToolExecutor = Callable[[ToolContext, BaseModel], Awaitable[ToolResult]]
@@ -203,8 +204,19 @@ def build_tool_registry(settings: Settings) -> ToolRegistry:
     from .finance import execute_financial_data
     from .legal import execute_legal_data
     from .targeted_models import ComparisonData, ShortlistData, TargetedData
+    from .selection import execute_selection
+    from .selection_models import SelectCounterpartiesArgs, SelectionData
 
     return ToolRegistry([
+        ToolDefinition(
+            name="select_counterparties",
+            description="Подбор под цель сотрудничества: SQL-фильтры, мини-сводки всех кандидатов (до 50), выбор до пяти и глубокое сравнение.",
+            input_model=SelectCounterpartiesArgs,
+            output_model=SelectionData,
+            risk_class="read_only", side_effects="none",
+            timeout_s=300, result_size_limit=600_000,
+            retry_policy="none", executor=execute_selection,
+        ),
         ToolDefinition(
             name="full_company_check",
             description=(

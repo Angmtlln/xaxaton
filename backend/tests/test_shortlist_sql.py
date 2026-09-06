@@ -129,3 +129,44 @@ async def test_activity_repository_filters_before_limit_and_counts_companies(mon
         missing = await repository.find_companies(min_proceeds=50000000, ranking=rank)
         assert missing == {'total': 1, 'eligible_total': 0, 'rows': []}
         await conn.rollback()
+
+
+@pytest.mark.asyncio
+async def test_selection_reads_exact_snapshot_ids_and_bounds_batch(monkeypatch):
+    """Two reports for one company: selection must not silently switch to newer data."""
+    dsn = os.getenv('TEST_SHORTLIST_DATABASE_URL')
+    if not dsn:
+        pytest.skip('Требуется TEST_SHORTLIST_DATABASE_URL для PostgreSQL integration')
+    import psycopg
+    from psycopg.rows import dict_row
+    from psycopg.types.json import Jsonb
+    from contextlib import asynccontextmanager
+    from app.infrastructure import repository
+    async with await psycopg.AsyncConnection.connect(dsn, row_factory=dict_row) as conn:
+        for name in ['core.report_snapshots', 'core.companies', 'raw.report_documents']:
+            await conn.execute(f'CREATE TEMP TABLE {name.split(".")[1]} AS SELECT * FROM {name} WITH NO DATA')
+        await conn.execute("INSERT INTO companies (id,inn,short_name) VALUES (1,'6165169320','Компания')")
+        for sid, date in [(1,'2024-01-01'),(2,'2025-01-01')]:
+            await conn.execute('INSERT INTO report_documents (id,document) VALUES (%s,%s)',(sid,Jsonb({'version':sid})))
+            await conn.execute('INSERT INTO report_snapshots (id,company_id,raw_document_id,report_date) VALUES (%s,1,%s,%s)',(sid,sid,date))
+        class Cursor:
+            async def __aenter__(self):
+                self.cur=conn.cursor()
+                return self
+            async def __aexit__(self,*args): await self.cur.close()
+            async def execute(self,sql,params):
+                await self.cur.execute(sql.replace('core.','pg_temp.').replace('raw.','pg_temp.'),params)
+            async def fetchall(self): return await self.cur.fetchall()
+        class Pool:
+            @asynccontextmanager
+            async def connection(self): yield self
+            def cursor(self): return Cursor()
+        monkeypatch.setattr(repository,'get_pool',lambda:Pool())
+        selected=await repository.get_selection_snapshots([1])
+        assert len(selected)==1 and selected[0]['snapshot_id']==1
+        assert selected[0]['document']=={'version':1}
+        assert len(await repository.get_selection_snapshots([1,2]))==2
+        assert await repository.get_selection_snapshots([])==[]
+        with pytest.raises(ValueError):
+            await repository.get_selection_snapshots(list(range(51)))
+        await conn.rollback()

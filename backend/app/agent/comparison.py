@@ -113,7 +113,7 @@ def _collect(inn: str, parts: list[TargetedData]) -> tuple[ComparisonCompanyData
     return company, facts, signals
 
 
-async def execute_comparison(context: ToolContext, args: BaseModel) -> ToolResult:
+async def execute_comparison(context: ToolContext, args: BaseModel, *, snapshots=None) -> ToolResult:
     parsed = CompareCompaniesArgs.model_validate(args)
     focus = ["finance", "legal"] if parsed.focus == "both" else [parsed.focus]
     companies: list[ComparisonCompanyData] = []
@@ -125,7 +125,7 @@ async def execute_comparison(context: ToolContext, args: BaseModel) -> ToolResul
     all_parts = []
     complete_finances = []
     for inn in parsed.inns:
-        snapshot = await repository.get_latest_snapshot(inn)
+        snapshot = snapshots.get(inn) if snapshots is not None else await repository.get_latest_snapshot(inn)
         if snapshot is None or not snapshot.get("document"):
             raise CompanyNotFound(inn)
         parts: list[TargetedData] = []

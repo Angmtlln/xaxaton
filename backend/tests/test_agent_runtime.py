@@ -397,13 +397,13 @@ def test_inn_and_intent_checks_are_deterministic():
     assert not is_full_check_request("Какая выручка у 6165169320?")
 
 
-def test_registry_exposes_five_bounded_tools():
+def test_registry_exposes_six_bounded_tools():
     contracts = build_tool_registry(_settings()).visible_contracts()
     by_name = {item["name"]: item for item in contracts}
 
     assert [item["name"] for item in contracts] == [
         "compare_companies", "find_companies", "full_company_check",
-        "get_financial_data", "get_legal_data",
+        "get_financial_data", "get_legal_data", "select_counterparties",
     ]
     for contract in contracts:
         assert contract["risk_class"] == "read_only"
