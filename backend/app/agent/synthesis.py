@@ -11,7 +11,7 @@ import re
 from typing import Iterable
 
 from .models import FullCompanyCheckData, MasterAnswer, ToolFact, ToolResult
-from .targeted_models import ComparisonData, TargetedData
+from .targeted_models import ComparisonData, ShortlistData, TargetedData
 from .tools import _evidence_from_fact, display_fact_value
 
 
@@ -44,6 +44,8 @@ def _validated_data(result: ToolResult) -> FullCompanyCheckData | TargetedData |
         return TargetedData.model_validate(result.data)
     if result.metadata.tool == "compare_companies":
         return ComparisonData.model_validate(result.data)
+    if result.metadata.tool == "find_companies":
+        return ShortlistData.model_validate(result.data)
     raise ValueError("Unsupported ToolResult domain")
 
 
@@ -80,6 +82,9 @@ def normalized_tool_context(result: ToolResult) -> dict:
     if result.status == "error":
         raise ValueError("Error ToolResult cannot become trusted context")
     data = _validated_data(result)
+    if isinstance(data, ShortlistData):
+        # Подборка — навигация по витрине: у неё нет фактов и provenance карточки.
+        return _shortlist_context(data, result)
     evidence = verified_evidence(data, result)
     policy_ids = []
     for signal in data.policy_signals:
@@ -121,6 +126,22 @@ def normalized_tool_context(result: ToolResult) -> dict:
         "coverage": coverage,
         "policy_signals": [signal.model_dump(mode="json") for signal in data.policy_signals],
         "evidence": [item.model_dump(mode="json") for item in evidence.values()],
+        "warnings": list(dict.fromkeys(result.warnings)),
+    }
+
+
+def _shortlist_context(data: ShortlistData, result: ToolResult) -> dict:
+    return {
+        "schema_version": "verified-context-1",
+        "tool": result.metadata.tool,
+        "domain": "shortlist",
+        "status": result.status,
+        "criteria": list(data.criteria),
+        "total": data.total,
+        "sort_by": data.sort_by,
+        "order": data.order,
+        "companies": [item.model_dump(mode="json") for item in data.companies],
+        "evidence": [],
         "warnings": list(dict.fromkeys(result.warnings)),
     }
 
@@ -199,8 +220,8 @@ def _answer_payload(value: str) -> dict:
 def allowed_artifacts(result: ToolResult | None, *, contextual: bool) -> tuple[str, ...]:
     if contextual or result is None:
         return ("none",)
-    if result.metadata.tool == "compare_companies":
-        # Таблицу сравнения бэкенд добавляет сам: это детерминированный артефакт.
+    if result.metadata.tool in {"compare_companies", "find_companies"}:
+        # Таблицу и подборку бэкенд добавляет сам: это детерминированные артефакты.
         return ("none",)
     if result.metadata.tool in {"full_company_check", "get_financial_data"}:
         return ("none", "metrics", "chart")

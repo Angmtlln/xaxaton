@@ -397,12 +397,13 @@ def test_inn_and_intent_checks_are_deterministic():
     assert not is_full_check_request("Какая выручка у 6165169320?")
 
 
-def test_registry_exposes_four_bounded_tools():
+def test_registry_exposes_five_bounded_tools():
     contracts = build_tool_registry(_settings()).visible_contracts()
     by_name = {item["name"]: item for item in contracts}
 
     assert [item["name"] for item in contracts] == [
-        "compare_companies", "full_company_check", "get_financial_data", "get_legal_data"
+        "compare_companies", "find_companies", "full_company_check",
+        "get_financial_data", "get_legal_data",
     ]
     for contract in contracts:
         assert contract["risk_class"] == "read_only"
@@ -411,6 +412,9 @@ def test_registry_exposes_four_bounded_tools():
     # Сравнение ограничено тремя компаниями: это не путь для массовой выгрузки.
     inns = by_name["compare_companies"]["input_schema"]["properties"]["inns"]
     assert (inns["minItems"], inns["maxItems"]) == (2, 3)
+    # Подборка тоже ограничена: это навигация по витрине, а не выгрузка.
+    limit = by_name["find_companies"]["input_schema"]["properties"]["limit"]
+    assert (limit["minimum"], limit["maximum"]) == (1, 25)
 
 
 @pytest.mark.asyncio

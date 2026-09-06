@@ -304,3 +304,97 @@ async def get_snapshots_for_connections(inns: List[str]) -> List[Dict[str, Any]]
         async with conn.cursor() as cur:
             await cur.execute(sql, {"inns": inns})
             return await cur.fetchall()
+
+
+SHORTLIST_SQL = """
+WITH fin AS (
+  SELECT DISTINCT ON (f.snapshot_id) f.snapshot_id, f.year, f.proceeds, f.profit
+  FROM   core.fin_reports f
+  ORDER  BY f.snapshot_id, f.year DESC
+), hard AS (
+  SELECT r.snapshot_id, count(*) AS hard_stops
+  FROM   core.reputational_risks r
+  JOIN   core.risk_code_dictionary d ON d.code = r.code AND d.is_hard_stop
+  WHERE  r.polarity = 'NEGATIVE'
+  GROUP  BY r.snapshot_id
+), exec AS (
+  SELECT snapshot_id, count(*) AS proceedings
+  FROM   core.execution_proceedings
+  GROUP  BY snapshot_id
+), base AS (
+  SELECT c.inn, c.short_name, fin.year AS fin_year,
+         fin.proceeds, fin.profit,
+         COALESCE(a.df_amount, 0) + COALESCE(a.da_amount, 0)
+           + COALESCE(a.dp_amount, 0) AS claims_amount,
+         COALESCE(hard.hard_stops, 0) AS hard_stops,
+         COALESCE(exec.proceedings, 0) AS enforcement_count,
+         s.risk_level::text AS risk_level, s.zsk_risk_level::text AS zsk_risk_level
+  FROM   core.v_latest_snapshots s
+  JOIN   core.companies c ON c.id = s.company_id
+  LEFT   JOIN fin ON fin.snapshot_id = s.id
+  LEFT   JOIN core.arbitration_summary a ON a.snapshot_id = s.id
+  LEFT   JOIN hard ON hard.snapshot_id = s.id
+  LEFT   JOIN exec ON exec.snapshot_id = s.id
+)
+SELECT * FROM base WHERE 1 = 1
+"""
+
+# Сортировка выбирается только из этого набора: имя колонки не приходит из модели.
+SHORTLIST_SORT = {
+    "proceeds": "proceeds",
+    "profit": "profit",
+    "claims": "claims_amount",
+    "enforcement": "enforcement_count",
+}
+
+
+async def find_companies(
+    *, min_proceeds=None, max_proceeds=None, min_profit=None, max_profit=None,
+    risk_level=None, zsk_risk_level=None, hard_stops=None,
+    min_claims_amount=None, max_claims_amount=None,
+    min_enforcement_count=None, max_enforcement_count=None,
+    sort_by="proceeds", order="desc", limit=10,
+) -> Dict[str, Any]:
+    """Подборка карточек по проверенным полям витрины; выводы здесь не делаются."""
+    ranges = (
+        ("min_proceeds", "proceeds", ">=", min_proceeds),
+        ("max_proceeds", "proceeds", "<=", max_proceeds),
+        ("min_profit", "profit", ">=", min_profit),
+        ("max_profit", "profit", "<=", max_profit),
+        ("min_claims_amount", "claims_amount", ">=", min_claims_amount),
+        ("max_claims_amount", "claims_amount", "<=", max_claims_amount),
+        ("min_enforcement_count", "enforcement_count", ">=", min_enforcement_count),
+        ("max_enforcement_count", "enforcement_count", "<=", max_enforcement_count),
+    )
+    where: List[str] = []
+    params: Dict[str, Any] = {"limit": limit}
+    for name, column, op, value in ranges:
+        if value is not None:
+            where.append("AND %s %s %%(%s)s" % (column, op, name))
+            params[name] = value
+    if risk_level:
+        where.append("AND risk_level = %(risk_level)s")
+        params["risk_level"] = risk_level
+    if zsk_risk_level:
+        where.append("AND zsk_risk_level = %(zsk)s")
+        params["zsk"] = zsk_risk_level
+    if hard_stops == "with":
+        where.append("AND hard_stops > 0")
+    elif hard_stops == "without":
+        where.append("AND hard_stops = 0")
+
+    # Колонка сортировки берётся из allowlist, а не из аргумента модели.
+    column = SHORTLIST_SORT.get(sort_by, "proceeds")
+    direction = "ASC" if order == "asc" else "DESC"
+    filtered = SHORTLIST_SQL + "\n" + "\n".join(where)
+    async with get_pool().connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT count(*) AS total FROM (%s) q" % filtered, params)
+            total = (await cur.fetchone())["total"]
+            await cur.execute(
+                "%s ORDER BY %s %s NULLS LAST, inn LIMIT %%(limit)s"
+                % (filtered, column, direction),
+                params,
+            )
+            rows = await cur.fetchall()
+    return {"total": int(total), "rows": rows}

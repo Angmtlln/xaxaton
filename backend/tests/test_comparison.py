@@ -184,6 +184,28 @@ def test_comparison_focus_follows_the_user_priority():
     assert comparison_focus("Сравни этих поставщиков") == "both"
 
 
+def test_single_inn_after_a_check_compares_with_the_active_company():
+    """«Сравни с ИНН X» после проверки не должно требовать повторить первый ИНН."""
+    reason, inns = inspect_comparison_request("Сравни с ИНН: 2901324364", RICH)
+
+    assert reason is None
+    assert inns == [RICH, "2901324364"]
+
+
+def test_comparing_the_active_company_with_itself_is_rejected():
+    reason, inns = inspect_comparison_request("Сравни с 6165169320", RICH)
+
+    assert reason == "comparison_needs_two"
+    assert inns is None
+
+
+def test_explicit_pair_wins_over_the_active_company():
+    reason, inns = inspect_comparison_request("Сравни 2901324364 и 0278949271", RICH)
+
+    assert reason is None
+    assert inns == ["2901324364", "0278949271"]
+
+
 @pytest.mark.parametrize("message,expected", [
     ("Сравни 6165169320 и 2901324364", None),
     ("Сравни этих поставщиков", "comparison_needs_two"),

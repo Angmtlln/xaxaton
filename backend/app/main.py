@@ -64,6 +64,19 @@ TAGS = [
 ]
 
 
+class RevalidatedStatic(StaticFiles):
+    """Статика без версий в URL: браузер обязан сверяться с сервером.
+
+    ETag остаётся, поэтому неизменённый файл всё равно отдаётся как 304. Без
+    этого заголовка браузер держит старый JS и правки интерфейса не видны.
+    """
+
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
@@ -94,7 +107,7 @@ def create_app() -> FastAPI:
     # Рабочий agent-first чат и legacy-отчёт раздаются одним FastAPI-сервисом.
     static_dir = frontend_dir()
     if static_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        app.mount("/static", RevalidatedStatic(directory=str(static_dir)), name="static")
 
     app.include_router(api_router)
     app.include_router(pages_router)

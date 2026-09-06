@@ -6,13 +6,16 @@ from typing import Dict, List, Optional
 
 from .models import (AssistantMetadata, AssistantResponse, ChartPoint, ChartSeries,
                      ComparisonCell, ComparisonColumn, ComparisonRow,
-                     ComparisonTableBlock, CompanySummaryBlock, Evidence, FindingItem,
+                     ComparisonTableBlock, CompanyShortlistBlock, CompanySummaryBlock,
+                     Evidence, FindingItem,
                      FindingListBlock, FullCompanyCheckData, LineChartBlock, MasterAnswer,
-                     MetricGridBlock, MetricItem, ToolResult, SuggestedAction)
+                     MetricGridBlock, MetricItem, ShortlistRow, SuggestedAction,
+                     ToolResult)
 from .prompt import MASTER_PROMPT_VERSION
 from .synthesis import normalized_tool_context, verified_evidence
 from .comparison import ROW_SPECS, measure_key
-from .targeted_models import ComparisonData, TargetedData
+from .shortlist import money
+from .targeted_models import ComparisonData, ShortlistData, TargetedData
 from .tools import display_fact_value
 from .suggestions import next_actions
 
@@ -57,6 +60,10 @@ GUARD_MESSAGES = {
     "comparison_needs_two": (
         "Для сравнения укажите ИНН двух или трёх компаний в одном сообщении, например: "
         "«Сравни 6165169320 и 2311304742, важнее финансовая устойчивость»."
+    ),
+    "shortlist_needs_criteria": (
+        "Уточните условие подборки: например «найди компании с выручкой больше 10 млн» "
+        "или «покажи всех без стоп-факторов». Критерии я не додумываю."
     ),
     "comparison_limit": "За один раз можно сравнить не больше трёх компаний. Оставьте два или три ИНН.",
     "unknown_conversation": "Диалог истёк или не найден. Начните новый диалог и укажите ИНН контрагента.",
@@ -113,7 +120,9 @@ def tool_result_to_assistant(
         raise ValueError("Verified context is required for an analytical response")
     data = _result_data(result) if result is not None else None
     evidence_by_id = (
-        verified_evidence(data, result)
+        # У подборки нет фактов карточки: это навигация по витрине, не анализ.
+        {} if isinstance(data, ShortlistData)
+        else verified_evidence(data, result)
         if data is not None and result is not None
         else {item.id: item for item in map(Evidence.model_validate, context.get("evidence", []))}
     )
@@ -122,9 +131,11 @@ def tool_result_to_assistant(
 
     blocks = []
     if not contextual and data is not None:
-        policy = _policy_block(data, evidence_by_id)
+        policy = None if isinstance(data, ShortlistData) else _policy_block(data, evidence_by_id)
         if policy is not None:
             blocks.append(policy)
+        if isinstance(data, ShortlistData):
+            blocks.append(_shortlist_block(data))
         if isinstance(data, ComparisonData):
             # Компактная таблица заменяет N отдельных отчётов и всегда гидратируется кодом.
             blocks.append(_comparison_table(data, evidence_by_id))
@@ -181,6 +192,8 @@ def _result_data(result: ToolResult):
         return FullCompanyCheckData.model_validate(result.data)
     if result.metadata.tool == "compare_companies":
         return ComparisonData.model_validate(result.data)
+    if result.metadata.tool == "find_companies":
+        return ShortlistData.model_validate(result.data)
     return TargetedData.model_validate(result.data)
 
 
@@ -192,6 +205,8 @@ def _fallback_message(context: dict) -> str:
             "Сейчас ответ модели недоступен. Напишите задачу и ИНН для проверки "
             "или два-три ИНН для сравнения."
         )
+    if context.get("domain") == "shortlist":
+        return _shortlist_fallback(context)
     if context.get("domain") == "comparison":
         return _comparison_fallback(context)
     hard_stops = [
@@ -217,6 +232,32 @@ def _fallback_message(context: dict) -> str:
     if shown:
         return "Аналитический ответ сейчас недоступен. Подтверждённые данные: %s." % "; ".join(shown)
     return "Проверенные данные получены, но сформировать аналитическое объяснение сейчас не удалось."
+
+
+def _shortlist_block(data: ShortlistData) -> CompanyShortlistBlock:
+    """Подборку гидратирует backend: модель не выбирает, кто в неё попал."""
+    rows = [
+        ShortlistRow(
+            inn=item.inn,
+            name=item.name,
+            fin_year=item.fin_year,
+            proceeds_display=money(item.proceeds),
+            profit_display=money(item.profit),
+            claims_display=money(item.claims_amount),
+            enforcement_count=item.enforcement_count,
+            hard_stops=item.hard_stops,
+            risk_level=item.risk_level,
+            zsk_risk_level=item.zsk_risk_level,
+        )
+        for item in data.companies
+    ]
+    return CompanyShortlistBlock(
+        title="Подходят под условие",
+        criteria=list(data.criteria),
+        total=data.total,
+        rows=rows,
+        empty_message=None if rows else "Под эти критерии карточек не нашлось.",
+    )
 
 
 def _comparison_names(data: ComparisonData) -> Dict[str, str]:
@@ -270,6 +311,27 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
         columns=columns,
         rows=rows[:10],
         empty_message=None if rows else "Сопоставимых показателей в карточках нет.",
+    )
+
+
+def _company_word(count: int) -> str:
+    mod10, mod100 = count % 10, count % 100
+    if mod10 == 1 and mod100 != 11:
+        return "%s компания" % count
+    if 2 <= mod10 <= 4 and not 12 <= mod100 <= 14:
+        return "%s компании" % count
+    return "%s компаний" % count
+
+
+def _shortlist_fallback(context: dict) -> str:
+    total = context.get("total") or 0
+    shown = len(context.get("companies") or [])
+    if not total:
+        return "Под эти критерии в загруженной выборке карточек не нашлось."
+    return (
+        "Под условие подходит %s из загруженной выборки, показаны первые %s. "
+        "Укажите ИНН двух-трёх из списка, чтобы сравнить их подробно."
+        % (_company_word(total), shown)
     )
 
 

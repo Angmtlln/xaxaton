@@ -23,6 +23,10 @@
         </span>
       </a>
       <div class="chat-topbar-actions">
+        <button type="button" class="chat-nav-toggle" id="chat-nav-toggle"
+                aria-expanded="false" aria-controls="chat-nav">
+          Разделы
+        </button>
         <span class="runtime-pill"><i aria-hidden="true"></i>Данные и источники</span>
         <a class="last-report-link" id="last-report-link" href="/report" hidden>
           Полный анализ
@@ -30,6 +34,19 @@
       </div>
     </div>
   </header>
+
+  <aside class="chat-nav" id="chat-nav" aria-label="Навигация по диалогу" hidden>
+    <div class="chat-nav-inner">
+      <section id="chat-nav-companies-section" hidden>
+        <h2 class="chat-nav-title">Контрагенты</h2>
+        <ul class="chat-nav-list" id="chat-nav-companies"></ul>
+      </section>
+      <section id="chat-nav-comparisons-section" hidden>
+        <h2 class="chat-nav-title">Сравнения</h2>
+        <ul class="chat-nav-list" id="chat-nav-comparisons"></ul>
+      </section>
+    </div>
+  </aside>
 
   <main class="chat-main" id="chat-main">
     <div class="active-company-bar" id="active-company-bar" hidden>

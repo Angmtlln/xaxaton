@@ -1,5 +1,5 @@
 """Framework-agnostic contracts for normalized targeted domain data."""
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 from pydantic import Field, model_validator
 
@@ -68,3 +68,27 @@ class ComparisonData(StrictModel):
         if references - self.facts.keys():
             raise ValueError("Unknown comparison fact reference")
         return self
+
+
+class ShortlistCompany(StrictModel):
+    """Одна строка подборки; значения приходят из витрины, не из прозы."""
+
+    inn: SafeText
+    name: SafeText
+    fin_year: Optional[int] = None
+    proceeds: Optional[float] = None
+    profit: Optional[float] = None
+    claims_amount: Optional[float] = None
+    enforcement_count: int = Field(ge=0)
+    hard_stops: int = Field(ge=0)
+    risk_level: SafeText
+    zsk_risk_level: SafeText
+
+
+class ShortlistData(StrictModel):
+    domain: Literal["shortlist"] = "shortlist"
+    criteria: List[SafeText] = Field(default_factory=list, max_length=8)
+    total: int = Field(ge=0)
+    sort_by: Literal["proceeds", "profit", "claims", "enforcement"]
+    order: Literal["desc", "asc"]
+    companies: List[ShortlistCompany] = Field(default_factory=list, max_length=25)

@@ -56,6 +56,18 @@ FULL_PHRASE_RE = re.compile(r"\b(?:пол\w+|комплексн\w+)\s+(?:про�
 FINANCE_TOPIC_RE = re.compile(r"\b(?:выручк\w*|прибыл\w*|финанс\w*|рентабельн\w*|капитал\w*|баланс\w*|кредиторск\w*|задолженн\w*)\b", re.I)
 LEGAL_TOPIC_RE = re.compile(r"\b(?:суд\w*|арбитраж\w*|исполнител\w*|юридическ\w*|надежност\w*|надёжност\w*|банкрот\w*|иск[аи]?|иски)\b", re.I)
 NARROW_TOPIC_RE = re.compile(r"\b(?:выручк\w*|прибыл\w*|финанс\w*|суд\w*|арбитраж\w*|исполнител\w*|закуп\w*|тендер\w*|лиценз\w*)\b", re.I)
+SHORTLIST_VERB_RE = re.compile(
+    r"\b(?:найд\w+|подбер\w+|подбор\w*|отбер\w+|покаж\w+|выведи|список|перечисл\w+|сколько)\b",
+    re.I,
+)
+SHORTLIST_SCOPE_RE = re.compile(
+    r"\b(?:вс[еех]х?|все|любы\w+|каки\w+|котор\w+|у\s+ког[оо]|с\s+выручк\w+|компани\w+|контрагент\w+)\b",
+    re.I,
+)
+SHORTLIST_CRITERION_RE = re.compile(
+    r"\b(?:больше|меньше|более|менее|свыше|от|до|выше|ниже|превыша\w+|без|есть|нет)\b",
+    re.I,
+)
 COMPARISON_RE = re.compile(r"\b(?:сравн\w*|compare\w*)\b", re.I)
 EXPLANATION_RE = re.compile(
     r"\b(?:почему|объясни\w*|поясни\w*|проще|что\s+это\s+значит|насколько\s+это\s+критично)\b",
@@ -197,10 +209,23 @@ class MasterAgentRuntime:
                                       else requested_tool(item.content))
                     if pending_target:
                         break
-        comparison_request = bool(COMPARISON_RE.search(message)) or pending_target == "compare_companies"
+        shortlist_request = is_shortlist_request(message)
+        comparison_request = (not shortlist_request) and (
+            bool(COMPARISON_RE.search(message)) or pending_target == "compare_companies"
+        )
         inns = None
-        if comparison_request:
-            reason, inns = inspect_comparison_request(message)
+        if shortlist_request:
+            reason, inn, target = None, None, "find_companies"
+            switching_company = False
+            turn_user_context = user_context
+            turn_last_topic = last_topic
+            turn_last_answer_verified = last_answer_verified
+            selected_context = None
+            preselected_tool = False
+        elif comparison_request:
+            reason, inns = inspect_comparison_request(
+                message, (active or {}).get("inn")
+            )
             inn = None
             target = "compare_companies" if reason is None else None
             switching_company = False
@@ -344,7 +369,10 @@ class MasterAgentRuntime:
         result = execution.result
         if result is not None and result.status in {"success", "partial"}:
             observation = normalized_tool_context(result)
-            if observation["domain"] == "comparison":
+            if observation["domain"] == "shortlist":
+                # Подборка — навигация: активную компанию и её контекст не трогаем.
+                pass
+            elif observation["domain"] == "comparison":
                 # Сравнение живёт отдельно: trusted_context привязан к одной компании.
                 comparison_store = store_comparison_context(observation)
                 last_topic = "comparison"
@@ -505,6 +533,9 @@ class MasterAgentRuntime:
         if not contextual and execution.result is None:
             if execution.started:
                 return runtime_timeout_response(run_id, started, tool_calls=execution.tool_calls)
+            if target == "find_companies":
+                # Критерии подборки называет пользователь; угадывать их нельзя.
+                return guard_response("shortlist_needs_criteria", run_id, started)
             execution.started = True
             execution.tool_calls = 1
             execution.used_fallback = True
@@ -815,8 +846,26 @@ def detail_arguments(message: str) -> dict:
     return result
 
 
+def is_shortlist_request(message: str) -> bool:
+    """Запрос про множество по критерию, а не про конкретного контрагента.
+
+    Сами пороги заполняет модель по схеме инструмента: это условия пользователя,
+    а не данные о компании. Применённые критерии backend показывает обратно.
+    """
+    text = message or ""
+    if [value for value in DIGIT_SEQUENCE_RE.findall(text) if len(value) >= 10]:
+        return False
+    if not SHORTLIST_CRITERION_RE.search(text):
+        return False
+    return bool(SHORTLIST_VERB_RE.search(text)) or bool(
+        COMPARISON_RE.search(text) and SHORTLIST_SCOPE_RE.search(text)
+    )
+
+
 def requested_tool(message: str) -> Optional[str]:
     """Small deterministic admission/router; it never validates answer prose."""
+    if is_shortlist_request(message):
+        return "find_companies"
     if COMPARISON_RE.search(message):
         return None
     if FULL_PHRASE_RE.search(message):
@@ -885,14 +934,24 @@ def _trusted_subject(inn, inns) -> str:
     return "\nДоверенный ИНН активной компании: " + str(inn)
 
 
-def inspect_comparison_request(message: str) -> Tuple[Optional[str], Optional[list]]:
-    """ИНН для сравнения в порядке упоминания; идентификаторы остаются за бэкендом."""
+def inspect_comparison_request(
+    message: str, active_inn: Optional[str] = None
+) -> Tuple[Optional[str], Optional[list]]:
+    """ИНН для сравнения в порядке упоминания; идентификаторы остаются за бэкендом.
+
+    Один ИНН после проверки компании означает «сравни с активной»: требовать
+    повторить уже названный ИНН — лишняя работа для пользователя.
+    """
     text = message or ""
     sequences = [value for value in DIGIT_SEQUENCE_RE.findall(text) if len(value) >= 8]
     explicit = re.findall(r"\bинн\s*[:№#-]?\s*([0-9]+)", text, re.I)
     ordered = list(dict.fromkeys(sequences + explicit))
     if any(not is_valid_inn(value) for value in ordered):
         return "invalid_inn", None
+    if len(ordered) == 1 and active_inn and is_valid_inn(active_inn):
+        if ordered[0] == active_inn:
+            return "comparison_needs_two", None
+        return None, [active_inn, ordered[0]]
     if len(ordered) < 2:
         return "comparison_needs_two", None
     if len(ordered) > MAX_COMPARISON_COMPANIES:

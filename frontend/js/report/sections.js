@@ -129,17 +129,17 @@ export function attentionSection(data) {
     <section class="section-block">
       <div class="section-heading">
         <div><span class="eyebrow">Главное</span><h2>На что обратить внимание</h2></div>
-        <p>Каждый пункт со ссылкой на поле исходной карточки отчёта.</p>
+        <p>Каждый пункт посчитан из полей исходной карточки отчёта.</p>
       </div>
       <div class="attention-list">
         ${risks.map((r) => {
           const fact = factOf(r.fact_id);
           const sev = r.severity === 'high' ? 'high' : (r.severity === 'low' ? 'low' : 'medium');
           const ico = sev === 'high' ? 'circleAlert' : (sev === 'low' ? 'circleCheck' : 'triangleAlert');
-          return `<div class="attention-row sev-${sev}">
+          const ref = fact ? fact.field_ref : 'ссылка не подтверждена';
+          return `<div class="attention-row sev-${sev}" title="Поле карточки: ${esc(ref)}">
             <span class="attention-icon">${icon(ico)}</span>
             <p>${esc(r.text)}</p>
-            <code>${esc(fact ? fact.field_ref : 'ссылка не подтверждена')}</code>
           </div>`;
         }).join('')}
       </div>
@@ -153,11 +153,11 @@ export function blockCard(block, index) {
     const fact = factOf(f.fact_id);
     if (fact) cited.add(fact.id);
     const type = fact ? evidenceType(fact) : 'derived_metric';
-    return `<div class="evidence-row">
+    const ref = fact ? fact.field_ref : 'ссылка не подтверждена';
+    return `<div class="evidence-row" title="Поле карточки: ${esc(ref)}">
       <div><span class="evidence-type type-${type}">${EVIDENCE_TYPE[type]}</span>
         <b>${esc(fact ? fact.label : 'Наблюдение агента')}</b></div>
       <p>${esc(f.text)}</p>
-      <code>${esc(fact ? fact.field_ref : 'ссылка не подтверждена')}</code>
     </div>`;
   }).join('');
 
@@ -221,10 +221,9 @@ export function financeSection(data) {
     'execproc.active_amount', 'court.defendant_count', 'court.defendant_amount',
     'okved.total_count', 'positive.count'];
   const tiles = ids.map(factOf).filter(Boolean).slice(0, 4).map((f) => `
-    <div class="stat-cell">
+    <div class="stat-cell" title="Поле карточки: ${esc(f.field_ref)}">
       <span class="stat-label">${esc(f.label)}</span>
       <span class="stat-value">${esc(factText(f))}</span>
-      <code>${esc(f.field_ref)}</code>
     </div>`).join('');
 
   return `

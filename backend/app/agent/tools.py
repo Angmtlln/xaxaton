@@ -16,8 +16,9 @@ from app.config import Settings
 from app.llm.groq_client import GroqClient
 from app.domain.pipeline import CompanyNotFound, run_check
 
-from .models import (CompareCompaniesArgs, FinancialDataArgs, LegalDataArgs, Evidence, FullCheckCompany,
-                     FullCheckCoverage,
+from .models import (CompareCompaniesArgs, Evidence, FinancialDataArgs,
+                     FindCompaniesArgs, FullCheckCompany, FullCheckCoverage,
+                     LegalDataArgs,
                      FullCompanyCheckArgs, FullCompanyCheckData, PolicySignal,
                      ToolError, ToolFact, ToolFreshness, ToolResult,
                      ToolResultMetadata)
@@ -198,9 +199,10 @@ class ToolRegistry:
 
 def build_tool_registry(settings: Settings) -> ToolRegistry:
     from .comparison import execute_comparison
+    from .shortlist import execute_find_companies
     from .finance import execute_financial_data
     from .legal import execute_legal_data
-    from .targeted_models import ComparisonData, TargetedData
+    from .targeted_models import ComparisonData, ShortlistData, TargetedData
 
     return ToolRegistry([
         ToolDefinition(
@@ -236,6 +238,24 @@ def build_tool_registry(settings: Settings) -> ToolRegistry:
                 ("get_legal_data", "Суды, исполнительные производства и правовые факты одного контрагента по ИНН, без полной проверки.", execute_legal_data),
             )
         ],
+        ToolDefinition(
+            name="find_companies",
+            description=(
+                "Подборка контрагентов загруженной выборки по проверенным критериям: "
+                "выручка, прибыль, суммы исков, число исполнительных производств, "
+                "оценки банка и наличие жёстких стоп-факторов. Возвращает сколько "
+                "всего подошло и верхние строки. Сравнение выполняется отдельно "
+                "инструментом compare_companies по явным ИНН."
+            ),
+            input_model=FindCompaniesArgs,
+            output_model=ShortlistData,
+            risk_class="read_only",
+            side_effects="none",
+            timeout_s=settings.agent_tool_timeout_s,
+            result_size_limit=min(settings.agent_tool_result_max_chars, 40_000),
+            retry_policy="none",
+            executor=execute_find_companies,
+        ),
         ToolDefinition(
             name="compare_companies",
             description=(

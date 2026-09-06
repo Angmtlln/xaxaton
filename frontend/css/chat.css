@@ -1040,3 +1040,174 @@
 .radar-explanation { font-size: 11px; line-height: 1.5; color: #666b75; }
 .radar-explanation summary { cursor: pointer; text-align: center; min-height: 30px; }
 .radar-explanation p { margin: 8px 0; }
+
+/* --- Подборка контрагентов по критерию --- */
+
+.shortlist-criteria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.shortlist-chip {
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  background: var(--state-none-bg);
+}
+
+.shortlist-total {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.shortlist-table .comparison-measure {
+  min-width: 190px;
+}
+
+.shortlist-stops-yes {
+  color: var(--state-attention);
+  font-weight: 700;
+}
+
+.shortlist-stops-no {
+  color: var(--muted-foreground);
+}
+
+.shortlist-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+/* ====================================================================
+   Навигация по диалогу: проверенные контрагенты и сравнения.
+   ==================================================================== */
+
+.chat-nav {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 26;
+  width: 248px;
+  overflow-y: auto;
+  border-right: 1px solid #ffffffb3;
+  background: rgba(255, 251, 250, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.chat-nav-inner {
+  display: grid;
+  gap: 18px;
+  padding: 20px 16px 32px;
+}
+
+.chat-nav-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+
+.chat-nav-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+
+.chat-nav-item {
+  width: 100%;
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.chat-nav-item:hover,
+.chat-nav-item:focus-visible {
+  background: #ffffff;
+}
+
+.chat-nav-label {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-nav-hint {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+/* Кнопка нужна только там, где панель прячется за край экрана. */
+.chat-nav-toggle {
+  display: none;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #ffffffc9;
+  background: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Место под панель освобождается только когда в диалоге есть разделы.
+   Отступ на .chat-app сдвигает и шапку, и ленту; фиксированный composer — сам. */
+@media (min-width: 901px) {
+  body.has-chat-nav:not(.landing-mode) .chat-app {
+    padding-left: 248px;
+  }
+
+  body.has-chat-nav:not(.landing-mode) .chat-composer-shell {
+    left: 248px;
+  }
+}
+
+body.landing-mode .chat-nav {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .chat-nav {
+    width: min(280px, 82vw);
+    transform: translateX(-100%);
+    transition: transform 0.18s ease-out;
+  }
+
+  body.chat-nav-open .chat-nav {
+    transform: translateX(0);
+  }
+
+  body.has-chat-nav:not(.landing-mode) .chat-nav-toggle {
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-nav {
+    transition: none;
+  }
+}
+
+/* Подсветка хода, к которому перешли из навигации. */
+.turn-highlight {
+  animation: turn-flash 1.6s ease-out;
+}
+
+@keyframes turn-flash {
+  0% { background: var(--state-unknown-bg); }
+  100% { background: transparent; }
+}

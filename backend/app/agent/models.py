@@ -106,6 +106,37 @@ class CompareCompaniesArgs(StrictModel):
         return checked
 
 
+class FindCompaniesArgs(StrictModel):
+    """Подборка карточек по проверенным полям витрины, а не по прозе отчёта."""
+
+    min_proceeds: Optional[float] = Field(default=None, ge=0)
+    max_proceeds: Optional[float] = Field(default=None, ge=0)
+    min_profit: Optional[float] = None
+    max_profit: Optional[float] = None
+    risk_level: Optional[Literal["LOW", "MEDIUM", "HIGH", "UNKNOWN"]] = None
+    zsk_risk_level: Optional[Literal["GREEN", "YELLOW", "RED", "UNKNOWN"]] = None
+    hard_stops: Optional[Literal["with", "without"]] = None
+    min_claims_amount: Optional[float] = Field(default=None, ge=0)
+    max_claims_amount: Optional[float] = Field(default=None, ge=0)
+    min_enforcement_count: Optional[int] = Field(default=None, ge=0)
+    max_enforcement_count: Optional[int] = Field(default=None, ge=0)
+    sort_by: Literal["proceeds", "profit", "claims", "enforcement"] = "proceeds"
+    order: Literal["desc", "asc"] = "desc"
+    limit: int = Field(default=10, ge=1, le=25)
+
+    @model_validator(mode="after")
+    def validate_any_criterion(self) -> "FindCompaniesArgs":
+        criteria = (
+            self.min_proceeds, self.max_proceeds, self.min_profit, self.max_profit,
+            self.risk_level, self.zsk_risk_level, self.hard_stops,
+            self.min_claims_amount, self.max_claims_amount,
+            self.min_enforcement_count, self.max_enforcement_count,
+        )
+        if all(value is None for value in criteria):
+            raise ValueError("Нужен хотя бы один критерий подборки")
+        return self
+
+
 class ToolError(StrictModel):
     code: Literal[
         "unknown_tool",
@@ -494,6 +525,30 @@ class ConnectionGraphBlock(StrictModel):
     graph: CompanyConnections
 
 
+class ShortlistRow(StrictModel):
+    inn: SafeText
+    name: SafeText
+    fin_year: Optional[int] = None
+    proceeds_display: SafeText
+    profit_display: SafeText
+    claims_display: SafeText
+    enforcement_count: int = Field(ge=0)
+    hard_stops: int = Field(ge=0)
+    risk_level: SafeText
+    zsk_risk_level: SafeText
+
+
+class CompanyShortlistBlock(StrictModel):
+    """Навигационная подборка: значения гидратирует backend, не модель."""
+
+    type: Literal["company_shortlist"] = "company_shortlist"
+    title: SafeText
+    criteria: List[SafeText] = Field(default_factory=list, max_length=8)
+    total: int = Field(ge=0)
+    rows: List[ShortlistRow] = Field(default_factory=list, max_length=25)
+    empty_message: Optional[SafeText] = None
+
+
 class EvidenceListBlock(StrictModel):
     type: Literal["evidence_list"] = "evidence_list"
     title: SafeText
@@ -508,6 +563,7 @@ UIBlock = Annotated[
         LineChartBlock,
         FindingListBlock,
         ComparisonTableBlock,
+        CompanyShortlistBlock,
         ConnectionGraphBlock,
         EvidenceListBlock,
     ],

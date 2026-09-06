@@ -242,6 +242,78 @@ function renderComparisonTable(block, context) {
   return card;
 }
 
+function companyWord(count) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'компания';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'компании';
+  return 'компаний';
+}
+
+function renderCompanyShortlist(block) {
+  const card = element('section', 'rich-block shortlist-block');
+  card.appendChild(element('h3', null, block.title || 'Подходят под условие'));
+
+  const criteria = safeArray(block.criteria);
+  if (criteria.length) {
+    const chips = element('div', 'shortlist-criteria');
+    criteria.forEach((item) => chips.appendChild(element('span', 'shortlist-chip', item)));
+    card.appendChild(chips);
+  }
+
+  const rows = safeArray(block.rows);
+  if (!rows.length) {
+    card.appendChild(element('div', 'chat-empty-state',
+      block.empty_message || 'Под эти критерии карточек не нашлось.'));
+    return card;
+  }
+
+  const total = Number(block.total) || rows.length;
+  const matched = `${total} ${companyWord(total)}`;
+  card.appendChild(element('p', 'shortlist-total',
+    total > rows.length
+      ? `Под условие подходит ${matched}, показаны первые ${rows.length}.`
+      : `Под условие подходит ${matched}.`));
+
+  const scroller = element('div', 'comparison-scroll');
+  const table = element('table', 'comparison-table shortlist-table');
+  const head = element('thead');
+  const headRow = element('tr');
+  ['Компания', 'Выручка', 'Прибыль', 'Иски', 'Исп. производств', 'Стоп-факторы', 'Банк / ЗСК']
+    .forEach((label) => headRow.appendChild(element('th', null, label)));
+  head.appendChild(headRow);
+
+  const body = element('tbody');
+  rows.forEach((row) => {
+    const line = element('tr');
+    const company = element('th', 'comparison-measure');
+    company.scope = 'row';
+    company.append(
+      element('span', 'comparison-company', row.name || 'Контрагент'),
+      element('span', 'comparison-inn', `ИНН ${row.inn || '—'}${row.fin_year ? ` · ${row.fin_year}` : ''}`),
+    );
+    line.appendChild(company);
+    line.appendChild(element('td', 'comparison-cell', row.proceeds_display || 'Нет данных'));
+    line.appendChild(element('td', 'comparison-cell', row.profit_display || 'Нет данных'));
+    line.appendChild(element('td', 'comparison-cell', row.claims_display || 'Нет данных'));
+    line.appendChild(element('td', 'comparison-cell', String(row.enforcement_count ?? 0)));
+    const stops = Number(row.hard_stops) || 0;
+    const stopCell = element('td', `comparison-cell shortlist-stops-${stops ? 'yes' : 'no'}`);
+    stopCell.appendChild(element('span', null, stops ? String(stops) : 'нет'));
+    line.appendChild(stopCell);
+    line.appendChild(element('td', 'comparison-cell',
+      `${row.risk_level || 'UNKNOWN'} / ${row.zsk_risk_level || 'UNKNOWN'}`));
+    body.appendChild(line);
+  });
+
+  table.append(head, body);
+  scroller.appendChild(table);
+  card.appendChild(scroller);
+  card.appendChild(element('p', 'shortlist-hint',
+    'Назовите два-три ИНН из списка, чтобы сравнить их подробно.'));
+  return card;
+}
+
 const BLOCK_RENDERERS = {
   company_card: renderDashboard,
   text: renderTextBlock,
@@ -249,6 +321,7 @@ const BLOCK_RENDERERS = {
   line_chart: renderLineChart,
   finding_list: renderFindingList,
   comparison_table: renderComparisonTable,
+  company_shortlist: renderCompanyShortlist,
   connection_graph: renderConnections,
   evidence_list: renderEvidenceList,
 };
