@@ -202,11 +202,10 @@ async def test_full_check_second_step_receives_normalized_data_and_authors_answe
     ("message", "expected"),
     [
         ("Проверь контрагента 1234567890", "invalid_inn"),
-        ("Какие счета-фактуры у контрагента 6165169320?", "unsupported_request"),
         ("Проверь 6165169320 и 0278949271", "ambiguous_inn"),
     ],
 )
-async def test_invalid_or_out_of_scope_request_never_calls_model_or_tool(
+async def test_invalid_or_ambiguous_identifier_never_calls_model_or_tool(
     monkeypatch, message, expected
 ):
     async def forbidden_run_check(*args, **kwargs):
@@ -222,8 +221,7 @@ async def test_invalid_or_out_of_scope_request_never_calls_model_or_tool(
     assert response.metadata.routing == "deterministic_guard"
     assert model.calls == 0
     reason, _ = inspect_request(message)
-    if expected != "unsupported_request":
-        assert reason == expected
+    assert reason == expected
 
 
 @pytest.mark.asyncio

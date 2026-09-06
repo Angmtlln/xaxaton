@@ -57,7 +57,9 @@ async def test_deal_role_answer_receives_both_verified_domains(documents, monkey
     snapshots = {d['report']['baseInfo']['inn']: _real_snapshot(d) for d in documents}
     _patch_snapshots(monkeypatch, snapshots)
     model = _model(AIMessage(content='',tool_calls=[_tool_call('get_financial_data')]),
-                   _answer('Финансы получены.'),_answer('Судебные сведения получены.'),
+                   _answer('Финансы получены.'),
+                   AIMessage(content='',tool_calls=[_tool_call('get_legal_data')]),
+                   _answer('Судебные сведения получены.'),
                    _answer('Для аванса учту оба проверенных домена.'))
     runtime = _runtime(model, grounding_debug=False)
     first = await runtime.run('Финансы '+INN)

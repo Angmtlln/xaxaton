@@ -1,0 +1,199 @@
+"""Observable admission, semantic tool choice and trusted-company boundaries."""
+import pytest
+from langchain_core.messages import AIMessage
+
+from app.agent.runtime import inspect_comparison_request, inspect_request
+from test_agent_runtime import (_answer, _model, _runtime, _tool_call,
+                                _verified_context, FailingToolCallingModel)
+from test_agent_multiturn import targeted_result
+
+
+@pytest.mark.parametrize("message", [
+    "Сделка на 10000000 рублей",
+    "Договор № 123456789012345, сумма 10 млн рублей",
+    "Сумма 6165169320",  # Even a checksum-valid amount is not a company switch.
+    "Аванс 6165169320 ₽",
+    "Платёж 6165169320,50 рублей",
+    "2023",
+])
+def test_amounts_and_ordinary_long_numbers_do_not_fail_inn_admission(message):
+    assert inspect_request(message) == ("missing_inn", None)
+
+
+@pytest.mark.parametrize("message", [
+    "Проверь контрагента 1234567890",
+    "ИНН 123",
+    "1234567890",
+    "Финансы 6165169320 и 1234567890",
+])
+def test_explicit_bad_identifiers_still_need_correction(message):
+    assert inspect_request(message) == ("invalid_inn", None)
+
+
+def test_amounts_do_not_break_identified_checks_or_comparisons():
+    assert inspect_request("ИНН 6165169320, сделка на 10000000 рублей") == (None, "6165169320")
+    assert inspect_comparison_request(
+        "Сравни 6165169320 и 0278949271 для сделки на 10000000 рублей"
+    ) == (None, ["6165169320", "0278949271"])
+    assert inspect_request("Сумма 10000000 рублей, ИНН 123") == ("invalid_inn", None)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("question", [
+    "Не проверяй финансы, объясни проще",
+    "Не запускай полную проверку, объясни значение прибыли",
+    "Сделка на 10000000 рублей",
+    "Расскажи о судах и финансах по уже полученным данным",
+    "Почему?",
+])
+async def test_context_answer_does_not_force_tool_from_words(monkeypatch, question):
+    model = _model(
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
+        _answer("Данные о прибыли получены."),
+        _answer("Объяснение по доступным данным."),
+    )
+    runtime = _runtime(model, grounding_debug=False)
+    calls = []
+
+    async def execute(name, args, context):
+        calls.append((name, args))
+        return targeted_result()
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    first = await runtime.run("Какая платёжеспособность у 6165169320?")
+    response = await runtime.run(question, first.conversation_id)
+    assert calls == [("get_financial_data", {"inn": "6165169320"})]
+    assert response.metadata.tool_calls == 0
+    assert response.metadata.model_calls == 1
+    assert response.metadata.synthesis == "model"
+    assert response.active_company.inn == "6165169320"
+    assert response.message == "Объяснение по доступным данным."
+    assert model._tool_bindings[-1]["tool_choice"] == "auto"
+    assert set(model._tool_bindings[-1]["tools"]) == {
+        "full_company_check", "get_financial_data", "get_legal_data",
+    }
+    assert _verified_context(model._messages[-1])["company"]["inn"] == "6165169320"
+
+
+@pytest.mark.asyncio
+async def test_semantic_choice_can_read_a_different_domain_and_preserves_arguments(monkeypatch):
+    model = _model(
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]), _answer(),
+        AIMessage(content="", tool_calls=[_tool_call("get_legal_data", {
+            "inn": "6165169320", "section": "licenses", "year": 2023, "offset": 5,
+        })]), _answer("Прочитан запрошенный раздел."),
+    )
+    runtime = _runtime(model, grounding_debug=False)
+    calls = []
+
+    async def execute(name, args, context):
+        calls.append((name, args))
+        return targeted_result("finance" if name == "get_financial_data" else "legal")
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    first = await runtime.run("Финансы 6165169320")
+    response = await runtime.run("Не нужны финансы, покажи лицензии за 2023, страница 2", first.conversation_id)
+    assert calls[-1] == ("get_legal_data", {"inn": "6165169320", "section": "licenses", "year": 2023, "offset": 5})
+    assert response.metadata.tool_calls == 1
+    assert response.metadata.model_calls == 2
+    assert response.metadata.synthesis == "model"
+    assert response.external_news_status is None
+    context = _verified_context(model._messages[-1])
+    assert context["domain"] == "legal"
+    assert context["related_domains"]["finance"]["metrics"]
+
+
+def test_new_snapshot_never_reuses_old_domain_context():
+    from app.agent.runtime import synthesis_context
+    from app.agent.synthesis import normalized_tool_context
+    cached = normalized_tool_context(targeted_result("finance"))
+    cached["company"]["snapshot_id"] = 999
+    context = synthesis_context(targeted_result("legal"), cached)
+    assert not context.get("related_domains")
+
+
+def test_complementary_context_does_not_nest_old_copies_of_the_new_domain():
+    from app.agent.runtime import synthesis_context
+    from app.agent.synthesis import normalized_tool_context
+    finance = normalized_tool_context(targeted_result("finance"))
+    legal = synthesis_context(targeted_result("legal"), finance)
+    updated = synthesis_context(targeted_result("finance"), legal)
+    assert set(updated["related_domains"]) == {"legal"}
+    assert "related_domains" not in updated["related_domains"]["legal"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("proposal", [
+    [_tool_call("get_financial_data"), _tool_call("get_legal_data", call_id="extra")],
+    [_tool_call("unknown_tool")],
+    [_tool_call("get_financial_data", {"inn": "6165169320", "sql": "select 1"})],
+])
+async def test_invalid_proposals_never_trigger_guessed_fallback_execution(monkeypatch, proposal):
+    runtime = _runtime(_model(AIMessage(content="", tool_calls=proposal)), grounding_debug=False)
+    calls = []
+
+    async def execute(*args):
+        calls.append(args)
+        return targeted_result()
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    response = await runtime.run("Какая платёжеспособность у 6165169320?")
+    assert not calls
+    assert response.metadata.tool_calls == 0
+    assert response.metadata.synthesis == "fallback"
+
+
+@pytest.mark.asyncio
+async def test_provider_failure_does_not_guess_a_domain(monkeypatch):
+    runtime = _runtime(FailingToolCallingModel(responses=[_answer()]), grounding_debug=False)
+    calls = []
+
+    async def execute(*args):
+        calls.append(args)
+        return targeted_result()
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    response = await runtime.run("Не проверяй финансы у 6165169320, объясни проще")
+    assert not calls
+    assert response.metadata.tool_calls == 0
+    assert response.metadata.synthesis == "fallback"
+
+
+@pytest.mark.asyncio
+async def test_unavailable_capability_can_be_explained_without_running_a_check(monkeypatch):
+    runtime = _runtime(_model(_answer("Счета-фактуры недоступны в этих инструментах.")), grounding_debug=False)
+    calls = []
+
+    async def execute(*args):
+        calls.append(args)
+        return targeted_result()
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    response = await runtime.run("Какие счета-фактуры у контрагента 6165169320?")
+    assert not calls
+    assert response.metadata.model_calls == 1
+    assert response.metadata.synthesis == "model"
+    assert response.active_company.inn == "6165169320"
+
+
+@pytest.mark.asyncio
+async def test_company_switch_without_reading_drops_old_trusted_data(monkeypatch):
+    model = _model(
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]), _answer(),
+        _answer("Уточните условия сделки."), _answer("Сначала нужны данные новой компании."),
+    )
+    runtime = _runtime(model, grounding_debug=False)
+
+    async def execute(*args):
+        return targeted_result()
+
+    monkeypatch.setattr(runtime.registry, "execute", execute)
+    first = await runtime.run("Финансы 6165169320")
+    second = await runtime.run("Обсудим условия для ИНН 0278949271", first.conversation_id)
+    third = await runtime.run("Почему?", first.conversation_id)
+    assert second.active_company.inn == third.active_company.inn == "0278949271"
+    for messages in model._messages[-2:]:
+        context = _verified_context(messages)
+        assert context["company"]["inn"] == "0278949271"
+        assert not context.get("metrics")
+        assert "6165169320" not in messages[0].content

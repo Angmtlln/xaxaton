@@ -177,6 +177,7 @@ async def test_full_check_search_is_automatic_separate_and_once(monkeypatch, che
 @pytest.mark.asyncio
 @pytest.mark.parametrize("question,search", [
     ("Проверь контрагента 6165169320", True),
+    ("Можешь полностью разобрать контрагента 6165169320?", True),
     ("Финансы 6165169320", False),
     ("Суды 6165169320", False),
     ("Сравни 6165169320 и 1684017097", False),
@@ -191,9 +192,18 @@ async def test_actual_openrouter_request_enables_search_only_for_full_check(monk
     bodies = []
     def handler(request):
         bodies.append(json.loads(request.content))
+        message = {"role": "assistant", "content": _answer([]).model_dump_json()}
+        if len(bodies) == 1 and question.startswith(("Финансы", "Суды", "Можешь")):
+            name = ("full_company_check" if question.startswith("Можешь") else
+                    "get_financial_data" if question.startswith("Финансы") else "get_legal_data")
+            message = {"role": "assistant", "content": None, "tool_calls": [{
+                "id": "read", "type": "function", "function": {
+                    "name": name, "arguments": json.dumps({"inn": "6165169320"}),
+                },
+            }]}
         return httpx.Response(200, json={
             "id": "test", "object": "chat.completion", "created": 0, "model": "fake",
-            "choices": [{"index": 0, "message": {"role": "assistant", "content": _answer([]).model_dump_json()}, "finish_reason": "stop"}],
+            "choices": [{"index": 0, "message": message, "finish_reason": "tool_calls" if "tool_calls" in message else "stop"}],
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
         })
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
@@ -207,8 +217,10 @@ async def test_actual_openrouter_request_enables_search_only_for_full_check(monk
             assert "plugins" not in bodies[-1]
             assert follow.external_news == [] and follow.external_news_status is None
     assert result.metadata.tool_calls == 1
-    assert len(bodies) == (2 if search else 1)
-    assert bool(bodies[0].get("plugins")) is search
+    assert len(bodies) == (3 if question.startswith("Можешь") else 1 if question.startswith("Сравни") else 2)
+    assert [i for i, body in enumerate(bodies) if body.get("plugins")] == (
+        [1 if question.startswith("Можешь") else 0] if search else []
+    )
     assert bodies[0]["provider"] == {"sort": "throughput"}
     assert result.external_news == []
     assert result.external_news_status == ("completed" if search else None)

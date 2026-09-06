@@ -43,6 +43,7 @@ async def test_acceptance_calibrates_claims_and_asks_for_deal_context(
         SUPPORTED,
         answer("Это серьёзный сигнал, но сам по себе он недостаточен для отказа от сделки."),
         SUPPORTED,
+        AIMessage(content="", tool_calls=[_tool_call("get_financial_data")]),
         answer("Подтверждены выручка, капитал и кредиторка. Их влияние на будущие платежи ещё нужно оценить."),
         SUPPORTED,
         answer("Подтверждены цифры. Их интерпретация — требуется проверка устойчивости; причина роста — лишь гипотеза."),
@@ -94,11 +95,11 @@ async def test_acceptance_calibrates_claims_and_asks_for_deal_context(
         (name, {"inn": "6165169320"})
         for name in ("full_company_check", "get_financial_data")
     ]
-    assert model.calls == 17
+    assert model.calls == 18
     assert responses[6].message.endswith("?")
     assert "предоплат" not in responses[6].message.casefold()
     assert "20 млн" in responses[7].message
-    verifier_payload = json.loads(model._messages[14][1].content)
+    verifier_payload = json.loads(model._messages[15][1].content)
     assert verifier_payload["user_context"][-1] == questions[6]
 
 

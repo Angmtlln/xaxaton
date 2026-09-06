@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessage
 from app.agent.runtime import is_direct_request
 from app.domain import pipeline
 from app.llm.groq_client import GroqClient
-from test_agent_runtime import _runtime, _model, _answer, _verified, _settings
+from test_agent_runtime import _runtime, _model, _answer, _verified, _settings, _tool_call
 from test_agent_multiturn import targeted_result
 
 
@@ -31,7 +31,12 @@ async def test_direct_full_check_keeps_master_and_verifier(monkeypatch, check_pa
 async def test_targeted_reuse_is_domain_specific_and_refreshable(monkeypatch, check_payload):
     async def check(*args, **kwargs): return check_payload
     monkeypatch.setattr('app.agent.tools.run_check', check)
-    runtime = _runtime(_model(*sum(([ _answer(), _verified()] for _ in range(7)), [])), direct_dispatch=True)
+    responses = [_answer(), _verified()]
+    for tool in ['get_financial_data', 'get_legal_data', None, None, 'get_financial_data', None]:
+        if tool:
+            responses.append(AIMessage(content="", tool_calls=[_tool_call(tool)]))
+        responses.extend([_answer(), _verified()])
+    runtime = _runtime(_model(*responses), direct_dispatch=True)
     first = await runtime.run('Проверь контрагента 6165169320')
     calls = []
     async def execute(name, args, context):

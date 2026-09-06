@@ -24,7 +24,7 @@ from .conversations import (ConversationCapacityError, ConversationState,
                             select_trusted_context, store_comparison_context, with_related_domains)
 from .grounding import (backend_owned_violations, call_grounding_verifier,
                         call_master_repair, is_simple_rewrite, message_text)
-from .langchain_tools import LangChainToolExecution, build_langchain_tools
+from .langchain_tools import COMPANY_TOOLS, LangChainToolExecution, build_langchain_tools
 from .master_model import build_master_model
 from .shortlist import activity_arguments, direct_shortlist_arguments
 from .ranking import selection_turn
@@ -229,6 +229,7 @@ class MasterAgentRuntime:
             bool(COMPARISON_RE.search(message)) or pending_target == "compare_companies"
         )
         inns = None
+        related_target = False
         if shortlist_request:
             reason, inn, target = None, None, "find_companies"
             switching_company = False
@@ -266,6 +267,7 @@ class MasterAgentRuntime:
                 neighbours = [n for n in links.get("nodes", []) if n["inn"] != active["inn"]]
                 if links.get("total_companies") == 1 and len(neighbours) == 1:
                     inn, target = neighbours[0]["inn"], "full_company_check"
+                    related_target = True
                 else:
                     reason, target = "related_company_ambiguous", None
             switching_company = bool(active and inn and active["inn"] != inn)
@@ -319,6 +321,22 @@ class MasterAgentRuntime:
                 )
             )
 
+            # Free single-company questions are interpreted by the existing Master
+            # call. Keyword hints must not force a tool, including under negation.
+            if (model is not None and reason is None and inn and not related_target
+                    and not is_direct_request(message, "full_company_check")
+                    and not (identifier_reply and pending_target is None)):
+                selected_context = None if switching_company else select_trusted_context(trusted_store, last_topic)
+                if selected_context is not None:
+                    selected_context = with_related_domains(selected_context, trusted_store)
+                else:
+                    selected_context = {"domain": "company", "company": {"inn": inn},
+                                        "evidence": [], "coverage": {"state": "NO_DATA"}}
+                target, preselected_tool = "auto", False
+                turn_last_topic = None if switching_company else last_topic
+                if not switching_company and is_simple_rewrite(message):
+                    target = None
+
         graph_context = None
         if re.search(r"\bграф\w*\s+связ|\bсхем\w*\s+связ", message, re.I) and not comparison_request:
             if reason is None and not switching_company and not requests_refresh(message):
@@ -339,7 +357,7 @@ class MasterAgentRuntime:
             "prompt_version=%s tool_bundle_version=%s tools_visible=%s inn=%s "
             "model_limit=%s tool_limit=%s remaining_ms=%s trusted_topic=%s",
             run_id, cid, model_name, model_provider, MASTER_PROMPT_VERSION,
-            TOOL_BUNDLE_VERSION, [target] if target else [], inn or inns,
+            TOOL_BUNDLE_VERSION, list(COMPANY_TOOLS) if target == "auto" else [target] if target else [], inn or inns,
             MAX_TOTAL_MODEL_CALLS, MAX_TOOL_CALLS,
             max(0, int((deadline - time.monotonic()) * 1000)), last_topic,
         )
@@ -392,9 +410,15 @@ class MasterAgentRuntime:
             except asyncio.TimeoutError:
                 response = runtime_timeout_response(run_id, started, tool_calls=execution.tool_calls)
 
-        if reason is None and target is None and selected_context is not None:
+        if reason is None and target in {None, "auto"} and selected_context is not None:
             last_topic = turn_last_topic
         result = execution.result
+        if (target == "auto" and result is None and response.metadata.synthesis == "model"
+                and inn and is_valid_inn(inn)):
+            # Selecting an identifier does not require inventing company facts.
+            if switching_company:
+                trusted_store, user_context, last_topic = None, [], None
+            active = CompanyRef(inn=inn, name=(active or {}).get("name") if not switching_company else None).model_dump(mode="json")
         if result is not None and result.status in {"success", "partial"}:
             observation = normalized_tool_context(result)
             if observation["domain"] == "shortlist":
@@ -559,14 +583,20 @@ class MasterAgentRuntime:
                 )
                 final = state["messages"][-1]
                 if isinstance(final, AIMessage) and not final.tool_calls:
+                    if target == "auto":
+                        contextual = execution.result is None
                     candidate = parse_master_answer(
                         message_text(final),
                         allowed_artifacts=allowed_artifacts(execution.result, contextual=contextual),
-                        allow_risk_profile=target == "full_company_check" and not contextual,
+                        allow_risk_profile=(execution.result is not None
+                                            and execution.result.metadata.tool == "full_company_check"),
                     )
             except Exception as exc:  # noqa: BLE001
                 log.info("agent_model_fallback run_id=%s reason=%s detail=%s", run_id, type(exc).__name__, str(exc)[:400])
 
+        if target == "auto":
+            # Never turn a failed/declined semantic choice into a guessed check.
+            contextual = execution.result is None
         if not contextual and execution.result is None:
             if execution.started:
                 return runtime_timeout_response(run_id, started, tool_calls=execution.tool_calls)
@@ -601,7 +631,7 @@ class MasterAgentRuntime:
                 model=model_name,
                 started=started,
             )
-        verified_context = cached_context if contextual else normalized_tool_context(result)
+        verified_context = cached_context if contextual else synthesis_context(result, cached_context)
         artifacts = allowed_artifacts(result, contextual=contextual)
         # External selection is independent of the optional internal prose repair.
         news_answer = candidate
@@ -639,7 +669,7 @@ class MasterAgentRuntime:
             grounding_status=grounding_status,
             repair_attempts=repairs,
         )
-        if target == "full_company_check":
+        if result is not None and result.metadata.tool == "full_company_check":
             from .news import hydrate_news
             response.external_news, response.external_news_status = await hydrate_news(
                 execution.news_annotations, news_answer,
@@ -728,13 +758,15 @@ def _model_policy(
         if execution.model_calls >= MAX_AGENT_MODEL_CALLS + int(expected_tool == "find_companies"):
             raise RuntimeError("Agent model call budget exhausted")
         after_tool = execution.result is not None
+        automatic = expected_tool == "auto"
+        actual_tool = execution.result.metadata.tool if after_tool else expected_tool
         answer_stage = expected_tool is None or after_tool
         settings = dict(request.model_settings)
         settings["parallel_tool_calls"] = False
         # Подборка извлекает несколько условий; прежних 512 токенов маршрутизации
         # может не хватить модели для завершённого native tool call.
         tool_tokens = max(router_max_tokens, 2048) if expected_tool == "find_companies" else router_max_tokens
-        settings["max_tokens"] = answer_max_tokens if answer_stage else tool_tokens
+        settings["max_tokens"] = answer_max_tokens if answer_stage or automatic else tool_tokens
         if answer_stage:
             # Ответ Master разбирается по схеме, поэтому JSON требуем у провайдера.
             # Инструменты на этом шаге не нужны: с ними OpenAI-совместимые
@@ -742,30 +774,30 @@ def _model_policy(
             settings["response_format"] = {"type": "json_object"}
         overrides = {
             "tools": [] if answer_stage else request.tools,
-            "tool_choice": "none" if answer_stage else "required",
+            "tool_choice": "none" if answer_stage else "auto" if automatic else "required",
             "model_settings": settings,
         }
         messages = list(request.messages)
         if clear_history:
             last_user = max(index for index, item in enumerate(messages) if isinstance(item, HumanMessage))
             messages = messages[last_user:]
-        if answer_stage:
+        if answer_stage or automatic:
             # Тот же ToolResult уходит в системное сообщение как verified_context.
             # Второй экземпляр в истории удваивал запрос и упирался в лимит Groq.
             messages = [_without_tool_payload(item) for item in messages]
         overrides["messages"] = messages
 
-        if answer_stage:
+        if answer_stage or automatic:
             emit_progress("synthesis" if after_tool else "context")
-            context = cached_context if expected_tool is None else normalized_tool_context(execution.result)
+            context = synthesis_context(execution.result, cached_context) if after_tool else cached_context
             schema = MasterAnswer.model_json_schema()
             schema.setdefault("required", []).append("suggested_actions")
-            if after_tool and expected_tool == "full_company_check":
+            if after_tool and actual_tool == "full_company_check":
                 schema["required"].append("risk_profile")
             else:
                 schema["properties"].pop("risk_profile", None)
             news_prompt = ""
-            if after_tool and expected_tool == "full_company_check" and execution.result.status != "error":
+            if after_tool and actual_tool == "full_company_check" and execution.result.status != "error":
                 from .news import news_search_request
                 plugin, query = news_search_request(context["company"], news_days)
                 extra_body = dict(getattr(request.model, "extra_body", None) or {})
@@ -780,7 +812,7 @@ def _model_policy(
             else:
                 schema["properties"].pop("news_selection", None)
             schema["properties"]["artifact"]["enum"] = list(
-                allowed_artifacts(execution.result, contextual=expected_tool is None)
+                allowed_artifacts(execution.result, contextual=not after_tool)
             )
             base = request.system_message.content if request.system_message else MASTER_SYSTEM_PROMPT
             overrides["system_message"] = SystemMessage(
@@ -795,7 +827,16 @@ def _model_policy(
                     + news_prompt
                     + "\nСхема финального JSON: "
                     + json.dumps(schema, ensure_ascii=False, separators=(",", ":"))
-                    + "\nОтветь на последнее сообщение. Верни только JSON; Markdown разрешён внутри message."
+                    + ("\nСначала реши, достаточно ли verified_context для последнего вопроса. "
+                       "Учитывай отрицания: упоминание финансов или судов не является командой их проверять. "
+                       "Если данные уже переданы, отвечай без инструмента. Если нужны новые сведения, "
+                       "выбери один подходящий инструмент; узкий вопрос не требует полной проверки. "
+                       "Не заявляй о выполненном чтении без результата инструмента. "
+                       "Если запрос требует нескольких новых разделов, обозначь границу текущего чтения. "
+                       "При явной просьбе обновить данные прочитай их повторно; это чтение снимка, "
+                       "а не обновление сведений у первоисточника.\n"
+                       if automatic and not after_tool else "\n")
+                    + "Финальный ответ верни только JSON; Markdown разрешён внутри message."
                 )
             )
         bounded = request.override(**overrides)
@@ -813,10 +854,13 @@ def _model_policy(
             if calls:
                 raise ValueError("Repeated or contextual tool call")
         else:
-            if len(calls) != 1 or calls[0]["name"] != expected_tool:
+            if automatic and not calls:
+                return response
+            allowed_names = {tool.name for tool in request.tools} if automatic else {expected_tool}
+            if len(calls) != 1 or calls[0]["name"] not in allowed_names:
                 raise ValueError("Invalid native tool proposal: expected=%s got=%s" % (
                     expected_tool, [call.get("name") for call in calls]))
-            definition = registry.get_definition(expected_tool)
+            definition = registry.get_definition(calls[0]["name"])
             try:
                 definition.input_model.model_validate(calls[0]["args"])
             except ValueError as error:
@@ -841,6 +885,23 @@ def _model_policy(
         return response
 
     return enforce
+
+
+def synthesis_context(result, cached_context):
+    """A new targeted read can complement cached facts from the same snapshot."""
+    context = normalized_tool_context(result)
+    if context.get("domain") not in {"finance", "legal"} or not cached_context:
+        return context
+    company = context.get("company") or {}
+    domains = {}
+    for cached in [cached_context, *(cached_context.get("related_domains") or {}).values()]:
+        previous_company = cached.get("company") or {}
+        if any(previous_company.get(key) != company.get(key)
+               for key in ("inn", "snapshot_id", "report_date")):
+            continue
+        if cached.get("domain") in {"finance", "legal"}:
+            domains[cached["domain"]] = {key: value for key, value in cached.items() if key != "related_domains"}
+    return with_related_domains(context, {"domains": domains})
 
 
 def _without_tool_payload(message):
@@ -916,7 +977,7 @@ def is_shortlist_request(message: str) -> bool:
     а не данные о компании. Применённые критерии backend показывает обратно.
     """
     text = message or ""
-    if any(is_valid_inn(value) for value in DIGIT_SEQUENCE_RE.findall(text)):
+    if any(is_valid_inn(value) for value in inn_candidates(text)):
         return False
     if direct_shortlist_arguments(text) is not None:
         return True
@@ -976,12 +1037,42 @@ def build_master_runtime(
     )
 
 
-def inspect_request(message: str) -> Tuple[Optional[str], Optional[str]]:
+def inn_candidates(message: str) -> list[str]:
+    """Recognize identifiers without interpreting ordinary amounts as bad INNs.
+
+    Explicit labels and identifier-only commands retain checksum errors. Elsewhere
+    only valid INNs qualify, and currency notation takes precedence over guessing.
+    """
     text = message or ""
-    sequences = DIGIT_SEQUENCE_RE.findall(text)
-    candidates = [value for value in sequences if len(value) >= 8]
-    explicit = re.findall(r"\bинн\s*[:№#-]?\s*([0-9]+)", text, re.I)
-    candidates = sorted(set(candidates + explicit))
+    explicit = {match.start(1) for match in re.finditer(r"\bинн\s*[:№#-]?\s*([0-9]+)", text, re.I)}
+    identifier_list = bool(re.fullmatch(
+        r"\s*(?:(?:проверь(?:те)?|проверить|сравни(?:те)?)\s+)?"
+        r"(?:(?:контрагент[ао]?в?|компани[юи]|инн)\s+)?[0-9]+(?:[\s,;]+(?:и\s+)?[0-9]+)*[.!?]?\s*",
+        text, re.I,
+    ))
+    candidates = []
+    previous_identifier_end = None
+    for match in DIGIT_SEQUENCE_RE.finditer(text):
+        value = match.group()
+        if match.start() in explicit:
+            candidates.append(value)
+            previous_identifier_end = match.end()
+            continue
+        currency = re.match(r"\s*(?:[.,][0-9]+\s*)?(?:₽|руб\w*|тыс\.?|млн\.?|млрд\.?)\b|\s*₽", text[match.end():], re.I)
+        amount_label = re.search(r"(?:сумм\w*|аванс\w*|сделк\w*)\s*(?:на|в|до|от|:|=)?\s*$", text[:match.start()], re.I)
+        if currency or amount_label:
+            continue
+        follows_identifier = previous_identifier_end is not None and re.fullmatch(
+            r"\s*(?:,|;|и)\s*", text[previous_identifier_end:match.start()], re.I,
+        )
+        if (identifier_list and (len(value) >= 8 or not text.strip()[0].isdigit())) or follows_identifier or is_valid_inn(value):
+            candidates.append(value)
+            previous_identifier_end = match.end()
+    return list(dict.fromkeys(candidates))
+
+
+def inspect_request(message: str) -> Tuple[Optional[str], Optional[str]]:
+    candidates = inn_candidates(message)
     if not candidates:
         return "missing_inn", None
     valid = [value for value in candidates if is_valid_inn(value)]
@@ -1007,10 +1098,7 @@ def inspect_comparison_request(
     Один ИНН после проверки компании означает «сравни с активной»: требовать
     повторить уже названный ИНН — лишняя работа для пользователя.
     """
-    text = message or ""
-    sequences = [value for value in DIGIT_SEQUENCE_RE.findall(text) if len(value) >= 8]
-    explicit = re.findall(r"\bинн\s*[:№#-]?\s*([0-9]+)", text, re.I)
-    ordered = list(dict.fromkeys(sequences + explicit))
+    ordered = inn_candidates(message)
     if any(not is_valid_inn(value) for value in ordered):
         return "invalid_inn", None
     if len(ordered) == 1 and active_inn and is_valid_inn(active_inn):

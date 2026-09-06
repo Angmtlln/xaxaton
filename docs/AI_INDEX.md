@@ -9,6 +9,7 @@
 | Если задача про… | Сначала прочитать | Основные файлы |
 |---|---|---|
 | agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/langchain_tools.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/agent/conversations.py`, `backend/app/agent/finance.py`, `backend/app/agent/legal.py`, `backend/app/agent/comparison.py`, `backend/app/api/routes/chat.py`, `frontend/js/chat/main.js` |
+| выбор инструмента по смыслу, отрицания, сумма vs ИНН | [`CHAT_ROUTING.md`](CHAT_ROUTING.md) | `backend/app/agent/runtime.py`, `langchain_tools.py`, `tests/test_agent_request_routing.py`, `backend/scripts/smoke_agent_routing.py` |
 | продукт, скоуп, критерии успеха | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md), [`product_materials.md`](../product_materials.md) | `project_description.md`, `hypotheses.md` |
 | продуктовые гипотезы и приоритеты | [`hypotheses.md`](../hypotheses.md) | `product_materials.md` |
 | состав четырёх блоков анализа | [`blocks_summary_design.md`](../blocks_summary_design.md) | `backend/app/domain/facts.py`, `backend/app/llm/prompts.py` |
@@ -233,7 +234,10 @@ npm run dev
 - [CHAT_LATENCY.md](CHAT_LATENCY.md): before/after waterfall, provider routing и
   команды воспроизведения; `scripts/benchmark_chat_latency.py`.
 - По умолчанию verifier/repair отключены. Прямой dispatch простых команд,
-  reuse finance/legal и один Master synthesis сохраняют структурную валидацию.
+  reuse проверенного контекста и Master synthesis сохраняют структурную валидацию.
+- Свободные вопросы об одной компании при доступной модели используют выбор
+  инструмента или ответа по смыслу в существующем Master-вызове; одиночные слова
+  больше не фиксируют единственный tool. Границы — в [CHAT_ROUTING](CHAT_ROUTING.md).
 - Chat `full_company_check` пропускает только legacy Summary; `/api/v1/checks`
   и `/report` продолжают вызывать её. Схема БД не меняется.
 

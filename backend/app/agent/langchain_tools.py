@@ -14,6 +14,7 @@ from .synthesis import normalized_tool_context
 from .tools import ToolContext, ToolRegistry
 
 log = logging.getLogger(__name__)
+COMPANY_TOOLS = ("full_company_check", "get_financial_data", "get_legal_data")
 
 
 @dataclass
@@ -39,6 +40,11 @@ def build_langchain_tools(
     detail_args: Optional[dict] = None,
 ) -> List[StructuredTool]:
     """Идентификаторы компаний остаются за бэкендом: аргумент модели только сверяется."""
+    if expected_tool == "auto":
+        return [tool for name in COMPANY_TOOLS for tool in build_langchain_tools(
+            registry, tool_context, agent_run_id=agent_run_id,
+            expected_inn=expected_inn, execution=execution, expected_tool=name,
+        )]
     definition = registry.get_definition(expected_tool)
     if definition is None:
         raise ValueError("Tool отсутствует в domain registry")
