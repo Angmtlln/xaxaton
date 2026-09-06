@@ -207,24 +207,37 @@ function renderComparisonSummaries(block, context) {
     const card = element('article', 'comparison-summary');
     card.append(element('h3', null, column.name || 'Контрагент'),
       element('p', 'comparison-inn', `ИНН ${column.inn || '—'}`));
-    const coverage = element('p', 'comparison-coverage', comparisonCoverage(block, column, index));
-    coverage.title = 'Заполненные показатели этой таблицы; полнота исходных разделов может отличаться.';
-    card.appendChild(coverage);
+    const signalStates = {
+      restriction: ['risk', '!', 'Есть ограничения', 'Источник сообщает об ограничении. Основание — в ключевых сигналах ниже.'],
+      attention: ['attention', '!', 'Есть сигналы для проверки', 'Источник отмечает события, обстоятельства которых стоит уточнить.'],
+      no_flags: ['positive', '✓', 'Метки ограничений не выявлены', 'В доступных правовых данных нет меток ограничений или внимания. Это не гарантия надёжности.'],
+      unknown: ['neutral', '—', 'Недостаточно данных о сигналах', 'Неполные сведения не позволяют подтвердить отсутствие ограничений.'],
+    };
+    const [tone, icon, label, explanation] = signalStates[column.signal_status] || signalStates.unknown;
+    const signal = element('div', `comparison-signal signal-${tone}`);
+    signal.append(element('span', 'comparison-signal-icon', icon), element('strong', null, label));
+    card.append(signal, element('p', 'comparison-signal-explanation', explanation));
     const status = element('div', 'comparison-ratings');
     const bank = BANK_RISKS[column.bank_risk_level];
-    const risk = element('span', 'comparison-bank-risk', `Риск по данным банка: ${bank || '—'}`);
-    risk.title = bank ? 'Оценка банка из исходного отчёта, не общий рейтинг AI.' : 'Источник не предоставил банковскую оценку риска.';
-    status.appendChild(risk);
-    if (ZSK_RISKS[column.zsk_risk_level]) {
-      status.appendChild(element('span', null, `ЗСК: ${ZSK_RISKS[column.zsk_risk_level]}`));
-    }
+    const bankTone = { LOW: 'positive', MEDIUM: 'attention', HIGH: 'risk' }[column.bank_risk_level] || 'neutral';
+    const risk = element('span', `comparison-rating signal-${bankTone}`, `Банк: ${bank || '—'}`);
+    risk.title = 'Банковская оценка из исходного отчёта. Не общий рейтинг AI.';
+    const zskTone = { GREEN: 'positive', YELLOW: 'attention', RED: 'risk' }[column.zsk_risk_level] || 'neutral';
+    const zsk = element('span', `comparison-rating signal-${zskTone}`, `ЗСК: ${ZSK_RISKS[column.zsk_risk_level] || '—'}`);
+    const coverage = element('span', 'comparison-rating comparison-coverage', comparisonCoverage(block, column, index));
+    coverage.title = 'Заполненные показатели таблицы, не оценка компании.';
+    status.append(risk, zsk, coverage);
     card.appendChild(status);
-    if (column.coverage_scope) card.appendChild(element('p', 'comparison-scope', column.coverage_scope));
+    card.appendChild(element('h4', 'comparison-facts-heading', 'Ключевые сигналы'));
     const facts = safeArray(column.key_facts);
     if (facts.length) {
       const list = element('ul', 'comparison-key-facts');
       facts.forEach((fact) => {
         const item = element('li');
+        const factTone = ['positive', 'attention', 'risk'].includes(fact.tone) ? fact.tone : 'neutral';
+        const marker = element('i', `comparison-fact-marker signal-${factTone}`, factTone === 'positive' ? '✓' : factTone === 'neutral' ? '·' : '!');
+        marker.setAttribute('aria-hidden', 'true');
+        item.appendChild(marker);
         item.append(element('span', null, fact.label), element('strong', null, fact.display_value));
         const button = evidenceButton(context, fact.evidence_id, true);
         if (button) item.appendChild(button);

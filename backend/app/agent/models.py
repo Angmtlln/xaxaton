@@ -471,12 +471,14 @@ class ComparisonRow(StrictModel):
 
 
 class ComparisonSummaryFact(StrictModel):
+    tone: Literal["neutral", "positive", "attention", "risk"] = "neutral"
     label: SafeText
     display_value: SafeText
     evidence_id: SafeText
 
 
 class ComparisonColumn(StrictModel):
+    signal_status: Literal["restriction", "attention", "no_flags", "unknown"] = "unknown"
     inn: SafeText
     name: SafeText
     availability: Literal["DATA", "PARTIAL", "NO_DATA"]

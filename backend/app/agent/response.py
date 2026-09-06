@@ -327,6 +327,12 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             is_key_difference=differs and key not in {"execproc.total_count", "inspections.count"},
         ))
     for index, (column, owner) in enumerate(zip(columns, data.companies)):
+        signals = [signal for signal in data.policy_signals if signal.id in owner.policy_signal_ids]
+        column.signal_status = (
+            "restriction" if any(signal.kind == "official_hard_stop" for signal in signals) else
+            "attention" if any(signal.kind == "source_attention" for signal in signals) else
+            "no_flags" if owner.availability == "DATA" and "legal" in data.focus else "unknown"
+        )
         column.total_count = len(rows)
         column.filled_count = sum(row.cells[index].state == "data" for row in rows)
         # Официальные ограничения первыми; далее одинаковые меры для всех карточек.
@@ -337,6 +343,7 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             if ref is not None:
                 column.key_facts.append(ComparisonSummaryFact(
                     label=signal.label, display_value=evidence_by_id[ref].display_value,
+                    tone="risk" if signal.kind == "official_hard_stop" else "attention",
                     evidence_id=ref,
                 ))
         for key in ("proceeds", "profit", "court.defendant_count", "execproc.active_amount", "capitals"):
@@ -347,6 +354,7 @@ def _comparison_table(data: ComparisonData, evidence_by_id: Dict[str, Evidence])
             if cell.state == "data" and cell.evidence_id is not None:
                 column.key_facts.append(ComparisonSummaryFact(
                     label=row.label, display_value=cell.display_value, evidence_id=cell.evidence_id,
+                    tone=cell.tone,
                 ))
         column.key_facts = column.key_facts[:3]
     return ComparisonTableBlock(

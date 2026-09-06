@@ -1105,3 +1105,32 @@
 .comparison-section-title { position: sticky; left: 10px; display: inline-block; max-width: calc(var(--comparison-measure-width) - 20px); }
 .comparison-cell-content { max-width: 100%; }
 .comparison-cell .comparison-value { white-space: normal; }
+
+/* Размер карточки не зависит от числа контрагентов. */
+.comparison-summaries { grid-auto-columns: calc((100% - 16px) / 2); gap: 16px; }
+.comparison-summary { padding: 20px; display: flex; flex-direction: column; }
+.comparison-summary h3 { font-size: 20px; }
+.comparison-signal { display: flex; align-items: center; gap: 8px; align-self: flex-start; padding: 9px 12px; border-radius: 10px; font-size: 14px; }
+.comparison-signal-icon { font-weight: 800; }
+.signal-risk { background: #fff0ed; color: #a92b23; }
+.signal-attention { background: #fff4d6; color: #785000; }
+.signal-positive { background: #e8f6ee; color: #16633c; }
+.signal-neutral { background: #f1f2f4; color: #616772; }
+.comparison-signal-explanation { margin: 9px 0 16px; color: var(--chat-muted); font-size: 12px; line-height: 1.5; }
+.comparison-ratings { gap: 8px; }
+.comparison-rating { border-radius: 8px; padding: 7px 9px; font-weight: 600; font-size: 12px; }
+.comparison-rating.comparison-coverage { margin: 0; background: #f4f5f7; font-weight: 400; }
+.comparison-facts-heading { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--chat-line); font-size: 14px; }
+.comparison-key-facts { margin-top: 12px; margin-bottom: 12px; }
+.comparison-key-facts li { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 3px 8px; }
+.comparison-key-facts li > span { grid-column: 2; }
+.comparison-key-facts strong { grid-column: 2; }
+.comparison-key-facts .evidence-jump { grid-column: 3; }
+.comparison-fact-marker { grid-column: 1; grid-row: 1 / span 2; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; font-style: normal; font-weight: 700; }
+.comparison-gaps { margin-top: auto; }
+.comparison-overview:has(.comparison-summary:nth-child(3)) .comparison-browse { display: block; }
+@media (max-width: 760px) {
+  .comparison-summaries { grid-auto-columns: calc(100% - 24px); }
+  .comparison-summary { padding: 16px; }
+  .comparison-overview .comparison-browse { display: block; }
+}

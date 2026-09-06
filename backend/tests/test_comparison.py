@@ -544,3 +544,14 @@ def test_comparison_color_does_not_invent_risk_from_absolute_size(key, value, to
     actual, explanation = _comparison_signal(key, value)
     assert actual == tone
     assert bool(explanation) == (tone != 'neutral')
+
+
+@pytest.mark.asyncio
+async def test_summary_signal_status_preserves_restrictions_and_missing_data(snapshots):
+    response = await _runtime(None).run('Сравни %s и %s' % (RICH, EMPTY))
+    restricted, empty = _table(response).columns
+    assert restricted.signal_status == 'restriction'
+    assert restricted.key_facts[0].tone == 'risk'
+    assert empty.signal_status == 'unknown'
+    assert not empty.key_facts
+    assert all(f.tone != 'positive' for f in restricted.key_facts if 'flags.' in f.evidence_id)
