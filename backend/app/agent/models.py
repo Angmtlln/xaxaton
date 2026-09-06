@@ -106,6 +106,11 @@ class CompareCompaniesArgs(StrictModel):
         return checked
 
 
+class RankingCriterion(StrictModel):
+    metric: Literal["proceeds", "profit", "claims", "enforcement"]
+    order: Literal["desc", "asc"]
+
+
 class FindCompaniesArgs(StrictModel):
     """Подборка карточек по проверенным полям витрины, а не по прозе отчёта."""
 
@@ -126,6 +131,7 @@ class FindCompaniesArgs(StrictModel):
     max_claims_amount: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False, description='Сумма исков к ответчику до указанной суммы, в рублях.')
     min_enforcement_count: Optional[int] = Field(default=None, ge=0, description='Минимальное количество всех исполнительных производств.')
     max_enforcement_count: Optional[int] = Field(default=None, ge=0, description='Максимальное количество всех исполнительных производств.')
+    ranking: List[RankingCriterion] = Field(default_factory=list, max_length=4)
     sort_by: Literal["proceeds", "profit", "claims", "enforcement"] = "proceeds"
     order: Literal["desc", "asc"] = "desc"
     limit: int = Field(default=10, ge=1, le=25)
@@ -139,7 +145,11 @@ class FindCompaniesArgs(StrictModel):
             self.min_claims_amount, self.max_claims_amount,
             self.min_enforcement_count, self.max_enforcement_count,
         )
-        if all(value is None for value in criteria):
+        if self.ranking and "limit" not in self.model_fields_set:
+            self.limit = 5
+        if len({item.metric for item in self.ranking}) != len(self.ranking):
+            raise ValueError("Показатели ранжирования не должны повторяться")
+        if not self.ranking and all(value is None for value in criteria):
             raise ValueError("Нужен хотя бы один критерий подборки")
         if self.activity_query is not None:
             self.activity_query = " ".join(self.activity_query.split())
@@ -574,6 +584,7 @@ class ShortlistActivity(StrictModel):
 
 
 class ShortlistRow(StrictModel):
+    report_date: Optional[str] = None
     matched_activities: List[ShortlistActivity] = Field(default_factory=list, max_length=5)
     inn: SafeText
     name: SafeText
@@ -591,6 +602,9 @@ class CompanyShortlistBlock(StrictModel):
     """Навигационная подборка: значения гидратирует backend, не модель."""
 
     type: Literal["company_shortlist"] = "company_shortlist"
+    ranking: List[RankingCriterion] = Field(default_factory=list, max_length=4)
+    eligible_total: Optional[int] = Field(default=None, ge=0)
+    notes: List[SafeText] = Field(default_factory=list, max_length=10)
     title: SafeText
     criteria: List[SafeText] = Field(default_factory=list, max_length=14)
     total: int = Field(ge=0)

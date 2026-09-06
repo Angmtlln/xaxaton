@@ -321,7 +321,7 @@ async def find_companies(
     risk_level=None, zsk_risk_level=None, hard_stops=None,
     min_claims_amount=None, max_claims_amount=None,
     min_enforcement_count=None, max_enforcement_count=None,
-    sort_by="proceeds", order="desc", limit=10,
+    sort_by="proceeds", order="desc", limit=10, ranking=None,
 ) -> Dict[str, Any]:
     """Подборка карточек по проверенным полям витрины; выводы здесь не делаются."""
     ranges = (
@@ -381,14 +381,33 @@ async def find_companies(
     if not (activity_query or okved_prefix):
         selection = "SELECT v.*, '[]'::jsonb AS matched_activities FROM core.v_company_shortlist v WHERE 1 = 1"
     filtered = selection + "\n" + "\n".join(where)
+    ranking = ranking or []
+    # SQL identifiers and directions are selected only from validated allowlists.
+    if len(ranking) > 4 or len({item["metric"] for item in ranking}) != len(ranking):
+        raise ValueError("Invalid ranking criteria")
+    order_sql = f"{column} {direction} NULLS LAST, inn"
+    ranked = filtered
+    if ranking:
+        if any(item["metric"] not in SHORTLIST_SORT or item["order"] not in {"asc", "desc"} for item in ranking):
+            raise ValueError("Invalid ranking criterion")
+        ranked += "\n" + "\n".join(
+            "AND %s IS NOT NULL" % SHORTLIST_SORT[item["metric"]] for item in ranking)
+        order_sql = ", ".join("%s %s" % (SHORTLIST_SORT[item["metric"]], item["order"].upper()) for item in ranking) + ", inn"
+
     async with get_pool().connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute("SELECT count(*) AS total FROM (%s) q" % filtered, params)
             total = (await cur.fetchone())["total"]
+            eligible_total = None
+            if ranking:
+                await cur.execute("SELECT count(*) AS total FROM (%s) q" % ranked, params)
+                eligible_total = int((await cur.fetchone())["total"])
             await cur.execute(
-                "%s ORDER BY %s %s NULLS LAST, inn LIMIT %%(limit)s"
-                % (filtered, column, direction),
+                "%s ORDER BY %s LIMIT %%(limit)s" % (ranked, order_sql),
                 params,
             )
             rows = await cur.fetchall()
-    return {"total": int(total), "rows": rows}
+    result = {"total": int(total), "rows": rows}
+    if ranking:
+        result["eligible_total"] = eligible_total
+    return result

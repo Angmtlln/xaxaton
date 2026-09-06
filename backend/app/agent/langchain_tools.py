@@ -89,6 +89,8 @@ def build_langchain_tools(
         Их формулирует модель, но схема инструмента их валидирует, а применённые
         критерии backend возвращает пользователю дословно.
         """
+        if criteria.get("ranking"):
+            raise ValueError("Ранжирование выполняется только по порядку, проверенному backend; для нескольких показателей требуется подтверждение пользователя.")
         await reserve()
         arguments = {k: v for k, v in criteria.items() if v is not None}
         arguments.update(detail_args or {})

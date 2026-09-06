@@ -1,0 +1,551 @@
+[
+  {
+    "message": "Подборка построена по вашим условиям: торговая деятельность (по любому из заявленных ОКВЭД) и выручка от 10 млн ₽. Под фильтры подошло 43 компании, но прибыль заполнена только у 17 — ранжирование выполнено по этим 17, остальные не признаны хуже, у них просто нет данных для сравнения.\n\nПорядок в таблице — по убыванию прибыли за последний доступный год каждой компании. Если бы прибыль совпадала, дальше сравнивался бы ИНН, но это техническое правило, а не оценка надёжности. Финансы взяты за последний доступный год, поэтому годы у компаний могут различаться.",
+    "external_news": [],
+    "external_news_status": null,
+    "leading_artifact": null,
+    "blocks": [
+      {
+        "type": "company_shortlist",
+        "ranking": [
+          {
+            "metric": "profit",
+            "order": "desc"
+          }
+        ],
+        "eligible_total": 17,
+        "notes": [
+          "Под фильтры подходит 43; доступны для выбора 17; исключены из-за неполных показателей 26.",
+          "При равенстве выбранного показателя порядок определяется по ИНН. Это не оценка надёжности.",
+          "Финансы — за последний доступный год каждой компании."
+        ],
+        "title": "Выбрано 5 компаний",
+        "criteria": [
+          "Деятельность: торговлей (основной или дополнительный ОКВЭД)",
+          "выручка от 10.0 млн ₽",
+          "Порядок: прибыль — по убыванию"
+        ],
+        "total": 43,
+        "rows": [
+          {
+            "report_date": "2026-08-05 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "46.13.2",
+                "description": "Деятельность агентов по оптовой торговле строительными материалами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[36]"
+              },
+              {
+                "code": "46.72",
+                "description": "Торговля оптовая металлами и металлическими рудами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[38]"
+              },
+              {
+                "code": "46.72.2",
+                "description": "Торговля оптовая металлами в первичных формах",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[37]"
+              },
+              {
+                "code": "46.73",
+                "description": "Торговля оптовая лесоматериалами, строительными материалами и санитарно-техническим оборудованием",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[31]"
+              },
+              {
+                "code": "46.73.1",
+                "description": "Торговля оптовая древесным сырьем и необработанными лесоматериалами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[35]"
+              }
+            ],
+            "inn": "7728380537",
+            "name": "ООО \"ЭЛЕКТРОЛИД\"",
+            "fin_year": 2025,
+            "proceeds_display": "4.7 млрд ₽",
+            "profit_display": "615 769 000 ₽",
+            "claims_display": "855.8 млн ₽",
+            "enforcement_count": 178,
+            "hard_stops": 0,
+            "risk_level": "LOW",
+            "zsk_risk_level": "YELLOW"
+          },
+          {
+            "report_date": "2026-07-30 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "46.72",
+                "description": "Торговля оптовая металлами и металлическими рудами",
+                "is_main": true,
+                "field_ref": "report.kindsOfActivityInfo.mainKindOfActivity"
+              },
+              {
+                "code": "46.38",
+                "description": "Торговля оптовая прочими пищевыми продуктами, включая рыбу, ракообразных и моллюсков",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[4]"
+              },
+              {
+                "code": "46.38.2",
+                "description": "Торговля оптовая прочими пищевыми продуктами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[24]"
+              },
+              {
+                "code": "46.72",
+                "description": "Торговля оптовая металлами и металлическими рудами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[14]"
+              },
+              {
+                "code": "46.73",
+                "description": "Торговля оптовая лесоматериалами, строительными материалами и санитарно-техническим оборудованием",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[15]"
+              }
+            ],
+            "inn": "3123346195",
+            "name": "ООО \"ЭКОТОРГ М\"",
+            "fin_year": 2025,
+            "proceeds_display": "4.5 млрд ₽",
+            "profit_display": "328 673 000 ₽",
+            "claims_display": "Нет данных",
+            "enforcement_count": 123,
+            "hard_stops": 0,
+            "risk_level": "LOW",
+            "zsk_risk_level": "GREEN"
+          },
+          {
+            "report_date": "2026-07-29 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "45.31",
+                "description": "Торговля оптовая автомобильными деталями, узлами и принадлежностями",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[5]"
+              },
+              {
+                "code": "46.41",
+                "description": "Торговля оптовая текстильными изделиями",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[1]"
+              },
+              {
+                "code": "46.41.2",
+                "description": "Торговля оптовая галантерейными изделиями",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[2]"
+              },
+              {
+                "code": "46.42",
+                "description": "Торговля оптовая одеждой и обувью",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[7]"
+              },
+              {
+                "code": "46.64",
+                "description": "Торговля оптовая машинами и оборудованием для текстильного, швейного и трикотажного производств",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[8]"
+              }
+            ],
+            "inn": "3711039473",
+            "name": "ООО \"ЛИДЕРТЕКС\"",
+            "fin_year": 2025,
+            "proceeds_display": "3.7 млрд ₽",
+            "profit_display": "276 311 000 ₽",
+            "claims_display": "Нет данных",
+            "enforcement_count": 37,
+            "hard_stops": 0,
+            "risk_level": "LOW",
+            "zsk_risk_level": "GREEN"
+          },
+          {
+            "report_date": "2026-08-20 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "46.31",
+                "description": "Торговля оптовая фруктами и овощами",
+                "is_main": true,
+                "field_ref": "report.kindsOfActivityInfo.mainKindOfActivity"
+              },
+              {
+                "code": "46.19",
+                "description": "Деятельность агентов по оптовой торговле универсальным ассортиментом товаров",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[4]"
+              },
+              {
+                "code": "46.31",
+                "description": "Торговля оптовая фруктами и овощами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[5]"
+              },
+              {
+                "code": "46.39",
+                "description": "Торговля оптовая неспециализированная пищевыми продуктами, напитками и табачными изделиями",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[0]"
+              },
+              {
+                "code": "46.90",
+                "description": "Торговля оптовая неспециализированная",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[2]"
+              }
+            ],
+            "inn": "7724398540",
+            "name": "ООО \"АГРОФРУТ\"",
+            "fin_year": 2025,
+            "proceeds_display": "4.3 млрд ₽",
+            "profit_display": "96 981 000 ₽",
+            "claims_display": "Нет данных",
+            "enforcement_count": 86,
+            "hard_stops": 0,
+            "risk_level": "LOW",
+            "zsk_risk_level": "GREEN"
+          },
+          {
+            "report_date": "2026-08-23 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "45.31",
+                "description": "Торговля оптовая автомобильными деталями, узлами и принадлежностями",
+                "is_main": true,
+                "field_ref": "report.kindsOfActivityInfo.mainKindOfActivity"
+              },
+              {
+                "code": "46.77",
+                "description": "Торговля оптовая отходами и ломом",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[0]"
+              },
+              {
+                "code": "46.90",
+                "description": "Торговля оптовая неспециализированная",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[3]"
+              }
+            ],
+            "inn": "7802932240",
+            "name": "ООО \"МЕХСЕРВИС\"",
+            "fin_year": 2025,
+            "proceeds_display": "148.9 млн ₽",
+            "profit_display": "71 554 000 ₽",
+            "claims_display": "Нет данных",
+            "enforcement_count": 0,
+            "hard_stops": 0,
+            "risk_level": "MEDIUM",
+            "zsk_risk_level": "GREEN"
+          }
+        ],
+        "empty_message": null
+      }
+    ],
+    "evidence": [],
+    "suggested_actions": [
+      {
+        "label": "Сравнить двух лидеров",
+        "prompt": "Сравни первые две компании из подборки подробно",
+        "mode": "compose"
+      },
+      {
+        "label": "Показать следующие 5",
+        "prompt": "Покажи следующие 5 компаний по прибыли",
+        "mode": "submit"
+      }
+    ],
+    "metadata": {
+      "agent_run_id": "d3deeca4-f946-49c4-bacf-662929ea3229",
+      "check_run_id": null,
+      "status": "completed",
+      "tool_calls": 1,
+      "routing": "model",
+      "model": "z-ai/glm-5.3-flash",
+      "prompt_version": "master-risk-playbook-0.3.4-metric-selection-v1",
+      "latency_ms": 3506,
+      "error_code": null,
+      "model_calls": 1,
+      "synthesis": "model",
+      "grounding_status": "not_requested",
+      "repair_attempts": 0
+    },
+    "conversation_id": "918fb701-dc48-4fe3-be1f-0d96d0c57528",
+    "active_company": null,
+    "test_elapsed_s": 4.193,
+    "test_question": "Найди торговые компании с выручкой от 10 млн и выбери 5 с наибольшей прибылью"
+  },
+  {
+    "message": "Предлагаю такой порядок: прибыль — по убыванию; затем число исполнительных производств — по возрастанию. Следующий показатель используется только при равенстве предыдущего. Количество для выбора: 3. Подтверждаете порядок?",
+    "external_news": [],
+    "external_news_status": null,
+    "leading_artifact": null,
+    "blocks": [],
+    "evidence": [],
+    "suggested_actions": [],
+    "metadata": {
+      "agent_run_id": "4a618674-daa0-4cbf-9d4d-631dd5df424c",
+      "check_run_id": null,
+      "status": "needs_input",
+      "tool_calls": 0,
+      "routing": "deterministic_guard",
+      "model": "z-ai/glm-5.3-flash",
+      "prompt_version": "master-risk-playbook-0.3.4-metric-selection-v1",
+      "latency_ms": 10,
+      "error_code": null,
+      "model_calls": 0,
+      "synthesis": "deterministic",
+      "grounding_status": "not_required",
+      "repair_attempts": 0
+    },
+    "conversation_id": "918fb701-dc48-4fe3-be1f-0d96d0c57528",
+    "active_company": null,
+    "test_elapsed_s": 0.024,
+    "test_question": "Выбери 3 по прибыли и количеству исполнительных производств"
+  },
+  {
+    "message": "Готово: отобраны 3 компании по подтверждённому порядку — сначала наибольшая прибыль, затем при равенстве прибыли меньшее число исполнительных производств; при полном совпадении обоих показателей порядок определялся бы по ИНН. Финансы взяты за последний доступный год каждой компании, поэтому годы могут различаться. Напомню: в ранжирование вошли только компании с заполненными показателями (17 из 43 подходящих под фильтры), остальные исключены из-за пропусков в данных, а не как менее надёжные. Это подборка по заданным критериям, а не оценка надёжности.",
+    "external_news": [],
+    "external_news_status": null,
+    "leading_artifact": null,
+    "blocks": [
+      {
+        "type": "company_shortlist",
+        "ranking": [
+          {
+            "metric": "profit",
+            "order": "desc"
+          },
+          {
+            "metric": "enforcement",
+            "order": "asc"
+          }
+        ],
+        "eligible_total": 17,
+        "notes": [
+          "Под фильтры подходит 43; доступны для выбора 17; исключены из-за неполных показателей 26.",
+          "При равенстве показателя используется следующий критерий; при полном равенстве — ИНН. Это не оценка надёжности.",
+          "Финансы — за последний доступный год каждой компании."
+        ],
+        "title": "Выбрано 3 компании",
+        "criteria": [
+          "Деятельность: торговлей (основной или дополнительный ОКВЭД)",
+          "выручка от 10.0 млн ₽",
+          "Порядок: прибыль — по убыванию; затем число исполнительных производств — по возрастанию"
+        ],
+        "total": 43,
+        "rows": [
+          {
+            "report_date": "2026-08-05 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "46.13.2",
+                "description": "Деятельность агентов по оптовой торговле строительными материалами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[36]"
+              },
+              {
+                "code": "46.72",
+                "description": "Торговля оптовая металлами и металлическими рудами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[38]"
+              },
+              {
+                "code": "46.72.2",
+                "description": "Торговля оптовая металлами в первичных формах",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[37]"
+              },
+              {
+                "code": "46.73",
+                "description": "Торговля оптовая лесоматериалами, строительными материалами и санитарно-техническим оборудованием",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[31]"
+              },
+              {
+                "code": "46.73.1",
+                "description": "Торговля оптовая древесным сырьем и необработанными лесоматериалами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[35]"
+              }
+            ],
+            "inn": "7728380537",
+            "name": "ООО \"ЭЛЕКТРОЛИД\"",
+            "fin_year": 2025,
+            "proceeds_display": "4.7 млрд ₽",
+            "profit_display": "615 769 000 ₽",
+            "claims_display": "855.8 млн ₽",
+            "enforcement_count": 178,
+            "hard_stops": 0,
+            "risk_level": "LOW",
+            "zsk_risk_level": "YELLOW"
+          },
+          {
+            "report_date": "2026-07-30 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "46.72",
+                "description": "Торговля оптовая металлами и металлическими рудами",
+                "is_main": true,
+                "field_ref": "report.kindsOfActivityInfo.mainKindOfActivity"
+              },
+              {
+                "code": "46.38",
+                "description": "Торговля оптовая прочими пищевыми продуктами, включая рыбу, ракообразных и моллюсков",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[4]"
+              },
+              {
+                "code": "46.38.2",
+                "description": "Торговля оптовая прочими пищевыми продуктами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[24]"
+              },
+              {
+                "code": "46.72",
+                "description": "Торговля оптовая металлами и металлическими рудами",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[14]"
+              },
+              {
+                "code": "46.73",
+                "description": "Торговля оптовая лесоматериалами, строительными материалами и санитарно-техническим оборудованием",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[15]"
+              }
+            ],
+            "inn": "3123346195",
+            "name": "ООО \"ЭКОТОРГ М\"",
+            "fin_year": 2025,
+            "proceeds_display": "4.5 млрд ₽",
+            "profit_display": "328 673 000 ₽",
+            "claims_display": "Нет данных",
+            "enforcement_count": 123,
+            "hard_stops": 0,
+            "risk_level": "LOW",
+            "zsk_risk_level": "GREEN"
+          },
+          {
+            "report_date": "2026-07-29 21:00:00+00:00",
+            "matched_activities": [
+              {
+                "code": "45.31",
+                "description": "Торговля оптовая автомобильными деталями, узлами и принадлежностями",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[5]"
+              },
+              {
+                "code": "46.41",
+                "description": "Торговля оптовая текстильными изделиями",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[1]"
+              },
+              {
+                "code": "46.41.2",
+                "description": "Торговля оптовая галантерейными изделиями",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[2]"
+              },
+              {
+                "code": "46.42",
+                "description": "Торговля оптовая одеждой и обувью",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[7]"
+              },
+              {
+                "code": "46.64",
+                "description": "Торговля оптовая машинами и оборудованием для текстильного, швейного и трикотажного производств",
+                "is_main": false,
+                "field_ref": "report.kindsOfActivityInfo.otherKindsOfActivity[8]"
+              }
+            ],
+            "inn": "3711039473",
+            "name": "ООО \"ЛИДЕРТЕКС\"",
+            "fin_year": 2025,
+            "proceeds_display": "3.7 млрд ₽",
+            "profit_display": "276 311 000 ₽",
+            "claims_display": "Нет данных",
+            "enforcement_count": 37,
+            "hard_stops": 0,
+            "risk_level": "LOW",
+            "zsk_risk_level": "GREEN"
+          }
+        ],
+        "empty_message": null
+      }
+    ],
+    "evidence": [],
+    "suggested_actions": [
+      {
+        "label": "Сравнить отобранные компании",
+        "prompt": "Сравни эти три компании подробно",
+        "mode": "compose"
+      },
+      {
+        "label": "Проверить связи",
+        "prompt": "Проверь, есть ли связи между этими компаниями",
+        "mode": "submit"
+      }
+    ],
+    "metadata": {
+      "agent_run_id": "dd399507-3aed-49a9-9730-4719785c23df",
+      "check_run_id": null,
+      "status": "completed",
+      "tool_calls": 1,
+      "routing": "model",
+      "model": "z-ai/glm-5.3-flash",
+      "prompt_version": "master-risk-playbook-0.3.4-metric-selection-v1",
+      "latency_ms": 2765,
+      "error_code": null,
+      "model_calls": 1,
+      "synthesis": "model",
+      "grounding_status": "not_requested",
+      "repair_attempts": 0
+    },
+    "conversation_id": "918fb701-dc48-4fe3-be1f-0d96d0c57528",
+    "active_company": null,
+    "test_elapsed_s": 2.78,
+    "test_question": "Да"
+  },
+  {
+    "message": "Эти три компании — верх списка по подтверждённому вами порядку: сначала сравнивалась прибыль за последний доступный год, и у отобранных она оказалась наибольшей среди 17 компаний с заполненными показателями. Количество исполнительных производств подключалось бы только при равенстве прибыли, а при полном совпадении обоих показателей порядок определялся бы по ИНН — это техническое правило, а не оценка надёжности.\n\nОстальные подходящие компании либо имеют меньшую прибыль, либо повторяют те же значения и идут дальше по ИНН. Ещё 26 компаний из 43 подходящих под фильтры исключены из-за пропусков в показателях — это не признак того, что они хуже. Финансы взяты за последний доступный год каждой компании, поэтому годы могут различаться.",
+    "external_news": [],
+    "external_news_status": null,
+    "leading_artifact": null,
+    "blocks": [],
+    "evidence": [],
+    "suggested_actions": [
+      {
+        "label": "Сравнить отобранные подробно",
+        "prompt": "Сравни эти три компании по финансовым показателям",
+        "mode": "compose"
+      },
+      {
+        "label": "Проверить связи",
+        "prompt": "Проверь, есть ли связи между этими компаниями и другими организациями",
+        "mode": "submit"
+      }
+    ],
+    "metadata": {
+      "agent_run_id": "107e985a-8430-426c-80fb-ec33b4b738db",
+      "check_run_id": null,
+      "status": "completed",
+      "tool_calls": 0,
+      "routing": "model",
+      "model": "z-ai/glm-5.3-flash",
+      "prompt_version": "master-risk-playbook-0.3.4-metric-selection-v1",
+      "latency_ms": 2722,
+      "error_code": null,
+      "model_calls": 1,
+      "synthesis": "model",
+      "grounding_status": "not_requested",
+      "repair_attempts": 0
+    },
+    "conversation_id": "918fb701-dc48-4fe3-be1f-0d96d0c57528",
+    "active_company": null,
+    "test_elapsed_s": 2.755,
+    "test_question": "Почему эти?"
+  }
+]

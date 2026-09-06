@@ -444,6 +444,7 @@ function renderCompanyShortlist(block) {
     card.appendChild(chips);
   }
 
+  safeArray(block.notes).forEach((note) => card.appendChild(element('p', 'shortlist-total', note)));
   const rows = safeArray(block.rows);
   if (!rows.length) {
     card.appendChild(element('div', 'chat-empty-state',
@@ -454,7 +455,9 @@ function renderCompanyShortlist(block) {
   const total = Number(block.total) || rows.length;
   const matched = `${total} ${companyWord(total)}`;
   card.appendChild(element('p', 'shortlist-total',
-    total > rows.length
+    safeArray(block.ranking).length
+      ? `Выбрано ${rows.length} из ${block.eligible_total ?? total} компаний с доступными показателями.`
+      : total > rows.length
       ? `Под условие подходит ${matched}, показаны первые ${rows.length}.`
       : `Под условие подходит ${matched}.`));
 
@@ -475,6 +478,7 @@ function renderCompanyShortlist(block) {
       element('span', 'comparison-company', row.name || 'Контрагент'),
       element('span', 'comparison-inn', `ИНН ${row.inn || '—'}${row.fin_year ? ` · ${row.fin_year}` : ''}`),
     );
+    if (safeArray(block.ranking).length && row.report_date) company.appendChild(element('span', 'comparison-inn', ` · Снимок: ${row.report_date.slice(0, 10)}`));
     line.appendChild(company);
     line.appendChild(element('td', 'comparison-cell', row.proceeds_display || 'Нет данных'));
     line.appendChild(element('td', 'comparison-cell', row.profit_display || 'Нет данных'));

@@ -71,6 +71,7 @@ async def execute_find_companies(context: ToolContext, args: BaseModel) -> ToolR
     found = await repository.find_companies(**parsed.model_dump())
     companies = [
         ShortlistCompany(
+            report_date=str(row["report_date"]) if row.get("report_date") else None,
             matched_activities=row.get("matched_activities") or [],
             inn=str(row["inn"]),
             name=(row.get("short_name") or str(row["inn"]))[:240],
@@ -85,18 +86,39 @@ async def execute_find_companies(context: ToolContext, args: BaseModel) -> ToolR
         )
         for row in found["rows"]
     ]
+    ranking = [item.model_dump() for item in parsed.ranking]
+    notes = []
+    criteria = describe(parsed)
+    if ranking:
+        from .ranking import ranking_labels
+        criteria.append("Порядок: " + "; затем ".join(ranking_labels(ranking)))
+        eligible = found.get("eligible_total", found["total"])
+        notes.append("Под фильтры подходит %s; доступны для выбора %s; исключены из-за неполных показателей %s."
+                     % (found["total"], eligible, found["total"] - eligible))
+        if eligible < parsed.limit:
+            notes.append("Доступно меньше компаний, чем запрошено: показаны все %s." % eligible)
+        notes.append(("При равенстве показателя используется следующий критерий; при полном равенстве — ИНН."
+                      if len(ranking) > 1 else "При равенстве выбранного показателя порядок определяется по ИНН.")
+                     + " Это не оценка надёжности.")
+        if any(item["metric"] in {"proceeds", "profit"} for item in ranking):
+            notes.append("Финансы — за последний доступный год каждой компании.")
+            if len({row.fin_year for row in companies}) > 1:
+                notes.append("Финансовые годы выбранных компаний различаются: это не сравнение за единый период.")
     data = ShortlistData(
-        criteria=describe(parsed), total=found["total"], sort_by=parsed.sort_by,
+        filters={key: value for key, value in parsed.model_dump(exclude_none=True).items()
+                 if key not in {"ranking", "sort_by", "order", "limit"}},
+        ranking=parsed.ranking, eligible_total=found.get("eligible_total"), notes=notes,
+        criteria=criteria, total=found["total"], sort_by=parsed.sort_by,
         order=parsed.order, companies=companies,
     )
-    warnings = []
+    warnings = list(notes)
     if data.total > len(companies):
         warnings.append(
             "Подошло %s компаний, показаны %s по критерию сортировки."
             % (data.total, len(companies))
         )
     if not companies:
-        warnings.append("Под эти критерии в загруженной выборке нет ни одной карточки.")
+        warnings.append("Нет компаний с полными выбранными показателями." if ranking and data.total else "Под эти критерии в загруженной выборке нет ни одной карточки.")
     return ToolResult(
         status="success" if companies else "partial",
         data=data.model_dump(mode="json"),

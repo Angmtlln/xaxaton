@@ -3,7 +3,7 @@ from typing import Dict, List, Literal, Optional
 
 from pydantic import Field, model_validator
 
-from .models import ShortlistActivity, DataSection, FullCheckCompany, PolicySignal, SafeText, StrictModel, ToolFact
+from .models import RankingCriterion, ShortlistActivity, DataSection, FullCheckCompany, PolicySignal, SafeText, StrictModel, ToolFact
 
 
 class TargetedData(StrictModel):
@@ -71,6 +71,7 @@ class ComparisonData(StrictModel):
 
 
 class ShortlistCompany(StrictModel):
+    report_date: Optional[str] = None
     """Одна строка подборки; значения приходят из витрины, не из прозы."""
 
     matched_activities: List[ShortlistActivity] = Field(default_factory=list, max_length=5)
@@ -89,6 +90,10 @@ class ShortlistCompany(StrictModel):
 
 class ShortlistData(StrictModel):
     domain: Literal["shortlist"] = "shortlist"
+    filters: dict = Field(default_factory=dict)
+    ranking: List[RankingCriterion] = Field(default_factory=list, max_length=4)
+    eligible_total: Optional[int] = Field(default=None, ge=0)
+    notes: List[SafeText] = Field(default_factory=list, max_length=10)
     criteria: List[SafeText] = Field(default_factory=list, max_length=14)
     total: int = Field(ge=0)
     sort_by: Literal["proceeds", "profit", "claims", "enforcement"]

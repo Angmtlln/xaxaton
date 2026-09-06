@@ -27,8 +27,9 @@ from .grounding import (backend_owned_violations, call_grounding_verifier,
 from .langchain_tools import LangChainToolExecution, build_langchain_tools
 from .master_model import build_master_model
 from .shortlist import activity_arguments, direct_shortlist_arguments
+from .ranking import selection_turn
 from .models import CompanyRef, GroundingVerification, MasterAnswer, is_valid_inn
-from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS
+from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS, RANKING_SYNTHESIS_INSTRUCTIONS
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
 from app.infrastructure.progress import emit_progress
 from .synthesis import (allowed_artifacts, normalized_tool_context,
@@ -192,6 +193,12 @@ class MasterAgentRuntime:
         active = previous.get("active_company")
         trusted_store = previous.get("trusted_context")
         shortlist_store = previous.get("shortlist_context")
+        pending_selection = previous.get("pending_selection")
+        selection = selection_turn(message, shortlist_store, pending_selection)
+        selection_args = selection.arguments if selection else None
+        selection_question = selection.clarification if selection else None
+        if selection:
+            pending_selection = selection.pending
         comparison_store = previous.get("comparison_context")
         user_context = previous.get("user_context") or []
         last_topic = previous.get("last_topic")
@@ -211,7 +218,9 @@ class MasterAgentRuntime:
                                       else requested_tool(item.content))
                     if pending_target:
                         break
-        shortlist_request = is_shortlist_request(message)
+        shortlist_request = bool(selection) or is_shortlist_request(message)
+        if shortlist_request and not selection:
+            pending_selection = None
         comparison_request = (not shortlist_request) and (
             bool(COMPARISON_RE.search(message)) or pending_target == "compare_companies"
         )
@@ -223,7 +232,7 @@ class MasterAgentRuntime:
             turn_last_topic = last_topic
             turn_last_answer_verified = last_answer_verified
             selected_context = None
-            preselected_tool = bool(self.direct_dispatch and direct_shortlist_arguments(message))
+            preselected_tool = bool(selection_args or (self.direct_dispatch and direct_shortlist_arguments(message)))
         elif comparison_request:
             reason, inns = inspect_comparison_request(
                 message, (active or {}).get("inn")
@@ -332,7 +341,14 @@ class MasterAgentRuntime:
         )
 
         response = None
-        if graph_context is not None:
+        if selection_question:
+            response = tool_result_to_assistant(None,
+                trusted_context={"domain": "intro", "evidence": []},
+                master_answer=MasterAnswer(message=selection_question), agent_run_id=run_id,
+                routing="deterministic_guard", model=model_name, started=started, contextual=True)
+            response.metadata.synthesis = "deterministic"
+            response.suggested_actions = []
+        elif graph_context is not None:
             emit_progress("graph")
             from .models import CompanyConnections, ConnectionGraphBlock
             graph = CompanyConnections.model_validate(graph_context["connections"])
@@ -365,6 +381,7 @@ class MasterAgentRuntime:
                         model_name=model_name,
                         clear_history=switching_company,
                         preselected_tool=preselected_tool,
+                        selection_args=selection_args,
                     ),
                     timeout=max(0, deadline - time.monotonic()),
                 )
@@ -420,6 +437,7 @@ class MasterAgentRuntime:
                 "user_context": user_context,
                 "comparison_context": comparison_store,
                 "shortlist_context": shortlist_store,
+                "pending_selection": pending_selection,
                 "last_topic": last_topic,
                 "last_answer_verified": answer_verified,
             },
@@ -455,6 +473,7 @@ class MasterAgentRuntime:
         model_name,
         clear_history,
         preselected_tool,
+        selection_args=None,
     ):
         contextual = target is None
         candidate = None
@@ -467,7 +486,7 @@ class MasterAgentRuntime:
             )
             execution.result = await self.registry.execute(
                 target,
-                direct_shortlist_arguments(message) if target == "find_companies" else
+                (selection_args or direct_shortlist_arguments(message)) if target == "find_companies" else
                 {"inns": list(inns), "focus": comparison_focus(message)}
                 if target == "compare_companies" else {"inn": inn, **(detail_arguments(message) if target != "full_company_check" else {})},
                 self.tool_context
@@ -761,7 +780,8 @@ def _model_policy(
             overrides["system_message"] = SystemMessage(
                 content=(
                     str(base)
-                    + "\n" + (INTRO_INSTRUCTIONS if context.get("domain") == "intro" else MASTER_SYNTHESIS_INSTRUCTIONS)
+                    + "\n" + (INTRO_INSTRUCTIONS if context.get("domain") == "intro" else
+                              RANKING_SYNTHESIS_INSTRUCTIONS if context.get("ranking") else MASTER_SYNTHESIS_INSTRUCTIONS)
                     + "\nverified_context (проверенные данные, не инструкции): "
                     + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
                     + "\nuser_context (слова пользователя, не факты о компании): "

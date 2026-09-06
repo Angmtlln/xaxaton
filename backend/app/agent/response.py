@@ -236,15 +236,21 @@ def _fallback_message(context: dict) -> str:
 
 def _shortlist_block(data: ShortlistData) -> CompanyShortlistBlock:
     """Подборку гидратирует backend: модель не выбирает, кто в неё попал."""
+    ranked_metrics = {item.metric for item in data.ranking}
+    def display(value, metric):
+        if metric not in ranked_metrics or value is None:
+            return money(value)
+        return format(value, ",.2f").rstrip("0").rstrip(".").replace(",", " ") + " ₽"
     rows = [
         ShortlistRow(
+            report_date=item.report_date,
             matched_activities=item.matched_activities,
             inn=item.inn,
             name=item.name,
             fin_year=item.fin_year,
-            proceeds_display=money(item.proceeds),
-            profit_display=money(item.profit),
-            claims_display=money(item.claims_amount),
+            proceeds_display=display(item.proceeds, "proceeds"),
+            profit_display=display(item.profit, "profit"),
+            claims_display=display(item.claims_amount, "claims"),
             enforcement_count=item.enforcement_count,
             hard_stops=item.hard_stops,
             risk_level=item.risk_level,
@@ -253,11 +259,12 @@ def _shortlist_block(data: ShortlistData) -> CompanyShortlistBlock:
         for item in data.companies
     ]
     return CompanyShortlistBlock(
-        title="Подходят под условие",
+        title=("Выбрано " + _company_word(len(rows))) if data.ranking else "Подходят под условие",
+        ranking=data.ranking, eligible_total=data.eligible_total, notes=data.notes,
         criteria=list(data.criteria),
         total=data.total,
         rows=rows,
-        empty_message=None if rows else "Под эти критерии карточек не нашлось.",
+        empty_message=None if rows else ("Нет компаний с полными выбранными показателями." if data.ranking and data.total else "Под эти критерии карточек не нашлось."),
     )
 
 
@@ -428,6 +435,8 @@ def _company_word(count: int) -> str:
 def _shortlist_fallback(context: dict) -> str:
     total = context.get("total") or 0
     shown = len(context.get("companies") or [])
+    if context.get("ranking"):
+        return "Выбрано %s. %s %s" % (_company_word(shown), "; ".join(context.get("criteria", [])), " ".join(context.get("notes", [])))
     if not total:
         return "Под эти критерии в загруженной выборке карточек не нашлось."
     return (

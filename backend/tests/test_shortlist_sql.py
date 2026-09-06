@@ -16,7 +16,7 @@ def test_shortlist_view_preserves_unknowns_and_filters_verified_zero():
     import psycopg
     from psycopg.types.json import Jsonb
     from psycopg.rows import dict_row
-    migration = (Path(__file__).parents[1] / 'db/migrations/004_company_shortlist.sql').read_text()
+    migration = (Path(__file__).parents[1] / 'db/migrations/006_shortlist_ranking.sql').read_text()
     with psycopg.connect(dsn, row_factory=dict_row) as conn:
         with conn.cursor() as cur:
             for name in ['core.fin_reports', 'core.reputational_risks', 'core.risk_code_dictionary',
@@ -42,8 +42,10 @@ def test_shortlist_view_preserves_unknowns_and_filters_verified_zero():
                 # Even imported zeros must not erase missing source fields.
                 cur.execute('INSERT INTO arbitration_summary (snapshot_id, df_amount, da_amount, dp_amount) VALUES (%s,0,0,0)', (index,))
             cur.execute(migration.replace('core.', 'pg_temp.').replace('raw.', 'pg_temp.'))
+            cur.execute(migration.replace('core.', 'pg_temp.').replace('raw.', 'pg_temp.'))
             cur.execute('SELECT * FROM pg_temp.v_company_shortlist ORDER BY inn')
             rows = cur.fetchall()
+            assert all('report_date' in row and 'snapshot_id' in row for row in rows)
             for row in rows[:2]:
                 assert row['claims_amount'] is None
                 assert row['enforcement_count'] is None and row['hard_stops'] is None
@@ -106,4 +108,24 @@ async def test_activity_repository_filters_before_limit_and_counts_companies(mon
         # Same company does not satisfy keywords spread across unrelated activity codes.
         strict = await repository.find_companies(activity_query='строительство фруктами')
         assert strict['total'] == 0
+        # The initial LIMIT=1 showed company 2. Ranking must still find company 1.
+        await conn.execute("UPDATE v_company_shortlist SET profit = CASE inn WHEN '1' THEN -1 WHEN '2' THEN -5 END")
+        await conn.execute("UPDATE v_company_shortlist SET proceeds = 15000000 WHERE inn = '3'")
+        rank = [{'metric': 'profit', 'order': 'desc'}]
+        best = await repository.find_companies(activity_query='торговлей', min_proceeds=10000000, ranking=rank, limit=1)
+        assert best['total'] == 3 and best['eligible_total'] == 2
+        assert [r['inn'] for r in best['rows']] == ['1']
+        worst = await repository.find_companies(activity_query='торговлей', ranking=[{'metric':'profit','order':'asc'}], limit=1)
+        assert worst['rows'][0]['inn'] == '2'
+        await conn.execute("UPDATE v_company_shortlist SET profit = -1, claims_amount = CASE inn WHEN '1' THEN 20 ELSE 10 END, enforcement_count = CASE inn WHEN '1' THEN 2 ELSE 1 END WHERE inn IN ('1', '2')")
+        secondary = await repository.find_companies(activity_query='торговлей', ranking=rank + [{'metric':'claims','order':'asc'}])
+        assert [r['inn'] for r in secondary['rows']] == ['2', '1']
+        by_exec = await repository.find_companies(activity_query='торговлей', ranking=[{'metric':'enforcement','order':'asc'}])
+        assert [r['inn'] for r in by_exec['rows']] == ['2', '1']
+        by_revenue = await repository.find_companies(activity_query='торговлей', ranking=[{'metric':'proceeds','order':'desc'}])
+        assert [r['inn'] for r in by_revenue['rows']] == ['2', '1', '3']
+        tied = await repository.find_companies(activity_query='торговлей', ranking=rank)
+        assert [r['inn'] for r in tied['rows']] == ['1', '2']
+        missing = await repository.find_companies(min_proceeds=50000000, ranking=rank)
+        assert missing == {'total': 1, 'eligible_total': 0, 'rows': []}
         await conn.rollback()
