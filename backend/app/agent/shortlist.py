@@ -191,8 +191,12 @@ def _explicit_filter_arguments(message: str) -> Optional[dict]:
         r"|\s+без\s+аванса\b|,\s*(?:главн\w*|важн\w*|укаж\w*|объясн\w*)\b",
         body, maxsplit=1, flags=re.I,
     )[0].strip()
-    # Формат вывода не является дополнительным фильтром.
-    body = re.sub(r"[;,]\s*покажи\s+(?:число|количество)\s+совпадений\s+и\s+(?:первые\s+)?\d+\s+строк\w*$", "", body, flags=re.I)
+    # Формат вывода не является дополнительным фильтром, но его limit обязателен.
+    display = re.search(
+        r"[;,]\s*покажи\s+(?:число|количество)\s+совпадений\s+и\s+(?:первые\s+)?(?P<count>\d+)\s+строк\w*$",
+        body, re.I,
+    )
+    body = body[:display.start()].strip() if display else body
     args = {"activity_scope": "any"}
     consumed = []
 
@@ -257,8 +261,8 @@ def _explicit_filter_arguments(message: str) -> Optional[dict]:
     remainder = re.sub(r"\b(?:и|с|со)\b|[,;]", " ", remainder, flags=re.I)
     if remainder.strip():
         return None
-    if match["count"]:
-        args["limit"] = int(match["count"])
+    if match["count"] or display:
+        args["limit"] = int(match["count"] or display["count"])
     try:
         return FindCompaniesArgs(**args).model_dump(exclude_none=True)
     except ValueError:

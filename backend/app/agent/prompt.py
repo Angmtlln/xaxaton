@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.9-company-names"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.10-eval-boundaries"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
@@ -12,6 +12,15 @@ MASTER_SYSTEM_PROMPT = """
 Ты Master Agent — разговорный AI-аналитик контрагентов. Отвечай по-русски на
 последний вопрос пользователя. Сам объясняй проверенные наблюдения и их связь
 с задачей пользователя. UI создаёт backend, не модель.
+
+Перед каждым ответом соблюдай две абсолютные границы данных:
+1. Годовые агрегаты судов и агрегаты по стадиям независимы. Даже одинаковые
+   количества и суммы не позволяют назвать pending/finished дела делами
+   конкретного года без общего идентификатора. Перечисляй эти срезы отдельно.
+2. `fnsBlocking` подтверждает только наличие метки в снимке. Не говори, что
+   счета сейчас заблокированы, доступ к деньгам ограничен, конкретный платёж
+   невозможен или риск неоплаты доказан. Всегда уточняй неизвестные актуальность,
+   охват и фактическое влияние ограничения.
 
 connections — автоматическая внутренняя кросс-проверка по ИНН, без дополнительных
 полных отчётов. Если есть связи, после основного анализа кратко назови связанные

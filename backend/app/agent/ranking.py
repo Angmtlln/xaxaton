@@ -125,7 +125,7 @@ def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -
     remainder = re.sub(r"\b(?:найди|покажи|подбери|выбери|отбери|выбрать|отобрать|отсортируй|топ|лучш\w*|перв\w*|компани\w*|контрагент\w*|по|к|с|и|затем|потом|сначала|приоритет|главное|важнее|при\s+равенстве|наибольш\w*|наименьш\w*|максимальн\w*|минимальн\w*|сам\w*|больш\w*|убыванию|возрастанию)\b|\d+|[,;:—–-]", " ", remainder, flags=re.I)
     if remainder.strip():
         return SelectionTurn(clarification="Не удалось однозначно разобрать выбор. Укажите показатель и направление, например «Из найденных выбери 5 с наибольшей прибылью». Дополнительные условия задайте отдельным поиском.")
-    number = re.search(r"\b(?:выбери|отбери|выбрать|отобрать|топ|первые)\s+(-?\d+)\b", selection, re.I)
+    number = re.search(r"\b(?:найди|покажи|подбери|выбери|отбери|выбрать|отобрать|топ|первые)\s+(-?\d+)\b", selection, re.I)
     limit = int(number[1]) if number else (pending["arguments"]["limit"] if pending else 5)
     base = {key: value for key, value in base.items() if key not in {"ranking", "sort_by", "order", "limit"}}
     try:

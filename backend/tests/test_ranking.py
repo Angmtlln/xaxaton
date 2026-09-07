@@ -64,6 +64,14 @@ def test_two_inn_choice_is_not_metric_ranking():
     ) is None
 
 
+def test_ranking_limit_is_read_from_opening_search_verb():
+    turn = selection_turn(
+        'Найди 3 компании: сначала максимальная прибыль, при равенстве минимальное число ИП, затем объясни порядок',
+        None, None,
+    )
+    assert turn.arguments['limit'] == 3
+
+
 def test_direction_does_not_leak_to_next_metric():
     turn = selection_turn('Выбери 5 сначала по прибыли по возрастанию, затем по выручке', None, None)
     assert turn.arguments['ranking'] == [{'metric': 'profit', 'order': 'asc'}, {'metric': 'proceeds', 'order': 'desc'}]

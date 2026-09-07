@@ -42,6 +42,12 @@ def test_two_inns_are_comparison_before_goal_selection():
     )
 
 
+def test_procurement_wording_enters_supplier_selection():
+    message = "Подбери 2 торговые компании с выручкой от 1 млрд для закупки без аванса"
+    assert handles_selection(message, {})
+    assert explicit_selection_route(message).goal == "поставщик без аванса"
+
+
 @pytest.fixture
 def database(monkeypatch):
     calls, store = {'search': [], 'snapshots': []}, {}

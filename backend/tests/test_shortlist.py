@@ -125,7 +125,7 @@ def test_describe_returns_nothing_without_criteria():
     ("Найди компании с выручкой от 1 млрд и не более двух ИП.",
      {"min_proceeds": 1_000_000_000, "max_enforcement_count": 2}),
     ("Найди компании с ОКВЭД 46, прибылью от 0 и банковским LOW; покажи число совпадений и 5 строк.",
-     {"okved_prefix": "46", "min_profit": 0, "risk_level": "LOW"}),
+     {"okved_prefix": "46", "min_profit": 0, "risk_level": "LOW", "limit": 5}),
 ])
 def test_explicit_supported_filters_are_backend_parsed(message, expected):
     arguments = direct_shortlist_arguments(message)
