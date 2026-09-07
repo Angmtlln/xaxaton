@@ -268,6 +268,10 @@ class MasterAgentRuntime:
             or comparison_wording and (
                 len(explicit_inns) >= 2
                 or bool(active and explicit_inns and active.get("inn") not in explicit_inns)
+                or bool(not explicit_inns and re.fullmatch(
+                    r"\s*сравни(?:те)?\s+(?:финансы|компании|контрагентов)[?!.\s]*",
+                    message, re.I,
+                ))
             )
         )
         inns = None
