@@ -461,12 +461,19 @@ function renderCompanyShortlist(block) {
       ? `Под условие подходит ${matched}, показаны первые ${rows.length}.`
       : `Под условие подходит ${matched}.`));
 
-  const scroller = element('div', 'comparison-scroll');
+  const scroller = element('div', 'comparison-scroll shortlist-scroll');
+  scroller.tabIndex = 0;
+  scroller.setAttribute('role', 'region');
+  scroller.setAttribute('aria-label', 'Подборка контрагентов — прокручиваемая таблица');
   const table = element('table', 'comparison-table shortlist-table');
   const head = element('thead');
   const headRow = element('tr');
   ['Компания', 'Выручка', 'Прибыль', 'Иски к ответчику', 'Исп. производств', 'Стоп-факторы', 'Банк / ЗСК']
-    .forEach((label) => headRow.appendChild(element('th', null, label)));
+    .forEach((label, index) => {
+      const heading = element('th', index === 0 ? 'comparison-measure' : null, label);
+      heading.scope = 'col';
+      headRow.appendChild(heading);
+    });
   head.appendChild(headRow);
 
   const body = element('tbody');
