@@ -47,6 +47,23 @@ def test_defense_ranking_phrases(message, expected):
     assert turn.arguments['ranking'] == expected
 
 
+def test_ranking_ignores_explicit_explanation_suffix():
+    turn = selection_turn(
+        'Найди торговые компании с выручкой от 10 млн, выбери 5 по прибыли и объясни исключение пропусков',
+        None, None,
+    )
+    assert turn.arguments is not None
+    assert turn.arguments['activity_query'].startswith('торговл')
+    assert turn.arguments['min_proceeds'] == 10_000_000
+    assert turn.arguments['ranking'] == [{'metric': 'profit', 'order': 'desc'}]
+
+
+def test_two_inn_choice_is_not_metric_ranking():
+    assert selection_turn(
+        'Выбери между 3711039473 и 6165169320 покупателя на отсрочку 60 дней', None, None,
+    ) is None
+
+
 def test_direction_does_not_leak_to_next_metric():
     turn = selection_turn('Выбери 5 сначала по прибыли по возрастанию, затем по выручке', None, None)
     assert turn.arguments['ranking'] == [{'metric': 'profit', 'order': 'asc'}, {'metric': 'proceeds', 'order': 'desc'}]

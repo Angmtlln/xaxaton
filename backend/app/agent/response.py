@@ -483,6 +483,32 @@ def _comparison_fallback(context: dict, request: Optional[str] = None) -> str:
         for item in companies if summary(item)
     ]
     notes = []
+    financial_winner = None
+    legal_winner = None
+    if len(companies) == 2:
+        left, right = companies
+
+        def dominates(first, second, fragments, *, lower=False):
+            pairs = [(metric(first, key), metric(second, key)) for key in fragments]
+            if not all(a and b and isinstance(a.get("value"), (int, float))
+                       and isinstance(b.get("value"), (int, float)) for a, b in pairs):
+                return False
+            comparisons = [a["value"] <= b["value"] if lower else a["value"] >= b["value"]
+                           for a, b in pairs]
+            strict = [a["value"] < b["value"] if lower else a["value"] > b["value"]
+                      for a, b in pairs]
+            return all(comparisons) and any(strict)
+
+        finance_keys = (":fin.profit.", ":fin.capitals.")
+        legal_keys = (":court.defendant_count", ":court.defendant_amount")
+        financial_winner = left if dominates(left, right, finance_keys) else right if dominates(right, left, finance_keys) else None
+        legal_winner = left if dominates(left, right, legal_keys, lower=True) else right if dominates(right, left, legal_keys, lower=True) else None
+        if financial_winner and legal_winner and financial_winner is not legal_winner:
+            notes.append(
+                "- **Компромисс критериев:** по раскрытым прибыли и капиталу сильнее %s, а меньшие число и сумма исков к компании — у %s."
+                % (financial_winner.get("name") or financial_winner.get("inn"),
+                   legal_winner.get("name") or legal_winner.get("inn"))
+            )
     if flagged:
         notes.append(
             "- **Ограничения:** у %s есть метка ограничения источника. Её причину и актуальность нужно проверить; сама метка не доказывает невозможность сотрудничества."
@@ -490,6 +516,11 @@ def _comparison_fallback(context: dict, request: Optional[str] = None) -> str:
         )
     if request and re.search(r"поставщик", request, re.I):
         deal = "без аванса" if re.search(r"без\s+аванса", request, re.I) else ""
+        if financial_winner and (financial_winner.get("name") or financial_winner.get("inn")) not in flagged:
+            notes.append(
+                "- **Выбор:** для роли поставщика %s по этим данным предпочтительнее %s: у него сильнее раскрытые прибыль и капитал и нет метки ограничения источника. Более высокая судебная нагрузка остаётся поводом проверить споры и исполнение договора."
+                % (deal, financial_winner.get("name") or financial_winner.get("inn"))
+            )
         notes.append(
             "- **Условия выбора:** для поставщика %s финансовые показатели, судебная нагрузка и метки источника дают разные критерии. Проверьте способность исполнить именно ваш договор; эти агрегаты её не гарантируют."
             % deal

@@ -258,8 +258,17 @@ class MasterAgentRuntime:
         shortlist_request = bool(selection) or is_shortlist_request(message)
         if shortlist_request and not selection:
             pending_selection = None
+        explicit_inns = [value for value in inn_candidates(message) if is_valid_inn(value)]
+        comparison_wording = bool(
+            COMPARISON_RE.search(message)
+            or re.search(r"\bвыб(?:ери|рать)\s+между\b", message, re.I)
+        )
         comparison_request = (not shortlist_request) and (
-            bool(COMPARISON_RE.search(message)) or pending_target == "compare_companies"
+            pending_target == "compare_companies"
+            or comparison_wording and (
+                len(explicit_inns) >= 2
+                or bool(active and explicit_inns and active.get("inn") not in explicit_inns)
+            )
         )
         inns = None
         related_target = False
@@ -1127,7 +1136,9 @@ def requested_tool(message: str) -> Optional[str]:
     """Small deterministic admission/router; it never validates answer prose."""
     if is_shortlist_request(message):
         return "find_companies"
-    if COMPARISON_RE.search(message):
+    if COMPARISON_RE.search(message) and len([
+        value for value in inn_candidates(message) if is_valid_inn(value)
+    ]) >= 2:
         return None
     if FULL_PHRASE_RE.search(message):
         return "full_company_check"

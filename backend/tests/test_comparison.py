@@ -78,6 +78,10 @@ async def test_comparison_returns_one_result_for_every_company(snapshots):
 
 @pytest.mark.asyncio
 async def test_comparison_fallback_keeps_both_criteria_and_deal_role(snapshots):
+    snapshots[OTHER] = _snapshot(
+        OTHER, "ООО Иная", fin_rows=[_fin_row(2022, 70, profit=30, capital=60)],
+        defendants=12,
+    )
     response = await _runtime(None).run(
         "Сравни 6165169320 и 0278949271: кого выбрать поставщиком без аванса?"
     )
@@ -87,6 +91,8 @@ async def test_comparison_fallback_keeps_both_criteria_and_deal_role(snapshots):
     assert "Выручка" in response.message
     assert "поставщика без аванса" in response.message
     assert "метка ограничения" in response.message
+    assert "Компромисс критериев" in response.message
+    assert "по этим данным предпочтительнее ООО Иная" in response.message
 
 
 @pytest.mark.asyncio

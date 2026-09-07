@@ -35,6 +35,8 @@ class SelectionTurn:
 
 def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -> SelectionTurn | None:
     text = message.strip().rstrip(".!?")
+    if len(re.findall(r"(?<![0-9])[0-9]{10}(?:[0-9]{2})?(?![0-9])", text)) >= 2:
+        return None
     if pending and re.fullmatch(r"(?:да|согласен|подтверждаю|подходит|ок|хорошо|давай|да,?\s+так|да,?\s+выбирай)", text, re.I):
         return SelectionTurn(arguments=FindCompaniesArgs.model_validate(pending["arguments"]).model_dump(exclude_none=True))
     if pending and re.fullmatch(r"(?:нет|отмена|отмени|не надо)", text, re.I):
@@ -50,6 +52,10 @@ def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -
     # Separate the filter command from the requested ordering before parsing metrics.
     split = re.search(r"(?:,?\s+и\s+|,\s*)(?=(?:выбери|отбери|отсортируй)\b)", text, re.I)
     filter_text, selection = (text[:split.start()], text[split.end():]) if split else ("", text)
+    selection = re.sub(
+        r"(?:,|\s+и)?\s*(?:затем\s+)?объясни\w*\s+(?:исключени\w*\s+пропуск\w*|порядок)\s*$",
+        "", selection, flags=re.I,
+    ).strip()
     # Also allow 'Найди ... с наибольшей прибылью' as one request.
     if (not filter_text and re.match(r"(?:найди|покажи|подбери)\s+", text, re.I)
             and not re.search(r"\bсначала\b", text, re.I)):

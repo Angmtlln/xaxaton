@@ -63,6 +63,12 @@ def test_explicit_domain_negation_stays_with_semantic_router():
     assert not is_direct_request(question, "get_financial_data")
 
 
+def test_single_company_internal_comparison_is_a_legal_read():
+    question = "По 6165169320 сравни суды как истца и ответчика, отдельно количество и суммы; не складывай это с ИП."
+    assert requested_tool(question) == "get_legal_data"
+    assert is_direct_request(question, "get_legal_data")
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("question", [
     "Не проверяй финансы, объясни проще",
