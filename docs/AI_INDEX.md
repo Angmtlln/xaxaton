@@ -10,7 +10,7 @@
 |---|---|---|
 | agent-first продукт, Master Agent, tools, chat API, rich UI | [`AGENT_FIRST_ARCHITECTURE.md`](AGENT_FIRST_ARCHITECTURE.md) | `backend/app/agent/runtime.py`, `backend/app/agent/langchain_tools.py`, `backend/app/agent/tools.py`, `backend/app/agent/models.py`, `backend/app/agent/response.py`, `backend/app/agent/conversations.py`, `backend/app/agent/finance.py`, `backend/app/agent/legal.py`, `backend/app/agent/comparison.py`, `backend/app/api/routes/chat.py`, `frontend/js/chat/main.js` |
 | выбор инструмента по смыслу, отрицания, сумма vs ИНН | [`CHAT_ROUTING.md`](CHAT_ROUTING.md) | `backend/app/agent/runtime.py`, `langchain_tools.py`, `tests/test_agent_request_routing.py`, `backend/scripts/smoke_agent_routing.py` |
-| продукт, скоуп, критерии успеха | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md), [`product_materials.md`](../product_materials.md) | `project_description.md`, `hypotheses.md` |
+| продукт, скоуп, критерии успеха, вклад AI Product | [`product_brief.md`](../product_brief.md), [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) | `product_materials.md` (исследование 03.09), `project_description.md`, `hypotheses.md` |
 | продуктовые гипотезы и приоритеты | [`hypotheses.md`](../hypotheses.md) | `product_materials.md` |
 | состав четырёх блоков анализа | [`blocks_summary_design.md`](../blocks_summary_design.md) | `backend/app/domain/facts.py`, `backend/app/llm/prompts.py` |
 | запуск и общая архитектура backend | [`backend/README.md`](../backend/README.md) | `backend/app/domain/pipeline.py`, `backend/app/main.py`, `backend/app/api/routes/` |
