@@ -1,0 +1,48 @@
+name: aleph
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${ALEPH_DB_PASSWORD:?required}
+      POSTGRES_DB: contractors
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../backend/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ../backend/db/seed_dictionary.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d contractors']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  company-data-mcp:
+    image: aleph-backend:demo
+    restart: unless-stopped
+    command: [python, -m, app.mcp_data.server, --host, 0.0.0.0]
+    environment:
+      MCP_DATABASE_URL: postgresql://contractors_mcp:${MCP_DB_PASSWORD:?required}@db:5432/contractors
+    depends_on:
+      db:
+        condition: service_healthy
+  api:
+    image: aleph-backend:demo
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file: ../backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:${ALEPH_DB_PASSWORD:?required}@db:5432/contractors
+      MCP_DB_PASSWORD: ${MCP_DB_PASSWORD:?required}
+      COMPANY_DATA_BACKEND: mcp
+      MCP_SERVER_URL: http://company-data-mcp:8001/mcp
+    ports:
+      - '127.0.0.1:18081:8000'
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ../contractors_audit.snapshot.json:/data/contractors_audit.snapshot.json:ro
+volumes:
+  pgdata:
