@@ -86,7 +86,7 @@ Content-Length и chunked oversized body; общая ёмкость stream/legac
 
 Дополнительно: `node --check frontend/js/chat/dashboard.js`, `git diff --check`,
 `docker compose -f backend/docker-compose.yml config --quiet` и сборка
-`xaxaton-security-check:20260907` прошли. В Docker-тест передан только файл
+отдельного проверочного Docker-образа прошли. В Docker-тест передан только файл
 fixture в read-only mount, без `.env`/ключей; контейнер удалён после теста.
 
 Применение к уже запущенному демо требует пересборки/recreate соответствующих

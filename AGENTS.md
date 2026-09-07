@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Naming
+
+Название проекта — **ALEPH**. Название хакатона — **AI Product Hack**.
+В документации и пользовательских текстах используй только эти названия;
+не выводи название продукта из имени каталога или Git-репозитория.
+
 ## Product direction
 
 This repository is an **agent-first, conversation-first counterparty analysis product**.

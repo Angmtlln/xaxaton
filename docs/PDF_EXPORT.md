@@ -54,11 +54,11 @@ cd backend
 .venv/bin/python -m playwright install --only-shell chromium
 # На Linux системные библиотеки: python -m playwright install --with-deps --only-shell chromium
 PYTHONPATH=. .venv/bin/python -m pytest tests/test_pdf_export.py tests/test_chat_api.py tests/test_agent_runtime.py -q
-PDF_REAL_TEST=1 PYTHONPATH=. .venv/bin/python -m pytest tests/test_pdf_export.py -q
+PDF_TEST_OUTPUT=/tmp/aleph-pdf-test PDF_REAL_TEST=1 PYTHONPATH=. .venv/bin/python -m pytest tests/test_pdf_export.py -q
 ```
 
-Реальный тест пишет PDF и JSON в `/tmp/xaxaton-pdf-test` (переопределяется
-`PDF_TEST_OUTPUT`). Проверять текст и изображения страниц через Poppler/pypdf;
+В команде выше каталог PDF и JSON задан через
+`PDF_TEST_OUTPUT=/tmp/aleph-pdf-test`. Проверять текст и изображения страниц через Poppler/pypdf;
 особенно пять колонок, длинные названия, кириллицу и многостраничные источники.
 Тест использует фикстуры и не доказывает качество live-выводов модели.
 

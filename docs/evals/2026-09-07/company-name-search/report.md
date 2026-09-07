@@ -71,12 +71,13 @@ tool_calls=1, synthesis=model, latency_ms=44241; задержка основно
 порт 5432 занят macOS PostgreSQL. Docker-база восстановлена на
 `127.0.0.1:55432` с прежним томом `backend_pgdata`, API остаётся на 8000,
 MCP на 8001. Локальный PostgreSQL не останавливался. Конфигурация репозитория
-не менялась; временный override: `/tmp/xaxaton-name-search-compose.yml`.
+не менялась; использовался временный Compose override.
 Повторять обновление API/MCP следует с `--no-deps`, как описано в документации.
-Для пересоздания самой Docker-базы с этой привязкой:
+Для пересоздания самой Docker-базы с этой привязкой создайте Compose override
+и укажите путь к нему в `DB_COMPOSE_OVERRIDE`:
 
 ```bash
-docker compose -f docker-compose.yml -f /tmp/xaxaton-name-search-compose.yml up -d db
+docker compose -f docker-compose.yml -f "${DB_COMPOSE_OVERRIDE:?Укажите путь к Compose override}" up -d db
 ```
 
 ## Что проверить вручную

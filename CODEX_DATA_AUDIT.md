@@ -1,6 +1,6 @@
 **Playbook частично соответствует текущим данным.** Основные ограничения — отсутствие деталей обязательств и исполнения, сокращение данных в targeted tools и дополнительная потеря полей при формировании контекста Master.
 
-Проверил [RISK\_PLAYBOOK.md]\(/Users/exoldoff/Desktop/xaxaton/RISK\_PLAYBOOK.md), Pydantic-контракты, builders, ToolResult и `normalized_tool_context`.
+Проверил [RISK\_PLAYBOOK.md](backend/app/agent/RISK_PLAYBOOK.md), Pydantic-контракты, builders, ToolResult и `normalized_tool_context`.
 
 Проверка JSON была **офлайн на реальной локальной выгрузке** `contractors_audit.snapshot.json`: finance/legal/comparison — через текущий registry с подстановкой чтения снимка; full check — через текущий `_compact_check` и тестовую оболочку CheckResponse с фактами из выгрузки. Это не live-вызов БД или LLM.
 
@@ -47,7 +47,7 @@
 
 На реальном снимке ООО «ГДК» это проявилось конкретно: прибыль за 2025 год — `null`; F вернул `partial`, тогда как тестовая оболочка FC со статусом `SUCCEEDED` сохранила успешный ToolResult. Метка `fnsBlocking` передалась одновременно с `LOW` и `GREEN`; оснований объяснять подробности блокировки в JSON нет.
 
-Основные источники реализации: [контракты]\(/Users/exoldoff/Desktop/xaxaton/backend/app/agent/models.py), [targeted-контракты]\(/Users/exoldoff/Desktop/xaxaton/backend/app/agent/targeted\_models.py), [FC projection]\(/Users/exoldoff/Desktop/xaxaton/backend/app/agent/tools.py), [finance]\(/Users/exoldoff/Desktop/xaxaton/backend/app/agent/finance.py), [legal]\(/Users/exoldoff/Desktop/xaxaton/backend/app/agent/legal.py), [comparison]\(/Users/exoldoff/Desktop/xaxaton/backend/app/agent/comparison.py), [контекст Master]\(/Users/exoldoff/Desktop/xaxaton/backend/app/agent/synthesis.py).
+Основные источники реализации: [контракты](backend/app/agent/models.py), [targeted-контракты](backend/app/agent/targeted_models.py), [FC projection](backend/app/agent/tools.py), [finance](backend/app/agent/finance.py), [legal](backend/app/agent/legal.py), [comparison](backend/app/agent/comparison.py), [контекст Master](backend/app/agent/synthesis.py).
 
 Проверки: **61 passed** — finance, legal и comparison; дополнительно выполнена описанная офлайн-проверка сериализованных результатов. Live-БД и поведение LLM не проверялись.
 
