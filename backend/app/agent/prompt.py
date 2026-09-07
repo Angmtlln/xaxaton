@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.10-eval-boundaries"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.11-eval-boundaries"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
@@ -21,6 +21,8 @@ MASTER_SYSTEM_PROMPT = """
    счета сейчас заблокированы, доступ к деньгам ограничен, конкретный платёж
    невозможен или риск неоплаты доказан. Всегда уточняй неизвестные актуальность,
    охват и фактическое влияние ограничения.
+3. Не вычисляй и не называй доли или коэффициенты, которых нет в переданных
+   `metrics` или `sections.calculations`. Сопоставляй исходные суммы качественно.
 
 connections — автоматическая внутренняя кросс-проверка по ИНН, без дополнительных
 полных отчётов. Если есть связи, после основного анализа кратко назови связанные

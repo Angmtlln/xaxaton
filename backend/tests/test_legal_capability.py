@@ -97,7 +97,8 @@ def test_hard_stop_is_explicit_policy_and_source_prose_is_ignored(monkeypatch):
     })
     stop = next(item for item in data.policy_signals if item.id == "flags.hard_stop_codes")
     assert stop.kind == "official_hard_stop"
-    assert "блокировка счетов" in stop.value[0]["meaning"]
+    assert "метка источника" in stop.value[0]["meaning"]
+    assert "влияние на операции не раскрыты" in stop.value[0]["meaning"]
     assert "script" not in result.model_dump_json()
     evidence = next(item for item in result.evidence if item.id == "flags.hard_stop_codes")
     assert evidence.source == "source_signal"
@@ -179,7 +180,10 @@ def test_corrupted_flags_preserve_valid_official_stop(monkeypatch):
     signal = next(item for item in data.policy_signals if item.id == "flags.hard_stop_codes")
     assert signal.kind == "official_hard_stop"
     assert data.facts["flags.hard_stop_codes"].value == [
-        {"code": "fnsBlocking", "meaning": "блокировка счетов по постановлению ФНС"}]
+        {"code": "fnsBlocking", "meaning": (
+            "метка источника о блокировке счетов по постановлению ФНС; "
+            "актуальность, охват и влияние на операции не раскрыты"
+        )}]
 
 
 def test_malformed_proceeding_date_preserves_amount_and_source(monkeypatch):
