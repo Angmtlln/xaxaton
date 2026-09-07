@@ -538,7 +538,7 @@ function renderUnsupportedBlock() {
 
 export function buildAssistantMessage(payload, hooks = {}) {
   const article = element('article', 'chat-message chat-message-assistant');
-  const avatar = element('div', 'assistant-avatar', 'A');
+  const avatar = element('div', 'assistant-avatar');
   avatar.setAttribute('aria-hidden', 'true');
   const body = element('div', 'assistant-content');
   article.setAttribute('aria-label', 'ALEPH');

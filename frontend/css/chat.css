@@ -231,13 +231,17 @@
   height: 38px;
   display: grid;
   place-items: center;
-  color: #ffffff;
-  background: linear-gradient(140deg, #fa6652, #dc3029);
+  background: #ffffff;
   box-shadow: 0 5px 14px #c9302424;
   border-radius: 15px;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.08em;
+}
+
+/* Show only the original ALEPH initial, including its underline. */
+.assistant-avatar::before {
+  content: '';
+  width: 22px;
+  height: 32px;
+  background: url('/static/assets/aleph-logo.png') left center / auto 32px no-repeat;
 }
 
 .assistant-content {

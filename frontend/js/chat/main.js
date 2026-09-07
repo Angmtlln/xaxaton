@@ -124,7 +124,7 @@ function appendUserMessage(message) {
 function appendLoading() {
   const article = element('article', 'chat-message chat-message-assistant loading-message');
   article.id = 'active-loading';
-  const avatar = element('div', 'assistant-avatar', 'A');
+  const avatar = element('div', 'assistant-avatar');
   avatar.setAttribute('aria-hidden', 'true');
   const body = element('div', 'assistant-content assistant-loading');
   body.setAttribute('role', 'status');
