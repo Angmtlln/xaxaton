@@ -16,6 +16,17 @@ log = logging.getLogger(__name__)
 class OpenRouterChatModel(ChatOpenAI):
     """Preserve provider citations that ChatOpenAI 1.4 otherwise discards."""
 
+    async def _agenerate(self, *args, **kwargs):
+        from .usage import active_usage
+        usage = active_usage.get()
+        result = None
+        try:
+            result = await super()._agenerate(*args, **kwargs)
+            return result
+        finally:
+            if usage is not None:
+                usage.record((result.llm_output or {}).get("token_usage") if result else None)
+
     def _create_chat_result(self, response, generation_info=None):
         result = super()._create_chat_result(response, generation_info)
         payload = response if isinstance(response, dict) else response.model_dump()

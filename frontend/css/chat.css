@@ -1425,3 +1425,43 @@ body.landing-mode .chat-nav {
 .comparison-conclusion h2, .comparison-conclusion h3 { margin-top: 20px; font-size: 17px; }
 .comparison-conclusion h3:first-child { margin-top: 0; }
 @media print { .measure-help { display: none; } }
+
+/* Desktop cost counter; mobile scope remains paused. */
+.conversation-cost { display: none; }
+@media (min-width: 821px) {
+  .chat-topbar-inner { position: relative; }
+  .conversation-cost:not([hidden]) {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #e4dedb;
+    border-radius: 999px;
+    background: #fffaf7;
+    color: #66575b;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .conversation-cost strong { color: #30292b; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .conversation-cost-detail {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    padding: 12px;
+    border: 1px solid #e4dedb;
+    border-radius: 12px;
+    background: #fffaf7;
+    color: #30292b;
+    white-space: normal;
+    line-height: 1.5;
+    box-shadow: 0 6px 20px #30292b15;
+  }
+  .conversation-cost:hover .conversation-cost-detail,
+  .conversation-cost:focus .conversation-cost-detail { display: block; }
+}

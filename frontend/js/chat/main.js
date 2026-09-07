@@ -23,6 +23,20 @@ let conversationId = null;
 let activeCompany = null;
 let conversationHistory = [];
 let sessionExpired = false;
+let conversationUsage = null;
+const costCounter = document.getElementById('conversation-cost');
+
+function updateCost() {
+  costCounter.hidden = !conversationHistory.length;
+  const usage = conversationUsage;
+  document.getElementById('conversation-cost-value').textContent = usage
+    ? `${usage.incomplete ? '≥ ' : ''}$${usage.cost_usd.toFixed(4)}` : '—';
+  document.getElementById('conversation-cost-detail').textContent = usage
+    ? `${usage.input_tokens.toLocaleString('ru-RU')} входящих · ${usage.output_tokens.toLocaleString('ru-RU')} исходящих токенов. `
+      + 'Сумма стоимости вызовов OpenRouter за этот диалог, в USD. Groq не включён. '
+      + (usage.incomplete ? 'Часть вызовов не вернула расход: сумма неполная.' : 'Обновляется после ответа.')
+    : 'Расход для этой истории недоступен. Счётчик появится после нового ответа.';
+}
 const composerShell = document.querySelector('.chat-composer-shell');
 const landingSlot = document.getElementById('landing-composer-slot');
 
@@ -33,6 +47,7 @@ function syncLayout() {
   intro.hidden = !landing;
   thread.hidden = landing;
   resizeInput();
+  updateCost();
 }
 
 function updateActions() {
@@ -50,7 +65,7 @@ function updateActions() {
 function saveConversation() {
   try {
     sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify({
-      conversationId, activeCompany, sessionExpired, draft: input.value, messages: conversationHistory.slice(-24),
+      conversationId, activeCompany, sessionExpired, conversationUsage, draft: input.value, messages: conversationHistory.slice(-24),
     }));
   } catch (error) { /* Диалог остаётся доступен при запрете/переполнении storage. */ }
 }
@@ -74,6 +89,7 @@ function resetConversation() {
   activeCompany = null;
   sessionExpired = false;
   conversationHistory = [];
+  conversationUsage = null;
   resetNavigation();
   thread.querySelectorAll('.news-section').forEach((section) => section.dispose?.());
   thread.replaceChildren();
@@ -248,6 +264,8 @@ async function sendMessage(message, companySelection = null) {
         lastReportLink.hidden = true;
       } else if (payload && payload.conversation_id) {
         conversationId = payload.conversation_id;
+        conversationUsage = payload.metadata?.conversation_usage || null;
+        updateCost();
         sessionExpired = false;
         activeCompany = payload.active_company || null;
       }
@@ -303,6 +321,7 @@ try {
     sessionExpired = saved.sessionExpired === true;
     input.value = typeof saved.draft === 'string' ? saved.draft : '';
     conversationHistory = saved.messages.slice(-24);
+    conversationUsage = saved.conversationUsage || null;
     conversationHistory.forEach((item) => {
       if (item.role === 'user') appendUserMessage(item.message);
       else if (item.role === 'assistant' && item.payload) appendAssistantMessage(item.payload);

@@ -6,6 +6,8 @@ from app.domain.company_search import CompanyMatch
 from datetime import date
 from typing import Annotated, Dict, List, Literal, Optional, Union
 
+from .usage import ConversationUsage
+
 from pydantic import (AfterValidator, BaseModel, ConfigDict, Field, HttpUrl, JsonValue,
                       field_validator, model_validator)
 
@@ -650,6 +652,7 @@ UIBlock = Annotated[
 
 
 class AssistantMetadata(StrictModel):
+    conversation_usage: Optional[ConversationUsage] = None
     agent_run_id: SafeText
     check_run_id: Optional[SafeText] = None
     status: Literal["completed", "partial", "needs_input", "error"]

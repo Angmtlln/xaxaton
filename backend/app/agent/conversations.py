@@ -9,6 +9,8 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+from .usage import ConversationUsage
+
 from langchain.agents import AgentState
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -142,6 +144,7 @@ class ConversationCapacityError(RuntimeError):
 @dataclass
 class _Lease:
     touched: float
+    usage: ConversationUsage = field(default_factory=ConversationUsage)
     users: int = 0
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 

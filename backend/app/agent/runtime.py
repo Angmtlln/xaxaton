@@ -141,24 +141,35 @@ class MasterAgentRuntime:
         )
         try:
             async with AsyncExitStack() as stack:
-                cid, _ = await asyncio.wait_for(
+                cid, lease = await asyncio.wait_for(
                     stack.enter_async_context(self.conversation_store.session(conversation_id)),
                     timeout=max(0, deadline - time.monotonic()),
                 )
                 from .pdf_export import handles_pdf_request, pdf_chat_response
                 if handles_pdf_request(message):
-                    return await pdf_chat_response(self.conversation_store, cid, message, run_id, started)
+                    response = await pdf_chat_response(self.conversation_store, cid, message, run_id, started)
+                    response.metadata.conversation_usage = lease.usage.model_copy(deep=True)
+                    return response
                 binding = self.conversation_store.pin_master_model(
                     cid, (self.model, self.model_name, self.model_provider)
                 )
-                response = await self._run_conversation(
-                    message, cid, run_id, started, deadline, binding, company_selection
-                )
+                from .usage import active_usage
+                usage_token = active_usage.set(lease.usage)
+                try:
+                    response = await self._run_conversation(
+                        message, cid, run_id, started, deadline, binding, company_selection
+                    )
+                finally:
+                    active_usage.reset(usage_token)
+                response.metadata.conversation_usage = lease.usage.model_copy(deep=True)
                 self.conversation_store.exports.capture(cid, response)
                 return response
         except asyncio.TimeoutError:
             response = runtime_timeout_response(run_id, started, tool_calls=0)
             response.conversation_id = conversation_id
+            if "lease" in locals():
+                response.conversation_id = cid
+                response.metadata.conversation_usage = lease.usage.model_copy(deep=True)
             if conversation_id is not None:
                 checkpoint = await self.conversation_store.checkpointer.aget_tuple(
                     {"configurable": {"thread_id": conversation_id}}
