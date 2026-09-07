@@ -139,7 +139,9 @@ async def resolve_name(runtime, message, previous, model, run_id, started, deadl
         message, re.I,
     ):
         return result
-    if model is None and re.fullmatch(r"\s*(?:а что у них с (?:финансами|судами)|покажи (?:финансы|суды)|привет|здравствуйте)[?!.\s]*", message, re.I):
+    # These complete requests contain no new company name. With an active
+    # company, let Master answer or select a targeted tool without a lookup.
+    if (model is None or previous.get("active_company")) and re.fullmatch(r"\s*(?:а что у них с (?:финансами|судами)|покажи (?:финансы|суды)|привет|здравствуйте)[?!.\s]*", message, re.I):
         return result
 
     found = None

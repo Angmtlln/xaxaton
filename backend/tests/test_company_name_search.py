@@ -124,7 +124,8 @@ async def test_stale_button_and_inn_outside_list_do_not_check(searches):
 
 
 @pytest.mark.asyncio
-async def test_new_name_replaces_active_company(searches, monkeypatch):
+@pytest.mark.parametrize('message', ['Какая выручка у Электролид?', 'Покажи финансы Электролид'])
+async def test_new_name_replaces_active_company(message, searches, monkeypatch):
     calls = []
     model = _model(AIMessage(content='', tool_calls=[_tool_call('get_financial_data')]), _answer(),
         search_call(), AIMessage(content='', tool_calls=[_tool_call('get_financial_data', {'inn': SECOND})]), _answer())
@@ -137,9 +138,31 @@ async def test_new_name_replaces_active_company(searches, monkeypatch):
     monkeypatch.setattr(runtime.registry, 'execute', execute)
     first = await runtime.run(f'Какая выручка у {INN}?')
     searches['found'] = {'rows': [row(SECOND)], 'total': 1, 'exact_total': 1}
-    second = await runtime.run('Какая выручка у Электролид?', first.conversation_id)
+    second = await runtime.run(message, first.conversation_id)
     assert calls == [INN, SECOND]
     assert second.active_company.inn == SECOND
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('message', [
+    'а что у них с финансами?', 'А что у них с судами?',
+    'Покажи финансы', 'Покажи суды',
+])
+async def test_full_check_followup_skips_name_model(message, searches, monkeypatch, check_payload):
+    async def check(*args, **kwargs):
+        return check_payload
+    monkeypatch.setattr('app.agent.tools.run_check', check)
+    runtime = _runtime(_model(_answer(), _answer('Ответ из проверенного контекста.')),
+                       name_resolution=True, direct_dispatch=True, grounding_debug=False)
+    first = await runtime.run(f'Проверь контрагента {INN}')
+    follow = await runtime.run(message, first.conversation_id)
+    assert first.leading_artifact is not None
+    assert follow.active_company.inn == INN
+    assert follow.metadata.error_code is None
+    assert follow.metadata.model_calls == 1
+    assert follow.metadata.tool_calls == 0
+    assert follow.message == 'Ответ из проверенного контекста.'
+    assert searches['calls'] == []
 
 
 @pytest.mark.asyncio
