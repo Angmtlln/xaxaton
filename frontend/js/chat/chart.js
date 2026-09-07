@@ -6,8 +6,8 @@ const integerFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 
 
 export function buildChart(series, unit) {
   const width = 760;
-  const height = 286;
-  const padding = { top: 24, right: 24, bottom: 48, left: 74 };
+  const height = 200;
+  const padding = { top: 16, right: 24, bottom: 32, left: 74 };
   const allValues = series.flatMap((item) => safeArray(item.points))
     .map((point) => numericValue(point.value)).filter(Number.isFinite);
   let min = Math.min(0, ...allValues);
@@ -132,4 +132,36 @@ export function compactNumber(value, unit) {
 export function formatChartValue(value, unit) {
   const text = moneyFormat.format(value);
   return unit === 'руб' ? `${text} ₽` : text;
+}
+
+
+export function buildBarChart(series, unit) {
+  const chart = buildChart(series, unit);
+  const labels = series[0].points;
+  const width = 760, left = 130, right = 110;
+  const groupHeight = series.length * 18 + 10;
+  const height = labels.length * groupHeight + 24;
+  const values = series.flatMap((item) => item.points).map((point) => numericValue(point.value)).filter(Number.isFinite);
+  const max = Math.max(1, ...values);
+  const svg = svgElement('svg', { viewBox: `0 0 ${width} ${height}`, role: 'img',
+    'aria-label': 'Количество судебных дел по годам: ответчик и истец' });
+  labels.forEach((point, index) => {
+    const label = svgElement('text', { x: 12, y: 27 + index * groupHeight, class: 'chart-axis-label' });
+    label.textContent = point.x; svg.appendChild(label);
+    series.forEach((item, si) => {
+      const value = numericValue(item.points[index]?.value);
+      const y = 10 + index * groupHeight + si * 18;
+      const barWidth = Number.isFinite(value) ? value / max * (width - left - right) : 0;
+      const rect = svgElement('rect', { x: left, y, width: barWidth, height: 13, rx: 2,
+        fill: si % 2 ? '#ef3124' : '#111111' });
+      const title = svgElement('title');
+      title.textContent = `${point.x}, ${item.label}: ${Number.isFinite(value) ? formatChartValue(value, unit) : 'Нет данных'}`;
+      rect.appendChild(title); svg.appendChild(rect);
+      const number = svgElement('text', { x: left + barWidth + 8, y: y + 11, class: 'chart-axis-label' });
+      number.textContent = Number.isFinite(value) ? formatChartValue(value, unit) : 'Нет данных';
+      svg.appendChild(number);
+    });
+  });
+  chart.figure.replaceChild(svg, chart.figure.querySelector('svg'));
+  return chart;
 }

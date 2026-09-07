@@ -408,7 +408,7 @@ class MasterAnswer(StrictModel):
     """Natural-language answer authored by Master; UI remains backend-owned."""
 
     message: SafeText = Field(min_length=1, max_length=5000)
-    artifact: Literal["none", "metrics", "chart"] = "none"
+    artifact: Literal["none", "metrics", "chart", "court_chart"] = "none"
     suggested_actions: List[SuggestedAction] = Field(default_factory=list, max_length=4)
     risk_profile: Optional[RiskProfile] = None
     news_selection: Optional[List[NewsSelection]] = Field(default=None, max_length=4)
@@ -502,6 +502,10 @@ class LineChartBlock(StrictModel):
     state: Literal["data", "no_data"]
     series: List[ChartSeries] = Field(default_factory=list, max_length=4)
     empty_message: Optional[SafeText] = None
+
+
+class BarChartBlock(LineChartBlock):
+    type: Literal["bar_chart"] = "bar_chart"
 
 
 class FindingItem(StrictModel):
@@ -633,6 +637,7 @@ UIBlock = Annotated[
         TextBlock,
         MetricGridBlock,
         LineChartBlock,
+        BarChartBlock,
         FindingListBlock,
         ComparisonTableBlock,
         CompanyShortlistBlock,

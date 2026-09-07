@@ -194,3 +194,27 @@ def test_malformed_proceeding_date_preserves_amount_and_source(monkeypatch):
     assert data.facts["execproc.active_amount"].value == 100
     assert data.availability == "PARTIAL"
     assert report == original
+
+
+def test_court_series_honors_year_and_keeps_partial_counts():
+    from app.agent.legal import build_legal_data
+    snapshot = {"inn": INN, "document": {"report": {"arbitrationCases": [
+        {"year": 2024, "defendantCount": 2},
+        {"year": 2025, "plaintiffCount": 0},
+    ]}}}
+    data = build_legal_data(snapshot, year=2025)
+    assert data.availability == "PARTIAL"
+    assert data.series_ids == ["court.series"]
+    assert [row["year"] for row in data.facts["court.series"].value] == [2025]
+    assert data.facts["court.series"].value[0]["plaintiffCount"] == 0
+    assert data.facts["court.series"].value[0]["defendantCount"] is None
+    assert "court.series" not in data.sections["legal_aggregates"].value
+
+
+def test_duplicate_court_years_are_not_plotted_as_separate_years():
+    from app.agent.legal import build_legal_data
+    data = build_legal_data({"inn": INN, "document": {"report": {"arbitrationCases": [
+        {"year": 2024, "defendantCount": 2},
+        {"year": 2024, "defendantCount": 3},
+    ]}}})
+    assert "court.series" not in data.facts

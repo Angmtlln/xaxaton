@@ -228,12 +228,14 @@ def _answer_payload(value: str) -> dict:
         return {"message": text, "artifact": "none"}
 
 
-def allowed_artifacts(result: ToolResult | None, *, contextual: bool) -> tuple[str, ...]:
+def allowed_artifacts(result: ToolResult | None, *, contextual: bool, context: dict | None = None) -> tuple[str, ...]:
     if contextual or result is None:
-        return ("none",)
+        ids = {item.get("id") for item in (context or {}).get("series", [])}
+        return ("none",) + (("chart",) if "fin.series" in ids else ()) + (("court_chart",) if "court.series" in ids else ())
     if result.metadata.tool in {"compare_companies", "find_companies"}:
-        # Таблицу и подборку бэкенд добавляет сам: это детерминированные артефакты.
         return ("none",)
+    if result.metadata.tool == "get_legal_data":
+        return ("none", "metrics", "court_chart")
     if result.metadata.tool in {"full_company_check", "get_financial_data"}:
         return ("none", "metrics", "chart")
     return ("none", "metrics")

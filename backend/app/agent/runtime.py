@@ -637,7 +637,7 @@ class MasterAgentRuntime:
                         contextual = execution.result is None
                     candidate = parse_master_answer(
                         message_text(final),
-                        allowed_artifacts=allowed_artifacts(execution.last_successful(), contextual=contextual),
+                        allowed_artifacts=allowed_artifacts(execution.last_successful(), contextual=contextual, context=execution_context(execution, cached_context)),
                         allow_risk_profile=(execution.last_successful() is not None
                                             and execution.last_successful().metadata.tool == "full_company_check"),
                     )
@@ -682,7 +682,7 @@ class MasterAgentRuntime:
                 started=started,
             )
         verified_context = execution_context(execution, cached_context)
-        artifacts = allowed_artifacts(result, contextual=contextual)
+        artifacts = allowed_artifacts(result, contextual=contextual, context=verified_context)
         # External selection is independent of the optional internal prose repair.
         news_answer = candidate
         grounding_status, repairs = "fallback", 0
@@ -907,7 +907,7 @@ def _model_policy(
             else:
                 schema["properties"].pop("news_selection", None)
             schema["properties"]["artifact"]["enum"] = list(
-                allowed_artifacts(execution.last_successful(), contextual=not after_tool)
+                allowed_artifacts(execution.last_successful(), contextual=not after_tool, context=context)
             )
             base = request.system_message.content if request.system_message else MASTER_SYSTEM_PROMPT
             overrides["system_message"] = SystemMessage(

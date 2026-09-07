@@ -5,7 +5,7 @@ import re
 import time
 from typing import Dict, List, Optional
 
-from .models import (AssistantMetadata, AssistantResponse, ChartPoint, ChartSeries,
+from .models import (AssistantMetadata, AssistantResponse, BarChartBlock, ChartPoint, ChartSeries,
                      ComparisonCell, ComparisonColumn, ComparisonRow, ComparisonSummaryFact,
                      ComparisonTableBlock, CompanyShortlistBlock, CompanySummaryBlock,
                      Evidence, FindingItem,
@@ -144,6 +144,9 @@ def tool_result_to_assistant(
         optional = _optional_artifact(data, evidence_by_id, artifact)
         if optional is not None:
             blocks.append(optional)
+
+    if contextual and artifact in {"chart", "court_chart"}:
+        blocks.append(_chart_block(None, evidence_by_id, context=context, court=artifact == "court_chart"))
 
     full = isinstance(data, FullCompanyCheckData)
     domain = context.get("domain")
@@ -576,12 +579,8 @@ def _comparison_policy_block(data: ComparisonData, evidence_by_id: Dict[str, Evi
 
 
 def _optional_artifact(data, evidence_by_id: Dict[str, Evidence], artifact: str):
-    if artifact == "chart":
-        chart = _chart_block(data, evidence_by_id)
-        if chart.state == "data" and any(
-            sum(point.value is not None for point in series.points) >= 2 for series in chart.series
-        ):
-            return chart
+    if artifact in {"chart", "court_chart"}:
+        return _chart_block(data, evidence_by_id, court=artifact == "court_chart")
     if artifact == "metrics":
         block = _metric_block(data, evidence_by_id) if isinstance(data, FullCompanyCheckData) else _targeted_metrics(data)
         if block is not None and isinstance(data, FullCompanyCheckData):
@@ -690,41 +689,29 @@ def _metric_block(data: FullCompanyCheckData, evidence_by_id: Dict[str, Evidence
     return MetricGridBlock(title="Ключевые показатели", items=items)
 
 
-def _chart_block(data, evidence_by_id: Dict[str, Evidence]) -> LineChartBlock:
-    fact = data.facts.get("fin.series")
-    if fact is None or fact.id not in evidence_by_id or not isinstance(fact.value, list):
-        return _empty_chart()
-    rows = [row for row in fact.value if isinstance(row, dict) and row.get("year") is not None]
-    rows.sort(key=lambda row: str(row.get("year")))
-    series: List[ChartSeries] = []
-    for key, label in (("proceeds", "Выручка"), ("profit", "Прибыль")):
-        points = [
-            ChartPoint(
-                x=str(row["year"]),
-                value=float(row[key]) if isinstance(row.get(key), (int, float)) else None,
-            )
-            for row in rows
-        ]
+def _chart_block(data, evidence_by_id: Dict[str, Evidence], *, context=None, court=False):
+    fact_id = "court.series" if court else "fin.series"
+    if data is not None:
+        fact = getattr(data, "facts", {}).get(fact_id)
+        value = fact.value if fact else None
+    else:
+        value = next((item.get("value") for item in (context or {}).get("series", [])
+                      if item.get("id") == fact_id), None)
+    rows = [row for row in value if isinstance(row, dict) and row.get("year") is not None] if isinstance(value, list) and fact_id in evidence_by_id else []
+    rows.sort(key=lambda row: str(row["year"]))
+    rows = rows[-20:]
+    fields = (("defendantCount", "Ответчик"), ("plaintiffCount", "Истец")) if court else (("proceeds", "Выручка"), ("profit", "Прибыль"))
+    series = []
+    for key, label in fields:
+        points = [ChartPoint(x=str(row["year"]), value=row.get(key) if isinstance(row.get(key), (int, float)) and not isinstance(row.get(key), bool) else None) for row in rows]
         if any(point.value is not None for point in points):
-            series.append(ChartSeries(key=key, label=label, points=points, evidence_id=fact.id))
-    if not series:
-        return _empty_chart()
-    return LineChartBlock(
-        title="Финансовая динамика",
-        description="Выручка и прибыль по доступным отчётным годам.",
-        unit="руб",
-        state="data",
-        series=series,
-    )
-
-
-def _empty_chart() -> LineChartBlock:
-    return LineChartBlock(
-        title="Финансовая динамика",
-        description="График строится только из проверенного ряда fin.series.",
-        unit="руб",
-        state="no_data",
-        empty_message="Финансовых рядов в доступной карточке нет.",
+            series.append(ChartSeries(key=key, label=label, points=points, evidence_id=fact_id))
+    block = BarChartBlock if court else LineChartBlock
+    return block(
+        title="Судебные дела по годам" if court else "Финансовая динамика",
+        description=("Количество дел в доступной выборке. Полнота каждого года неизвестна." if court else "Выручка и прибыль по доступным отчётным годам."),
+        unit="дел" if court else "руб", state="data" if series else "no_data", series=series,
+        empty_message="Нет проверенных данных для графика." if not series else None,
     )
 
 

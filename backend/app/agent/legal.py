@@ -257,18 +257,32 @@ def build_legal_data(snapshot: dict, *, year=None, offset=0, section="default") 
                 evidence_ids=[fact.id],
             ))
 
+    company = company_from_snapshot(snapshot)
+    sections = legal_sections(snapshot, year=year, offset=offset, section=section)
+    court_rows = sections.get("court_years")
+    if court_rows and isinstance(court_rows.value, list):
+        rows = [dict(row, year=int(row["year"])) for row in court_rows.value
+                if row.get("year") is not None]
+        # Ambiguous repeated years cannot become one plotted observation.
+        years = [row["year"] for row in rows]
+        rows = [row for row in rows if years.count(row["year"]) == 1]
+        if rows:
+            facts["court.series"] = ToolFact(
+                id="court.series", label="Суды по раскрытым годам", value=rows,
+                field_ref="report.arbitrationCases[]", source="computed", unit="дел",
+                comment="Доступная выборка; полнота каждого года неизвестна.",
+            )
     availability = "NO_DATA" if not facts else ("PARTIAL" if gaps else "DATA")
     if availability == "NO_DATA":
         gaps.insert(0, "Правовое положение невозможно оценить по доступным данным.")
-    company = company_from_snapshot(snapshot)
-    sections = legal_sections(snapshot, year=year, offset=offset, section=section)
     sections["legal_aggregates"] = DataSection(field_ref="report.arbitrationCases[]; report.executionProceedings[]; report.inspections[]",
         value={key: {"value": fact.value, "unit": fact.unit, "field_ref": fact.field_ref}
-               for key, fact in facts.items() if not key.startswith("flags.")},
+               for key, fact in facts.items() if not key.startswith("flags.") and key != "court.series"},
         scope="all disclosed snapshot records; incomplete aggregates omitted")
     sections["request"] = DataSection(field_ref="report", value={"section": section, "year": year, "offset": offset}, scope="requested projection, not source data")
     return TargetedData(
         domain="legal", company=company, availability=availability, facts=facts,
+        series_ids=["court.series"] if "court.series" in facts else [],
         metric_ids=[item for item in METRIC_IDS if item in facts][:8],
         policy_signals=policy_signals, gaps=gaps[:10], sections=sections,
     )

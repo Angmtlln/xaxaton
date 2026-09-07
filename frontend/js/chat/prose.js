@@ -8,10 +8,46 @@ function inline(parent, text) {
   });
 }
 
+function cells(line) {
+  const value = line.trim().replace(/^\|/, '').replace(/(?<!\\)\|$/, '');
+  return value.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, '|'));
+}
+
 export function appendProse(parent, text) {
   let paragraph = null;
   let list = null;
-  String(text).split('\n').forEach((line) => {
+  const lines = String(text).split('\n');
+  let consumed = -1;
+  lines.forEach((line, index) => {
+    if (index <= consumed) return;
+    const headers = cells(line);
+    const separator = cells(lines[index + 1] || '');
+    if (line.includes('|') && headers.length > 1 && separator.length === headers.length
+        && separator.every((cell) => /^:?-+:?$/.test(cell))) {
+      paragraph = null; list = null;
+      const wrap = element('div', 'prose-table-wrap');
+      wrap.tabIndex = 0;
+      wrap.setAttribute('role', 'region');
+      wrap.setAttribute('aria-label', 'Таблица из ответа');
+      const table = element('table', 'chart-data-table prose-table');
+      const thead = element('thead');
+      const tr = element('tr');
+      headers.forEach((value) => {
+        const cell = element('th'); cell.scope = 'col'; inline(cell, value); tr.appendChild(cell);
+      });
+      thead.appendChild(tr);
+      const tbody = element('tbody');
+      consumed = index + 1;
+      for (let next = index + 2; next < lines.length && lines[next].includes('|'); next += 1) {
+        const values = cells(lines[next]);
+        if (values.length !== headers.length) break;
+        const row = element('tr');
+        values.forEach((value) => { const cell = element('td'); inline(cell, value); row.appendChild(cell); });
+        tbody.appendChild(row); consumed = next;
+      }
+      table.append(thead, tbody); wrap.appendChild(table); parent.appendChild(wrap);
+      return;
+    }
     if (!line.trim()) { paragraph = null; list = null; return; }
     const heading = line.match(/^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
     if (heading) {

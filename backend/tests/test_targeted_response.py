@@ -101,3 +101,44 @@ def test_deterministic_fallback_uses_verified_values_only(result):
     assert "Подтверждённые данные" in response.message
     assert "Выручка за 2025 год" in response.message
     assert "50 ₽" in response.message
+
+
+def test_explicit_context_chart_uses_saved_series_without_tool(result):
+    from app.agent.synthesis import allowed_artifacts
+    context = normalized_tool_context(result)
+    assert "chart" in allowed_artifacts(None, contextual=True, context=context)
+    response = render(result, MasterAnswer(message="Динамика из отчётности.", artifact="chart"), contextual=True)
+    assert response.metadata.tool_calls == 0
+    assert response.blocks[0].series[1].points[1].value == -10
+
+
+def test_court_chart_preserves_zero_missing_and_evidence():
+    from app.agent.legal import build_legal_data
+    from app.agent.synthesis import allowed_artifacts
+    data = build_legal_data({"inn": "6165169320", "document": {"report": {"arbitrationCases": [
+        {"year": 2025, "defendantCount": 0, "plaintiffCount": None},
+        {"year": 2024, "defendantCount": 3, "plaintiffCount": 1},
+    ]}}})
+    result = ToolResult(status="partial", data=data.model_dump(mode="json"),
+        evidence=[_evidence_from_fact(f) for f in data.facts.values()],
+        metadata=ToolResultMetadata(tool="get_legal_data", latency_ms=0))
+    assert "court_chart" in allowed_artifacts(result, contextual=False)
+    for contextual in (False, True):
+        response = render(result, MasterAnswer(message="Раскрытые дела по годам.", artifact="court_chart"), contextual=contextual)
+        chart = response.blocks[0]
+        assert chart.type == "bar_chart"
+        assert [p.x for p in chart.series[0].points] == ["2024", "2025"]
+        assert [p.value for p in chart.series[0].points] == [3, 0]
+        assert [p.value for p in chart.series[1].points] == [1, None]
+        assert chart.series[0].evidence_id in {e.id for e in response.evidence}
+        payload = response.model_dump(mode="json")
+        payload["blocks"][0]["series"][0]["evidence_id"] = "invented"
+        from app.agent.models import AssistantResponse
+        with pytest.raises(ValueError):
+            AssistantResponse.model_validate(payload)
+
+
+def test_missing_chart_is_explicit_empty_state(result):
+    response = render(result, MasterAnswer(message="Судебных рядов нет.", artifact="court_chart"))
+    assert response.blocks[0].state == "no_data"
+    assert not response.blocks[0].series

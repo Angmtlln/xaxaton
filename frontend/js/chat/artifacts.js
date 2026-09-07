@@ -1,7 +1,7 @@
 /* Рендер allowlisted UIBlock из ответа агента. Модуль не знает о состоянии
    диалога: всё, что нужно снаружи, приходит через context и hooks. */
 import { element, safeArray, numericValue } from '../shared/dom.js';
-import { buildChart } from './chart.js';
+import { buildChart, buildBarChart } from './chart.js';
 import { renderDashboard } from './dashboard.js';
 import { renderConnections } from './connections.js';
 import { renderNews } from './news.js';
@@ -109,7 +109,7 @@ function renderLineChart(block, context) {
     return card;
   }
 
-  const chart = buildChart(series, block.unit);
+  const chart = (block.type === 'bar_chart' ? buildBarChart : buildChart)(series, block.unit);
   card.append(chart.figure, chart.table);
   const ids = [...new Set(series.map((item) => item.evidence_id).filter(Boolean))];
   appendEvidenceButtons(card, context, ids);
@@ -527,6 +527,7 @@ const BLOCK_RENDERERS = {
   text: renderTextBlock,
   metric_grid: renderMetricGrid,
   line_chart: renderLineChart,
+  bar_chart: renderLineChart,
   finding_list: renderFindingList,
   comparison_table: renderComparisonTable,
   company_shortlist: renderCompanyShortlist,

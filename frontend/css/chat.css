@@ -1383,3 +1383,23 @@ body.landing-mode .chat-nav {
 /* White backing preserves both original logo colors on the red landing. */
 .landing-mode .aleph-brand { padding: 8px 12px; border-radius: 12px; background: #fff; }
 .assistant-author .aleph-logo { width: 76px; height: auto; }
+
+/* Tables in Master prose share the verified chart table typography. */
+.prose-table-wrap { overflow-x: auto; margin: 20px 0; border: 1px solid #e6e6e6; border-radius: 12px; }
+.prose-table { margin: 0; font-size: 14px; background: #fff; font-variant-numeric: tabular-nums; }
+.prose-table th { background: #f6f7f9; font-weight: 600; white-space: nowrap; }
+.prose-table td { min-width: 110px; vertical-align: top; }
+.prose-table tr:last-child td { border-bottom: 0; }
+.prose-table-wrap:focus-visible { outline: 2px solid #ef3124; outline-offset: 3px; }
+
+/* Compact desktop charts keep the explanation as the main content. */
+@media (min-width: 821px) {
+  .chat-chart-block { max-width: 720px; padding: 12px 16px; }
+  .chat-chart-block h3 { font-size: 15px; }
+  .chat-chart-block .rich-block-heading p { margin-top: 4px; }
+  .chat-chart-block .chat-chart { margin-top: 10px; }
+  .chat-chart-block .chat-chart-legend { margin-top: 4px; }
+  .chat-chart-block .chart-data-details { margin-top: 10px; }
+  .chat-chart-block .chart-data-details summary { min-height: 30px; }
+  .chat-chart-block .block-evidence-links { margin-top: 4px; }
+}

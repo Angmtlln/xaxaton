@@ -1,7 +1,7 @@
 """Harness contract plus one canonical methodology for Master answer calls."""
 from pathlib import Path
 
-MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.11-eval-boundaries"
+MASTER_PROMPT_VERSION = "master-risk-playbook-0.3.12-chat-charts"
 PLAYBOOK_PATH = Path(__file__).with_name("RISK_PLAYBOOK.md")
 # Fail visibly at startup if a build omitted the methodology.
 MASTER_SYNTHESIS_INSTRUCTIONS = PLAYBOOK_PATH.read_text(encoding="utf-8").strip()
@@ -104,7 +104,15 @@ risk_profile не нужен. Банковский LOW/ЗСК GREEN остают
 
 Финальный ответ — только JSON по переданной схеме.
 message — готовый естественный ответ. artifact — none по умолчанию; metrics или
-chart выбирай только для полезной backend-визуализации. В comparison таблица
+chart выбирай для линейного графика выручки и прибыли (fin.series), court_chart —
+для горизонтальной диаграммы количества дел по годам: истец и ответчик (court.series).
+При просьбе построить такой график выбирай соответствующий artifact, в том числе
+из verified_context без повторного чтения. При вопросах о динамике предлагай график,
+если он помогает ответу. Если судебного ряда нет, прочитай get_legal_data.
+Не утверждай, что интерфейс не умеет строить графики. Не придумывай ряды:
+backend строит график и таблицу значений. Один год — отдельные точки, пропуски
+не равны нулю. Для иных таблиц в message используй Markdown с разделителем колонок.
+ В comparison таблица
 добавляется backend автоматически, artifact=none. При первичном сравнении
 message начинай с одного короткого предложения с **жирным ключевым выводом**:
 кто выглядит предпочтительнее по цели пользователя или почему лидера нет.
