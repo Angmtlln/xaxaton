@@ -1403,3 +1403,25 @@ body.landing-mode .chat-nav {
   .chat-chart-block .chart-data-details summary { min-height: 30px; }
   .chat-chart-block .block-evidence-links { margin-top: 4px; }
 }
+
+/* Compact analysis and static metric explanations. */
+.data-attribution { color: #75757d; font-size: 12px; margin: 16px 0; }
+.measure-help { display: inline-block; margin-left: 6px; vertical-align: middle; }
+.measure-help-popup { display: none; position: absolute; left: 12px; top: 100%; width: 270px; padding: 14px 16px; border: 1px solid #e4e4e8; border-radius: 12px; background: #fff; color: #35353c; box-shadow: 0 8px 24px #20203018; font-size: 13px; font-weight: 400; line-height: 1.5; white-space: normal; z-index: 20; }
+.comparison-measure:has(.measure-help:hover), .comparison-measure:has(.measure-help:focus-within), .comparison-measure:has(.measure-help.is-open) { z-index: 25; }
+.measure-help:hover .measure-help-popup, .measure-help:focus-within .measure-help-popup, .measure-help.is-open .measure-help-popup { display: block; }
+.connection-panel { max-width: 820px; padding: 16px; }
+.connection-panel > h3 { margin: 0 0 12px; font-size: 16px; }
+.connection-canvas { background: #fafafb; border-color: #ececf0; }
+.connection-canvas svg { min-height: 0; }
+.connection-toolbar { margin: 0 0 8px; }
+.connection-toolbar .connection-control { min-height: 32px; padding: 4px 10px; font-size: 12px; }
+.connection-node.is-selected rect { stroke: #e34b52; stroke-width: 2; }
+.connection-detail { margin-top: 12px; padding: 14px 18px; }
+.connection-detail[hidden] { display: none; }
+.connection-detail p { margin: 6px 0; }
+.connection-detail .connection-control { margin: 8px 8px 0 0; min-height: 34px; font-size: 13px; }
+.connection-reasons { display: flex; flex-wrap: wrap; gap: 6px 20px; padding-left: 18px; margin: 12px 0; font-size: 13px; }
+.comparison-conclusion h2, .comparison-conclusion h3 { margin-top: 20px; font-size: 17px; }
+.comparison-conclusion h3:first-child { margin-top: 0; }
+@media print { .measure-help { display: none; } }

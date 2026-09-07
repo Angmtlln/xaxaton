@@ -13,7 +13,7 @@ from .models import (AssistantMetadata, AssistantResponse, BarChartBlock, ChartP
                      MetricGridBlock, MetricItem, ShortlistRow, SuggestedAction,
                      ToolResult)
 from .prompt import MASTER_PROMPT_VERSION
-from .synthesis import normalized_tool_context, verified_evidence
+from .synthesis import normalized_tool_context, verified_evidence, requested_chart
 from .comparison import ROW_SPECS, measure_key
 from .shortlist import money
 from .targeted_models import ComparisonData, ShortlistData, TargetedData
@@ -131,6 +131,9 @@ def tool_result_to_assistant(
     message = master_answer.message if master_answer is not None else _fallback_message(context, fallback_request)
     artifact = master_answer.artifact if master_answer is not None else "none"
 
+    if context.get("domain") not in {"comparison", "shortlist"}:
+        artifact = requested_chart(fallback_request or "") or artifact
+
     blocks = []
     if not contextual and data is not None:
         policy = None if isinstance(data, ShortlistData) else _policy_block(data, evidence_by_id)
@@ -159,11 +162,9 @@ def tool_result_to_assistant(
 
     actions = next_actions(master_answer, context, contextual=contextual)
     connections = context.get("connections") or {}
-    if full and not contextual and connections.get("total_edges", 0) > 2:
-        # Guaranteed product affordance, independent of model button selection.
-        actions = [SuggestedAction(label="Построить граф связей", prompt="Построй граф связей"),
-                   *[a for a in actions if "граф" not in a.label.casefold()]][:4]
-        message += "\n\nМогу показать найденные связи на графе — нажмите «Построить граф связей»."
+    if full and not contextual and connections.get("edges"):
+        from .models import CompanyConnections, ConnectionGraphBlock
+        blocks.append(ConnectionGraphBlock(graph=CompanyConnections.model_validate(connections)))
     if full and connections.get("state") == "unavailable":
         message += "\n\n" + connections["note"]
     if full and master_answer is None and connections.get("nodes"):

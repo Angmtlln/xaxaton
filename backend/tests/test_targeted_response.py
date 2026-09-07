@@ -142,3 +142,25 @@ def test_missing_chart_is_explicit_empty_state(result):
     response = render(result, MasterAnswer(message="Судебных рядов нет.", artifact="court_chart"))
     assert response.blocks[0].state == "no_data"
     assert not response.blocks[0].series
+
+@pytest.mark.parametrize('contextual', [False, True])
+def test_explicit_chart_request_overrides_model_metrics(result, contextual):
+    response = tool_result_to_assistant(
+        None if contextual else result, trusted_context=normalized_tool_context(result),
+        master_answer=MasterAnswer(message='Динамика.', artifact='metrics'),
+        agent_run_id='chart-command', routing='model', model='fake', started=time.perf_counter(),
+        contextual=contextual, fallback_request='Построй график выручки и прибыли',
+    )
+    assert [b.type for b in response.blocks] == ['line_chart']
+    assert response.blocks[0].series[0].points[0].value == 100
+    assert response.leading_artifact is None
+
+
+def test_chart_negation_does_not_force_artifact(result):
+    response = tool_result_to_assistant(
+        result, trusted_context=normalized_tool_context(result),
+        master_answer=MasterAnswer(message='Краткий ответ.', artifact='none'),
+        agent_run_id='no-chart', routing='model', model='fake', started=time.perf_counter(),
+        fallback_request='Не строй график выручки, просто объясни',
+    )
+    assert not response.blocks

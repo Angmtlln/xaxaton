@@ -212,8 +212,8 @@ def render_selection(data, answer, *, contextual=False):
         return "По указанным условиям в загруженной базе нет компаний. Фильтры не ослаблялись.", blocks, evidence
     text = answer.message if answer else "Аналитический ответ недоступен. Сохранены полученные данные и предварительные оценки."
     if not contextual:
-        header = "Условия: " + "; ".join(describe(data.arguments.filters))
-        header += f". Найдено: {data.total}; проанализировано: {len(data.reviews)}."
+        header = "**Условия подбора:** " + "; ".join(describe(data.arguments.filters))
+        header += f".\n\nРассмотрено **{len(data.reviews)} из {data.total}** компаний."
         text = header + "\n\n" + text
         if data.state != "complete":
             text = "**Подбор не завершён. Лучшие среди всей выборки не определены.**\n\n" + text
@@ -226,7 +226,7 @@ def render_selection(data, answer, *, contextual=False):
             p, r = profiles[inn], reviews.get(inn)
             if r:
                 name = p.company.company.short_name or p.company.company.full_name or inn
-                text += f"\n\n**{name} · ИНН {inn}**\n{r.summary}\nОграничения: {r.limitations}"
+                text += f"\n\n### {name}\n\nИНН {inn}\n\n{r.summary}\n\n**Что уточнить:** {r.limitations}"
         if data.comparison:
             comparison = ComparisonData.model_validate(data.comparison.data)
             # The Master may change the order, but all columns remain backend-built.
@@ -292,7 +292,7 @@ async def run_selection_turn(runtime, message, cid, run_id, started, deadline, b
             # There is nothing to reorder with zero/one finalist. Ask only for
             # prose, so an excluded candidate cannot reappear in an order field.
             answer_schema = SelectionNarrative if len(data.finalists) < 2 else SelectionAnswer
-            answer = await budget.ask(ANALYSIS_RULES + "\nТы Master. Дай осторожную рекомендацию по глубокому сравнению под задачу, объясни компромиссы. При selection_state=partial не объявляй лучших. При selection_state=complete проход завершён: неполнота отдельных источников сравнения не означает сбой отбора, обозначь конкретные ограничения рекомендации. Для поставщика оценивай исполнение поставок, для покупателя — оплату. Если схема содержит order, оно может только переставить переданных финалистов, без новых ИНН. Если в схеме только message, верни только message. При пустом finalists объясни, почему никто не рекомендован; новых финалистов не выбирай. Ответ — до трёх кратких абзацев. Не называй пользователю поля JSON, verified_profiles, order или partial. Для объяснения ответь только на вопрос пользователя без повторения отчёта. Не пересказывай все мини-сводки — они будут показаны отдельно. Причины отсева проверяй по other_verified_candidates; интерпретации модели не являются источником фактов.",
+            answer = await budget.ask(ANALYSIS_RULES + "\nТы Master. Дай осторожную рекомендацию по глубокому сравнению под задачу, объясни компромиссы. При selection_state=partial не объявляй лучших. При selection_state=complete проход завершён: неполнота отдельных источников сравнения не означает сбой отбора, обозначь конкретные ограничения рекомендации. Для поставщика оценивай исполнение поставок, для покупателя — оплату. Если схема содержит order, оно может только переставить переданных финалистов, без новых ИНН. Если в схеме только message, верни только message. При пустом finalists объясни, почему никто не рекомендован; новых финалистов не выбирай. Оформи ответ Markdown: заголовки «Рекомендация», «Компромиссы», «До договора», под каждым 1–2 коротких предложения или пункта списка. Всего до 180 слов. Выдели названия финалистов жирным. Не перечисляй финансовые суммы: они есть в таблице. Банковские статусы называй по-русски, без LOW/GREEN и других кодов. Не называй пользователю поля JSON, verified_profiles, order или partial. Для объяснения ответь только на вопрос пользователя без повторения отчёта. Не пересказывай все мини-сводки — они будут показаны отдельно. Причины отсева проверяй по other_verified_candidates; интерпретации модели не являются источником фактов.",
                                      {"user_message": message, **context}, answer_schema)
             if isinstance(answer, SelectionNarrative) and not isinstance(answer, SelectionAnswer):
                 answer = SelectionAnswer(message=answer.message)

@@ -383,6 +383,19 @@ class MasterAgentRuntime:
                 if not switching_company and is_simple_rewrite(message):
                     target = None
 
+        from .synthesis import requested_chart
+        chart_request = requested_chart(message)
+        if chart_request and reason is None and not comparison_request and last_topic not in {"comparison", "shortlist"}:
+            chart_tool = "get_legal_data" if chart_request == "court_chart" else "get_financial_data"
+            chart_topic = "legal" if chart_request == "court_chart" else "finance"
+            chart_context = None if switching_company or requests_refresh(message) else select_trusted_context(trusted_store, chart_topic)
+            series_id = "court.series" if chart_request == "court_chart" else "fin.series"
+            if chart_context and any(row.get("id") == series_id for row in chart_context.get("series", [])):
+                target, selected_context, preselected_tool = None, chart_context, False
+                turn_last_topic = chart_topic
+            elif inn:
+                target, selected_context, preselected_tool = chart_tool, None, True
+
         graph_context = None
         if re.search(r"\bграф\w*\s+связ|\bсхем\w*\s+связ", message, re.I) and not comparison_request:
             if reason is None and not switching_company and not requests_refresh(message):

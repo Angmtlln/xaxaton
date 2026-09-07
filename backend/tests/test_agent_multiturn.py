@@ -317,3 +317,26 @@ async def test_second_model_policy_has_answer_schema_and_normalized_context(monk
     assert '"domain":"finance"' not in system
     assert _verified_context(model._messages[1])['domain'] == 'finance'
     assert '"findings"' not in system
+
+@pytest.mark.asyncio
+async def test_explicit_financial_chart_reuses_trusted_series(monkeypatch):
+    from app.agent.finance import build_financial_data
+    runtime = _runtime(None)
+    data = build_financial_data({'document': {'report': {'finReports': [
+        {'common': {'year': 2025, 'proceeds': 100, 'profit': 20}},
+    ]}}}, '6165169320')
+    result = ToolResult(status='partial', data=data.model_dump(mode='json'),
+        evidence=[_evidence_from_fact(f) for f in data.facts.values()],
+        metadata=ToolResultMetadata(tool='get_financial_data', latency_ms=0))
+    calls = []
+    async def execute(name, args, context):
+        calls.append(name)
+        return result
+    monkeypatch.setattr(runtime.registry, 'execute', execute)
+    first = await runtime.run('Какая выручка у 6165169320?')
+    chart = await runtime.run('Построй график выручки и прибыли', first.conversation_id)
+    assert calls == ['get_financial_data']
+    assert chart.metadata.tool_calls == 0
+    assert chart.leading_artifact is None
+    assert [block.type for block in chart.blocks] == ['line_chart']
+    assert chart.blocks[0].series[0].points[0].value == 100

@@ -239,3 +239,17 @@ def allowed_artifacts(result: ToolResult | None, *, contextual: bool, context: d
     if result.metadata.tool in {"full_company_check", "get_financial_data"}:
         return ("none", "metrics", "chart")
     return ("none", "metrics")
+
+
+def requested_chart(message: str) -> str | None:
+    """Explicit presentation command only; never classify the agent's prose."""
+    import re
+    if not re.match(r"^\s*(?:построй|покажи|нарисуй|сделай)\b", message, re.I):
+        return None
+    if not re.search(r"\bграфик\w*|\bдиаграмм\w*", message, re.I):
+        return None
+    if re.search(r"суд|дел\b|иск", message, re.I):
+        return "court_chart"
+    if re.search(r"выручк|прибыл", message, re.I):
+        return "chart"
+    return None

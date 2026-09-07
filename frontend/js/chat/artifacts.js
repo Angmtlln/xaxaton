@@ -31,27 +31,42 @@ function evidenceDomId(context, evidenceId) {
   return `evidence-${context.prefix}-${safe}`;
 }
 
-function evidenceButton(context, evidenceId, compact = false) {
-  const evidence = context.evidence.get(evidenceId);
-  if (!evidence) return null;
-  const button = element('button', compact ? 'evidence-jump comparison-source' : 'evidence-jump', compact ? 'ⓘ' : 'Источник');
-  if (compact) button.title = `${evidence.title || 'Источник'}: ${evidence.display_value || ''}`;
+function evidenceButton() { return null; }
+
+const MEASURE_HELP = {
+  proceeds: 'Выручка — доход от продажи товаров и услуг за год. Показывает масштаб бизнеса, но не объём свободных денег.',
+  profit: 'Прибыль — финансовый результат после расходов. Убыток означает, что расходы превысили доходы; прибыль не равна деньгам на счёте.',
+  capitals: 'Собственный капитал — разница между активами и обязательствами. Помогает оценить запас финансовой устойчивости; это не денежный остаток.',
+  accounts_payable: 'Кредиторская задолженность — обязательства перед поставщиками и другими кредиторами. Для оценки нагрузки важны сроки оплаты и доступные средства.',
+  proceeds_change_pct: 'Изменение выручки относительно предыдущего отчётного года. Показывает рост или сокращение продаж, но само по себе не объясняет причины.',
+  'court.defendant_count': 'Число дел, в которых к компании предъявлены требования. Участие в деле не означает проигрыш или признанный долг.',
+  'court.defendant_amount': 'Сумма требований к компании по доступным судебным делам. Это не обязательно сумма присуждённого или непогашенного долга.',
+  'execproc.total_count': 'Количество исполнительных производств в доступных данных, включая завершённые. Не равно количеству действующих долгов.',
+  'execproc.active_amount': 'Сумма по действующим исполнительным производствам. Помогает оценить текущую нагрузку взысканий с учётом полноты данных.',
+  'inspections.count': 'Число надзорных проверок в доступных данных. Сам факт проверки не означает нарушения; важны результаты.',
+};
+
+function measureHelp(row) {
+  const text = MEASURE_HELP[row.id];
+  if (!text) return null;
+  const wrap = element('span', 'measure-help');
+  const button = element('button', 'comparison-source', 'ⓘ');
   button.type = 'button';
-  button.setAttribute('aria-label', `Источник: ${evidence.title || evidence.fact_id || evidenceId}`);
+  button.setAttribute('aria-label', `О показателе «${row.label}»`);
+  button.setAttribute('aria-expanded', 'false');
+  const popup = element('span', 'measure-help-popup', text);
   button.addEventListener('click', () => {
-    const target = document.getElementById(evidenceDomId(context, evidenceId));
-    if (!target) return;
-    const details = target.closest('details');
-    if (details) details.open = true;
-    target.tabIndex = -1;
-    target.focus({ preventScroll: true });
-    window.requestAnimationFrame(() => {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      target.classList.add('evidence-highlight');
-      window.setTimeout(() => target.classList.remove('evidence-highlight'), 1600);
-    });
+    const open = wrap.classList.toggle('is-open');
+    button.setAttribute('aria-expanded', String(open));
   });
-  return button;
+  wrap.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { wrap.classList.remove('is-open'); button.setAttribute('aria-expanded', 'false'); }
+  });
+  wrap.addEventListener('focusout', event => {
+    if (!wrap.contains(event.relatedTarget)) { wrap.classList.remove('is-open'); button.setAttribute('aria-expanded', 'false'); }
+  });
+  wrap.append(button, popup);
+  return wrap;
 }
 
 function appendEvidenceButtons(parent, context, ids) {
@@ -375,6 +390,8 @@ function renderComparisonTable(block, context) {
         line.dataset.measure = row.id;
         const label = element('th', 'comparison-measure', row.label || 'Показатель');
         label.scope = 'row';
+        const help = measureHelp(row);
+        if (help) label.appendChild(help);
         line.appendChild(label);
         safeArray(row.cells).forEach(cell => {
           const item = element('td', `comparison-cell cell-${cell.state || 'no_data'}`);
@@ -594,9 +611,7 @@ export function buildAssistantMessage(payload, hooks = {}) {
     });
     body.appendChild(stack);
   }
-  if (context.evidence.size) body.appendChild(renderEvidenceList({
-    title: 'Источники ответа', evidence_ids: [...context.evidence.keys()],
-  }, context));
+  if (context.evidence.size) body.appendChild(element('p', 'data-attribution', 'Источник: внутренние данные Альфа-Банк'));
 
   safeArray(payload.attachments).forEach(file => {
     const expected = `/api/v1/chat/${payload.conversation_id}/exports/${file.id}`;

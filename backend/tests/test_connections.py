@@ -90,7 +90,7 @@ async def test_full_check_graph_and_neighbour_report(monkeypatch, documents):
     first = await runtime.run('Проверь контрагента ' + A)
     assert first.active_company.inn == A
     assert first.metadata.tool_calls == 1
-    assert first.suggested_actions[0].label == 'Построить граф связей'
+    assert any(block.type == 'connection_graph' for block in first.blocks)
     assert B in first.message and 'fnsBlocking' not in first.message  # readable source meaning
     graph = await runtime.run('Построй граф связей', first.conversation_id)
     assert graph.metadata.tool_calls == graph.metadata.model_calls == 0

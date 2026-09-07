@@ -5,11 +5,19 @@ export function renderConnections(block, context) {
   const graph = block.graph || {};
   const nodes = safeArray(graph.nodes);
   const edges = safeArray(graph.edges);
+  const groups = new Map();
+  edges.forEach(edge => {
+    const key = [edge.source, edge.target].sort().join(':');
+    if (!groups.has(key)) groups.set(key, { ...edge, reasons: [] });
+    groups.get(key).reasons.push(edge.label);
+  });
+  const links = [...groups.values()];
+  const height = Math.max(180, (nodes.length - 1) * 76 + 40);
   const panel = element('section', 'rich-block connection-panel');
-  panel.append(element('h3', null, block.title || 'Связи компаний'));
+  panel.append(element('h3', null, 'Связи компании'));
   const toolbar = element('div', 'connection-toolbar');
   const surface = element('div', 'connection-canvas');
-  const svg = svgElement('svg', { viewBox: '0 0 780 440', role: 'img',
+  const svg = svgElement('svg', { viewBox: `0 0 780 ${height}`, role: 'img',
     'aria-label': `Граф: ${nodes.length} компаний, ${edges.length} оснований связи` });
   const layer = svgElement('g');
   svg.append(layer);
@@ -21,54 +29,39 @@ export function renderConnections(block, context) {
   }
   function setZoom(value) {
     zoom = Math.min(2, Math.max(0.6, value));
-    layer.setAttribute('transform', `translate(${390 * (1 - zoom)} ${220 * (1 - zoom)}) scale(${zoom})`);
+    layer.setAttribute('transform', `translate(${390 * (1 - zoom)} ${height / 2 * (1 - zoom)}) scale(${zoom})`);
   }
   toolbar.append(button('−', () => setZoom(zoom - 0.2)), button('+', () => setZoom(zoom + 0.2)),
-    button('Сбросить вид', () => { setZoom(1); reset(); draw(); }),
-    element('span', null, 'Узлы можно перетаскивать'));
+    button('Сбросить вид', () => { setZoom(1); reset(); draw(); }));
   const detail = element('div', 'connection-detail');
+  detail.hidden = true;
   detail.setAttribute('aria-live', 'polite');
   const positions = new Map();
   function reset() {
     nodes.forEach((node, i) => positions.set(node.inn, i === 0
-      ? { x: 160, y: 220 } : { x: 600, y: 55 + (i - 0.5) * 330 / Math.max(1, nodes.length - 1) }));
+      ? { x: 160, y: height / 2 } : { x: 600, y: (i - 0.5) * height / Math.max(1, nodes.length - 1) }));
   }
   reset();
   function select(node) {
-    detail.replaceChildren(element('h4', null, node.name), element('p', null, `ИНН ${node.inn}`));
-    if (node.report_date) detail.append(element('p', 'muted', `Снимок: ${String(node.report_date).slice(0, 10)}`));
-    if (node.review_state !== 'root') {
-      const state = { reviewed: 'Краткий срез получен', partial: 'Краткий срез неполный', unavailable: 'Краткий обзор недоступен' };
-      detail.append(element('p', null, state[node.review_state] || 'Нет данных'));
-      safeArray(node.observations).forEach((fact) => {
-        const row = element('details', 'connection-observation');
-        const value = fact.value == null ? 'Нет данных' : typeof fact.value === 'object'
-          ? Array.isArray(fact.value) ? fact.value.map(v => typeof v === 'object' ? v.meaning || v.name || 'Сведения источника' : String(v)).join('; ') || 'Не выявлены' : 'Сведения источника'
-          : typeof fact.value === 'number' ? new Intl.NumberFormat('ru-RU').format(fact.value) : String(fact.value);
-        row.append(element('summary', null, `${fact.label}: ${value} ${fact.unit || ''}`),
-          element('small', null, `Источник: ${fact.field_ref}`));
-        detail.append(row);
-      });
-      if (safeArray(node.gaps).length) {
-        const gaps = element('details');
-        gaps.append(element('summary', null, 'Ограничения данных'));
-        node.gaps.forEach((text) => gaps.append(element('p', null, text)));
-        detail.append(gaps);
-      }
-    }
-    if (/^\d{10}(?:\d{2})?$/.test(node.inn)) {
-      detail.append(button('Отдельный отчёт', () => context.onSuggestion?.({
-        label: 'Отдельный отчёт', prompt: `Проверь контрагента ${node.inn}`, mode: 'submit',
-      })));
-    }
+    detail.hidden = false;
+    nodeElements.forEach((g, inn) => g.classList.toggle('is-selected', inn === node.inn));
+    detail.replaceChildren(element('h4', null, node.name), element('p', 'muted', `ИНН ${node.inn}`));
+    const reasons = [...new Set(edges.filter(e => e.source === node.inn || e.target === node.inn).map(e => e.label))];
+    const list = element('ul', 'connection-reasons');
+    reasons.forEach(reason => list.append(element('li', null, reason)));
+    detail.append(list);
+    if (node.report_date) detail.append(element('p', 'muted', `Данные на ${String(node.report_date).slice(0, 10).split('-').reverse().join('.')}`));
+    if (['partial', 'unavailable'].includes(node.review_state)) detail.append(element('p', 'muted', 'Данные о связанной компании неполные.'));
+    if (node.inn !== graph.root_inn && /^\d{10}(?:\d{2})?$/.test(node.inn)) detail.append(button('Проверить компанию', () => context.onSuggestion?.({ label: 'Проверить компанию', prompt: `Проверь контрагента ${node.inn}`, mode: 'submit' })));
+    detail.append(button('Скрыть', () => { detail.hidden = true; }));
   }
   const nodeElements = new Map();
-  const paths = edges.map((edge, index) => {
+  const paths = links.map((edge) => {
     const path = svgElement('path', { class: `connection-edge edge-${edge.kind}` });
-    const title = svgElement('title'); title.textContent = `${index + 1}. ${edge.label}${edge.via ? ': ' + edge.via : ''}`;
+    const title = svgElement('title'); title.textContent = [...new Set(edge.reasons)].join(' · ');
     path.append(title); layer.append(path);
     const text = svgElement('text', { class: 'connection-edge-number', 'text-anchor': 'middle' });
-    text.textContent = String(index + 1); layer.append(text);
+    text.textContent = edge.reasons.length === 1 ? edge.label : `${edge.reasons.length} оснований связи`; layer.append(text);
     return { path, text, edge };
   });
   let dragged = null;
@@ -94,7 +87,7 @@ export function renderConnections(block, context) {
       if (!dragged || dragged.inn !== node.inn) return;
       const p = point(event);
       positions.set(node.inn, { x: Math.max(110, Math.min(670, dragged.pos.x + p.x - dragged.start.x)),
-        y: Math.max(35, Math.min(405, dragged.pos.y + p.y - dragged.start.y)) });
+        y: Math.max(35, Math.min(height - 35, dragged.pos.y + p.y - dragged.start.y)) });
       draw();
     });
     ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((name) => g.addEventListener(name, () => { dragged = null; }));
@@ -105,33 +98,15 @@ export function renderConnections(block, context) {
     paths.forEach(({ path, text, edge }) => {
       const a = positions.get(edge.source), b = positions.get(edge.target);
       if (!a || !b) return;
-      const group = edges.filter(e => e.source === edge.source && e.target === edge.target);
-      const bend = (group.indexOf(edge) - (group.length - 1) / 2) * 36;
+      const bend = 0;
       const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 + bend;
       path.setAttribute('d', `M ${a.x} ${a.y} Q ${mx} ${my + bend} ${b.x} ${b.y}`);
       text.setAttribute('x', mx); text.setAttribute('y', my - 5);
     });
   }
   draw();
-  const list = element('details', 'connection-source-list');
-  list.open = true;
-  list.append(element('summary', null, `Основания связи (${edges.length})`));
-  const ol = element('ol');
-  edges.forEach(edge => {
-    const li = element('li');
-    li.append(element('span', null, `${edge.label}${edge.via ? ' · ' + edge.via : ''}`));
-    const refs = element('details');
-    refs.append(element('summary', null, `${edge.source} ↔ ${edge.target} · Источники`));
-    safeArray(edge.field_refs).forEach(ref => refs.append(element('small', null, ref)));
-    li.append(refs); ol.append(li);
-  });
-  list.append(ol);
-  const nodeList = element('div', 'connection-company-list');
-  nodes.forEach(node => nodeList.append(button(`${node.name} · ${node.inn}`, () => select(node))));
-  const note = graph.state === 'partial'
-    ? `Показано ${nodes.length - 1} из ${graph.total_companies} соседей, ${edges.length} из ${graph.total_edges} связей. ${graph.note}` : graph.note;
-  panel.append(toolbar, surface, nodeList, detail, list, element('p', 'muted', note));
-  if (graph.external_references) panel.append(element('p', 'muted', `Связанных ИНН вне датасета: ${graph.external_references}. Их карточки не проверены.`));
-  if (nodes[1]) select(nodes[1]);
+  panel.append(toolbar, surface, detail);
+  if (graph.state === 'partial') panel.append(element('p', 'muted', 'Показана только часть найденных связей.'));
+  panel.append(element('p', 'muted', 'Выберите компанию, чтобы посмотреть основания связи. Связи за пределами доступных данных могут быть не учтены.'));
   return panel;
 }
