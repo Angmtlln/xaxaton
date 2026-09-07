@@ -15,9 +15,9 @@ METRICS = {
     "proceeds": (r"выручк\w*", "выручка", "desc"),
     "profit": (r"прибыл\w*", "прибыль", "desc"),
     "claims": (r"(?:сумм\w*\s+)?иск\w*", "сумма исков к компании", "asc"),
-    "enforcement": (r"(?:(?:количеств\w*|числ\w*)\s+)?исполнительн\w*\s+производств\w*", "число исполнительных производств", "asc"),
+    "enforcement": (r"(?:(?:количеств\w*|числ\w*)\s+)?исполнительн\w*\s+производств\w*|числ\w*\s+ип\b", "число исполнительных производств", "asc"),
 }
-SELECTION = re.compile(r"\b(?:выбери|отбери|выбрать|отобрать|топ\s*\d*|лучш\w*|наибольш\w*|наименьш\w*|максимальн\w*|минимальн\w*|отсортируй)\b", re.I)
+SELECTION = re.compile(r"\b(?:выбери|отбери|выбрать|отобрать|топ\s*\d*|лучш\w*|наибольш\w*|наименьш\w*|максимальн\w*|минимальн\w*|сам\w*\s+больш\w*|отсортируй)\b", re.I)
 REFERENCE = re.compile(r"\b(?:из\s+(?:найденных|них|подборки|списка)|среди\s+(?:найденных|них)|этих\s+компаний)\b", re.I)
 
 
@@ -51,7 +51,8 @@ def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -
     split = re.search(r"(?:,?\s+и\s+|,\s*)(?=(?:выбери|отбери|отсортируй)\b)", text, re.I)
     filter_text, selection = (text[:split.start()], text[split.end():]) if split else ("", text)
     # Also allow 'Найди ... с наибольшей прибылью' as one request.
-    if not filter_text and re.match(r"(?:найди|покажи|подбери)\s+", text, re.I):
+    if (not filter_text and re.match(r"(?:найди|покажи|подбери)\s+", text, re.I)
+            and not re.search(r"\bсначала\b", text, re.I)):
         split = re.search(r"\s+(?:с\s+)?(?=(?:наибольш|наименьш|максимальн|минимальн|лучш))", text, re.I)
         if split:
             filter_text, selection = text[:split.start()], text[split.end():]
@@ -104,7 +105,7 @@ def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -
         direction = METRICS[key][2]
         if re.search(r"минимальн|наименьш|по\s+возрастанию", qualifier, re.I) or re.match(r"\s+по\s+возрастанию", suffix, re.I):
             direction = "asc"
-        if re.search(r"максимальн|наибольш|по\s+убыванию", qualifier, re.I) or re.match(r"\s+по\s+убыванию", suffix, re.I):
+        if re.search(r"максимальн|наибольш|сам\w*\s+больш|по\s+убыванию", qualifier, re.I) or re.match(r"\s+по\s+убыванию", suffix, re.I):
             direction = "desc"
         ranking.append({"metric": key, "order": direction})
         trailing = re.match(r"\s+по\s+(?:возрастанию|убыванию)", suffix, re.I)
@@ -115,7 +116,7 @@ def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -
     for spec in METRICS.values():
         remainder = re.sub(spec[0], " ", remainder, flags=re.I)
     remainder = REFERENCE.sub(" ", remainder)
-    remainder = re.sub(r"\b(?:выбери|отбери|выбрать|отобрать|отсортируй|топ|лучш\w*|перв\w*|компани\w*|контрагент\w*|по|к|с|и|затем|потом|сначала|приоритет|главное|важнее|наибольш\w*|наименьш\w*|максимальн\w*|минимальн\w*|убыванию|возрастанию)\b|\d+|[,;:—–-]", " ", remainder, flags=re.I)
+    remainder = re.sub(r"\b(?:найди|покажи|подбери|выбери|отбери|выбрать|отобрать|отсортируй|топ|лучш\w*|перв\w*|компани\w*|контрагент\w*|по|к|с|и|затем|потом|сначала|приоритет|главное|важнее|при\s+равенстве|наибольш\w*|наименьш\w*|максимальн\w*|минимальн\w*|сам\w*|больш\w*|убыванию|возрастанию)\b|\d+|[,;:—–-]", " ", remainder, flags=re.I)
     if remainder.strip():
         return SelectionTurn(clarification="Не удалось однозначно разобрать выбор. Укажите показатель и направление, например «Из найденных выбери 5 с наибольшей прибылью». Дополнительные условия задайте отдельным поиском.")
     number = re.search(r"\b(?:выбери|отбери|выбрать|отобрать|топ|первые)\s+(-?\d+)\b", selection, re.I)
@@ -125,7 +126,7 @@ def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -
         args = FindCompaniesArgs(**base, ranking=ranking, limit=limit).model_dump(exclude_none=True)
     except ValueError:
         return SelectionTurn(clarification="Укажите от 1 до 25 компаний и непротиворечивые условия выбора.")
-    explicit_order = bool(re.search(r"\bсначала\b.+\b(?:затем|потом)\b", selection, re.I))
+    explicit_order = bool(re.search(r"\bсначала\b.+\b(?:затем|потом|при\s+равенстве)\b", selection, re.I))
     if len(ranking) > 1 and not explicit_order:
         proposal = {"arguments": args, "source": "shortlist" if (reference or (shortlist and not filter_text)) else "query"}
         return SelectionTurn(pending=proposal, clarification=(

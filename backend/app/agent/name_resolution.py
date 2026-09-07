@@ -127,6 +127,18 @@ async def resolve_name(runtime, message, previous, model, run_id, started, deadl
 
     if is_shortlist_request(message):
         return result
+    if re.search(r"\bкак\s+ты\s+можешь\s+помочь\b|\bчто\s+ты\s+умеешь\b", message, re.I):
+        return result
+    if previous.get("active_company") and re.match(
+        r"\s*(?:но\b|тогда\b|значит\b|а\s+(?:это|если|сколько|почему)\b|связь\b)",
+        message, re.I,
+    ):
+        return result
+    if previous.get("active_company") and re.search(
+        r"\b(?:граф|схем)\w*\s+связ|(?:отч[её]т|анализ).*?(?:связанн|соседн)",
+        message, re.I,
+    ):
+        return result
     if model is None and re.fullmatch(r"\s*(?:а что у них с (?:финансами|судами)|покажи (?:финансы|суды)|привет|здравствуйте)[?!.\s]*", message, re.I):
         return result
 

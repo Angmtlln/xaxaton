@@ -222,6 +222,36 @@ async def test_contextual_question_with_resolution_does_not_read_again(searches,
     assert calls == ['get_financial_data'] and searches['calls'] == []
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize('message', [
+    'Но суммы похожи. Значит да?',
+    'Тогда сколько мы точно знаем?',
+    'Связь означает общий риск?',
+])
+async def test_contextual_continuations_skip_name_resolution(message, searches, monkeypatch):
+    model = _model(AIMessage(content='', tool_calls=[_tool_call('get_legal_data')]), _answer(),
+                   _answer('Ответ из проверенного контекста.'))
+    runtime = _runtime(model, name_resolution=True, grounding_debug=False)
+    async def execute(name, args, context): return targeted_result(domain='legal')
+    monkeypatch.setattr(runtime.registry, 'execute', execute)
+    first = await runtime.run(f'Какие суды у {INN}?')
+    follow = await runtime.run(message, first.conversation_id)
+    assert follow.metadata.tool_calls == 0
+    assert len(searches['calls']) == 0
+    assert follow.message == 'Ответ из проверенного контекста.'
+
+
+@pytest.mark.asyncio
+async def test_capability_question_skips_name_resolution(searches):
+    response = await _runtime(_model(_answer('Могу подобрать поставщиков.')),
+                              name_resolution=True, grounding_debug=False).run(
+        'Объясни, как ты можешь помочь выбрать поставщика.'
+    )
+    assert response.metadata.error_code is None
+    assert response.message == 'Могу подобрать поставщиков.'
+    assert searches['calls'] == []
+
+
 @pytest.mark.parametrize('endpoint', ['/api/v1/chat/messages', '/api/v1/chat/messages/stream'])
 def test_http_company_choice_resumes_original_question(endpoint, api_client, searches, monkeypatch):
     searches['found'] = {'rows': [row(match='partial')], 'total': 1, 'exact_total': 0}

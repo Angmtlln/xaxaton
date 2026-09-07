@@ -29,7 +29,9 @@ async def test_playbook_once_in_synthesis_followup_and_comparison(documents, mon
     assert second.metadata.tool_calls == 0
     for messages in model._messages:
         system = messages[0].content
-        expected = int('verified_context (проверенные' in system)
+        expected = int(any(
+            'verified_context (проверенные' in message.content for message in messages
+        ))
         assert system.count(MASTER_SYNTHESIS_INSTRUCTIONS) == expected
         assert system.count('# RISK_PLAYBOOK — ALEPH') == expected
         assert 'CODEX_DATA_AUDIT.md' not in system

@@ -21,7 +21,7 @@ from .response import _comparison_table
 from .selection import ANALYSIS_RULES, SelectionSession, decision_profile
 from .selection_models import (SelectCounterpartiesArgs, SelectionAnswer, SelectionNarrative, SelectionData,
                                SelectionRoute, filter_values)
-from .shortlist import activity_arguments, describe
+from .shortlist import activity_arguments, describe, direct_shortlist_arguments
 from .synthesis import json_payload, normalized_tool_context, verified_evidence
 from .targeted_models import ComparisonData
 
@@ -31,6 +31,10 @@ SELECTION_PROMPT_VERSION = MASTER_PROMPT_VERSION + "/selection-v2"
 
 def handles_selection(message, previous):
     """Intent boundary only; no classification of analytical prose."""
+    # Два явно заданных ИНН остаются сравнением, даже если пользователь просит
+    # выбрать покупателя/поставщика между ними.
+    if len(re.findall(r"(?<![0-9])[0-9]{10}(?:[0-9]{2})?(?![0-9])", message)) >= 2:
+        return False
     if re.search(r"наибольш|наименьш|максимальн|минимальн|по\s+(?:прибыли|выручке|сумме исков|количеству исполнительных)", message, re.I) and not re.search(r"поставщик|покупател|партн[её]р|отсроч|аванс|подходящ|над[её]ж", message, re.I):
         return False
     if previous.get("shortlist_context") and re.search(r"из\s+найденных|среди\s+них", message, re.I) and re.search(r"лучш|подходящ", message, re.I):
@@ -82,6 +86,39 @@ goal=«поставщик без аванса», preferences=«устойчив�
 Ранжирование по числам здесь не применяется: ranking оставь пустым.
 Предыдущие сообщения assistant не являются фактическими данными или условиями.
 """
+
+
+def explicit_selection_route(message: str):
+    """Однозначная роль и поддерживаемые фильтры не требуют LLM-guard."""
+    role = None
+    if re.search(r"\bпоставщик\w*\b|\bдля\s+(?:закуп\w*|постав\w*)", message, re.I):
+        role = "поставщик"
+    elif re.search(r"\bпокупател\w*\b|\bдля\s+продаж\w*", message, re.I):
+        role = "покупатель"
+    elif re.search(r"\bпартн[её]р\w*\b", message, re.I):
+        role = "партнёр"
+    if role is None:
+        return None
+    parsed = direct_shortlist_arguments(message)
+    if parsed is None:
+        return None
+    finalists = parsed.pop("limit", 5)
+    goal = role
+    if re.search(r"без\s+аванса", message, re.I):
+        goal += " без аванса"
+    elif re.search(r"(?:предоплат|аванс)", message, re.I):
+        goal += " с авансом"
+    if re.search(r"отсроч", message, re.I):
+        goal += " с отсрочкой"
+    preferences = []
+    if re.search(r"юридическ\w+\s+нагруз", message, re.I):
+        preferences.append("минимальная юридическая нагрузка")
+    if re.search(r"стабильн\w+\s+постав", message, re.I):
+        preferences.append("стабильность поставок")
+    return SelectionRoute(
+        action="select", filters=FindCompaniesArgs.model_validate(parsed),
+        goal=goal, preferences="; ".join(preferences), finalists=finalists,
+    )
 
 
 class SelectionModelBudget:
@@ -212,7 +249,7 @@ async def run_selection_turn(runtime, message, cid, run_id, started, deadline, b
     data, answer, question, contextual, failed = saved, None, "", False, False
     session = None
     try:
-        route = await budget.ask(ROUTING, {
+        route = explicit_selection_route(message) or await budget.ask(ROUTING, {
             "message": message, "previous_user_conditions": prior_args,
             "previous_filters": previous_filters,
             "recent_user_messages": [m.content for m in previous.get("messages", []) if isinstance(m, HumanMessage)][-4:],

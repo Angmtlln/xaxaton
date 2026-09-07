@@ -77,6 +77,19 @@ async def test_comparison_returns_one_result_for_every_company(snapshots):
 
 
 @pytest.mark.asyncio
+async def test_comparison_fallback_keeps_both_criteria_and_deal_role(snapshots):
+    response = await _runtime(None).run(
+        "Сравни 6165169320 и 0278949271: кого выбрать поставщиком без аванса?"
+    )
+
+    assert "ООО Богатая" in response.message
+    assert "ООО Иная" in response.message
+    assert "Выручка" in response.message
+    assert "поставщика без аванса" in response.message
+    assert "метка ограничения" in response.message
+
+
+@pytest.mark.asyncio
 async def test_fact_ids_stay_separable_per_company(snapshots):
     result = await _compare([RICH, OTHER])
     data = ComparisonData.model_validate(result.data)

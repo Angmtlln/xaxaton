@@ -217,7 +217,10 @@ async def test_actual_openrouter_request_enables_search_only_for_full_check(monk
             assert "plugins" not in bodies[-1]
             assert follow.external_news == [] and follow.external_news_status is None
     assert result.metadata.tool_calls == 1
-    assert len(bodies) == (3 if question.startswith("Можешь") else 1 if question.startswith("Сравни") else 2)
+    assert len(bodies) == (
+        3 if question.startswith("Можешь") else
+        1 if question.startswith(("Сравни", "Финансы", "Суды")) else 2
+    )
     assert [i for i, body in enumerate(bodies) if body.get("plugins")] == (
         [1 if question.startswith("Можешь") else 0] if search else []
     )

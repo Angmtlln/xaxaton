@@ -199,9 +199,19 @@ class MasterAgentRuntime:
         if handles_selection(message, previous) and not company_selection and not previous.get("pending_company_search"):
             return await run_selection_turn(self, message, cid, run_id, started, deadline,
                                             binding, previous, state_agent, config, execution)
+        # Явный числовой ranking разбирается backend-ом до модельного поиска
+        # названия. Иначе фразы «самая большая выручка» и «число ИП» иногда
+        # ошибочно воспринимаются как названия компаний.
+        pre_name_selection = selection_turn(
+            message, previous.get("shortlist_context"), previous.get("pending_selection")
+        )
+        if pre_name_selection is not None and not (
+            pre_name_selection.arguments or pre_name_selection.pending
+        ):
+            pre_name_selection = None
         original_message = message
         name_result = None
-        if self.name_resolution or company_selection:
+        if (self.name_resolution or company_selection) and pre_name_selection is None:
             from .name_resolution import resolve_name
             name_result = await resolve_name(self, message, previous, model, run_id, started,
                                              deadline, company_selection)
@@ -221,7 +231,7 @@ class MasterAgentRuntime:
         trusted_store = previous.get("trusted_context")
         shortlist_store = previous.get("shortlist_context")
         pending_selection = previous.get("pending_selection")
-        selection = selection_turn(message, shortlist_store, pending_selection)
+        selection = pre_name_selection or selection_turn(message, shortlist_store, pending_selection)
         selection_args = selection.arguments if selection else None
         selection_question = selection.clarification if selection else None
         if selection:
@@ -347,7 +357,7 @@ class MasterAgentRuntime:
             # Free single-company questions are interpreted by the existing Master
             # call. Keyword hints must not force a tool, including under negation.
             if (model is not None and reason is None and inn and not related_target
-                    and not is_direct_request(message, "full_company_check")
+                    and not is_direct_request(message, target)
                     and not (identifier_reply and pending_target is None)):
                 selected_context = None if switching_company else select_trusted_context(trusted_store, last_topic)
                 if selected_context is not None:
@@ -695,6 +705,7 @@ class MasterAgentRuntime:
             contextual=contextual,
             grounding_status=grounding_status,
             repair_attempts=repairs,
+            fallback_request=message,
         )
         errors = [item for item in execution.observations() if item.status == "error"]
         # Keep the primary artifact's references first, then the other verified
@@ -1042,6 +1053,24 @@ def is_direct_request(message: str, target: Optional[str]) -> bool:
             r"сравни(?:те)?\s+(?:компании\s+|контрагентов\s+)?[0-9]{10,12}"
             r"(?:\s*(?:,|и)\s*[0-9]{10,12}){1,4}", text
         ))
+    if target in {"get_financial_data", "get_legal_data"}:
+        # Явный ИНН и однозначный предмет вопроса уже полностью задают bounded
+        # read-only capability. Модель нужна для объяснения результата, а не для
+        # повторного решения, читать ли названные пользователем данные.
+        if not any(is_valid_inn(value) for value in inn_candidates(message)):
+            return False
+        if target == "get_legal_data" and detail_arguments(message):
+            return True
+        topic = FINANCE_TOPIC_RE if target == "get_financial_data" else LEGAL_TOPIC_RE
+        if not topic.search(message):
+            return False
+        # Сохраняем семантический роутер для явного запрета на чтение домена.
+        return not re.search(
+            r"\bне\s+(?:надо|нужно|следует|хочу|проверяй\w*|смотри\w*|анализируй\w*)"
+            r"[^.!?]{0,40}" + topic.pattern,
+            message,
+            re.I,
+        )
     return False
 
 
@@ -1058,6 +1087,9 @@ def is_default_projection(context: dict) -> bool:
 def detail_arguments(message: str) -> dict:
     """Named domain/page routing only; never a verifier of model prose."""
     result = {}
+    if re.search(r"лиценз", message, re.I) and re.search(r"закуп|тендер|госконтракт", message, re.I):
+        result["section"] = "profile"
+        return result
     for pattern, section in ((r"лиценз", "licenses"), (r"закуп|тендер", "procurements"),
                              (r"надзор|инспекц", "inspections"), (r"оквэд|вид.*деятельност", "activity"),
                              (r"положительн.*(?:метк|сведен)|маркер", "signals"),

@@ -3,7 +3,7 @@ import pytest
 
 from app.agent.models import FindCompaniesArgs
 from app.agent.runtime import is_shortlist_request, requested_tool
-from app.agent.shortlist import describe, execute_find_companies, money
+from app.agent.shortlist import describe, direct_shortlist_arguments, execute_find_companies, money
 from app.agent.targeted_models import ShortlistData
 from app.agent.tools import ToolContext
 from app.llm.groq_client import GroqClient
@@ -112,6 +112,26 @@ def test_money_keeps_missing_values_visible():
 
 def test_describe_returns_nothing_without_criteria():
     assert describe(FindCompaniesArgs(min_proceeds=0)) == ["выручка от 0 ₽"]
+
+
+@pytest.mark.parametrize("message, expected", [
+    ("Найди компании с ОКВЭД 46 по основной деятельности.",
+     {"okved_prefix": "46", "activity_scope": "main"}),
+    ("Найди компании с отрицательной прибылью.", {"max_profit": -0.000001}),
+    ("Найди компании с банковским риском LOW.", {"risk_level": "LOW"}),
+    ("Найди компании со светофором ЗСК GREEN.", {"zsk_risk_level": "GREEN"}),
+    ("Найди компании с прибылью от 0 до 1000000 рублей.",
+     {"min_profit": 0, "max_profit": 1_000_000}),
+    ("Найди компании с выручкой от 1 млрд и не более двух ИП.",
+     {"min_proceeds": 1_000_000_000, "max_enforcement_count": 2}),
+    ("Найди компании с ОКВЭД 46, прибылью от 0 и банковским LOW; покажи число совпадений и 5 строк.",
+     {"okved_prefix": "46", "min_profit": 0, "risk_level": "LOW"}),
+])
+def test_explicit_supported_filters_are_backend_parsed(message, expected):
+    arguments = direct_shortlist_arguments(message)
+    assert arguments is not None
+    for key, value in expected.items():
+        assert arguments[key] == value
 
 
 @pytest.mark.parametrize('args', [

@@ -6,7 +6,7 @@ from langchain_core.messages import AIMessage
 from app.agent.selection import SelectionSession, compact_profile, execute_selection
 from app.agent.selection_models import (CandidateDecision, CandidateReview, ReviewBatch,
     SelectCounterpartiesArgs, SelectionData, SelectionDecision)
-from app.agent.selection_runtime import handles_selection
+from app.agent.selection_runtime import explicit_selection_route, handles_selection
 from app.agent.tools import ToolContext
 from app.llm.groq_client import GroqClient
 from test_agent_runtime import _model, _runtime, _settings
@@ -16,6 +16,30 @@ from test_comparison import _snapshot, _fin_row, RICH
 def inn_for(i):
     digits = [int(c) for c in f'77000{i:04d}']
     return ''.join(map(str, digits)) + str(sum(a*b for a,b in zip(digits,[2,4,10,3,5,9,4,6,8])) % 11 % 10)
+
+
+@pytest.mark.parametrize("message, goal, finalists, filters", [
+    ("Подбери 3 поставщиков с выручкой от 999999999999999 рублей.",
+     "поставщик", 3, {"min_proceeds": 999999999999999}),
+    ("Подбери 2 поставщиков с выручкой от 1 млрд, главное минимальная юридическая нагрузка.",
+     "поставщик", 2, {"min_proceeds": 1_000_000_000}),
+    ("Подбери 2 торговые компании с выручкой от 1 млрд для закупки без аванса, важны стабильные поставки.",
+     "поставщик без аванса", 2, {"activity_query": "торговля", "min_proceeds": 1_000_000_000}),
+    ("Подбери 2 торговых поставщиков с выручкой от 1 млрд без аванса, укажи причины выбора и ограничения.",
+     "поставщик без аванса", 2, {"activity_query": "торговля", "min_proceeds": 1_000_000_000}),
+])
+def test_explicit_defense_selection_skips_model_guard(message, goal, finalists, filters):
+    route = explicit_selection_route(message)
+    assert route is not None
+    assert route.goal == goal and route.finalists == finalists
+    for key, value in filters.items():
+        assert getattr(route.filters, key) == value
+
+
+def test_two_inns_are_comparison_before_goal_selection():
+    assert not handles_selection(
+        "Выбери между 3711039473 и 6165169320 покупателя на отсрочку 60 дней", {}
+    )
 
 
 @pytest.fixture

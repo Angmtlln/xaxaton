@@ -171,6 +171,100 @@ def _direct_basic_arguments(message: str) -> Optional[dict]:
         return None
 
 
+def _explicit_filter_arguments(message: str) -> Optional[dict]:
+    """Разобрать только явно названные поля shortlist без модельного роутера.
+
+    Это admission для типизированных аргументов, а не проверка смысла ответа:
+    незнакомый остаток не игнорируется и остаётся обычному Master-маршруту.
+    """
+    text = " ".join(message.strip().rstrip(".!?").split())
+    match = re.fullmatch(
+        r"(?:найди|покажи|подбери)\s+(?:(?P<count>[1-9]|1[0-9]|2[0-5])\s+)?"
+        r"(?P<trading>торгов\w*\s+)?(?:компании|контрагентов|поставщиков|покупателей)\s+(?P<body>.+)",
+        text, re.I,
+    )
+    if not match:
+        return None
+    body = match["body"]
+    body = re.split(
+        r"\s+для\s+(?:закуп\w*|постав\w*|продаж\w*|сотруднич\w*)"
+        r"|\s+без\s+аванса\b|,\s*(?:главн\w*|важн\w*|укаж\w*|объясн\w*)\b",
+        body, maxsplit=1, flags=re.I,
+    )[0].strip()
+    # Формат вывода не является дополнительным фильтром.
+    body = re.sub(r"[;,]\s*покажи\s+(?:число|количество)\s+совпадений\s+и\s+(?:первые\s+)?\d+\s+строк\w*$", "", body, flags=re.I)
+    args = {"activity_scope": "any"}
+    consumed = []
+
+    def take(pattern, callback):
+        found = re.search(pattern, body, re.I)
+        if found:
+            callback(found)
+            consumed.append((found.start(), found.end()))
+
+    if match["trading"]:
+        args["activity_query"] = "торговля"
+
+    take(r"(?:с\s+)?окв[еэ]д\s+(?P<code>[0-9]{2}(?:\.[0-9]{1,2}){0,2})(?:\s+по\s+основной\s+деятельности)?",
+         lambda m: args.update(okved_prefix=m["code"], activity_scope="main" if re.search(r"основной", m[0], re.I) else args["activity_scope"]))
+
+    amount = r"(?P<amount>[0-9]+(?:[.,][0-9]+)?)\s*(?P<unit>тыс|млн|млрд)?\.?\s*(?:рублей|руб\.?|₽)?"
+
+    def scaled(m, name="amount"):
+        unit = m.groupdict().get("unit")
+        scale = {None: 1, "тыс": 1000, "млн": 1000000, "млрд": 1000000000}[unit.lower() if unit else None]
+        return float(Decimal(m[name].replace(",", ".")) * scale)
+
+    take(r"(?:с\s+)?выручк\w*\s+от\s+" + amount,
+         lambda m: args.update(min_proceeds=scaled(m)))
+    take(r"(?:с\s+)?выручк\w*\s+до\s+" + amount,
+         lambda m: args.update(max_proceeds=scaled(m)))
+
+    profit_range = re.search(r"(?:с\s+)?прибыл\w*\s+от\s+(?P<lower>-?[0-9]+(?:[.,][0-9]+)?)\s+до\s+" + amount, body, re.I)
+    if profit_range:
+        unit = profit_range.groupdict().get("unit")
+        scale = {None: 1, "тыс": 1000, "млн": 1000000, "млрд": 1000000000}[unit.lower() if unit else None]
+        args["min_profit"] = float(Decimal(profit_range["lower"].replace(",", ".")) * scale)
+        args["max_profit"] = scaled(profit_range)
+        consumed.append((profit_range.start(), profit_range.end()))
+    else:
+        take(r"(?:с\s+)?прибыл\w*\s+от\s+" + amount,
+             lambda m: args.update(min_profit=scaled(m)))
+        take(r"(?:с\s+)?прибыл\w*\s+до\s+" + amount,
+             lambda m: args.update(max_profit=scaled(m)))
+        take(r"с\s+отрицательн\w+\s+прибыл\w*",
+             lambda _m: args.update(max_profit=-0.000001))
+
+    take(r"(?:с\s+)?банковск\w+\s+(?:риском\s+)?(?P<level>LOW|MEDIUM|HIGH|UNKNOWN)\b",
+         lambda m: args.update(risk_level=m["level"].upper()))
+    take(r"со?\s+светофор\w*\s+зск\s+(?P<level>GREEN|YELLOW|RED|UNKNOWN)\b",
+         lambda m: args.update(zsk_risk_level=m["level"].upper()))
+
+    count_words = {"одного": 1, "одной": 1, "двух": 2, "трех": 3, "трёх": 3, "пяти": 5}
+    def max_exec(m):
+        raw = m["count"].lower()
+        args["max_enforcement_count"] = int(raw) if raw.isdigit() else count_words[raw]
+    take(r"не\s+более\s+(?P<count>[0-9]+|одного|одной|двух|трех|трёх|пяти)\s+(?:ип\b|исполнительн\w*\s+производств\w*)", max_exec)
+
+    take(r"без\s+(?:ж[её]стких\s+)?стоп-факторов", lambda _m: args.update(hard_stops="without"))
+
+    if not consumed and not match["trading"]:
+        return None
+    remainder = list(body)
+    for start, end in consumed:
+        remainder[start:end] = " " * (end - start)
+    remainder = "".join(remainder)
+    remainder = re.sub(r"\b(?:и|с|со)\b|[,;]", " ", remainder, flags=re.I)
+    if remainder.strip():
+        return None
+    if match["count"]:
+        args["limit"] = int(match["count"])
+    try:
+        return FindCompaniesArgs(**args).model_dump(exclude_none=True)
+    except ValueError:
+        return None
+
+
 _ACTIVITY_CLAUSE = re.compile(
     r"(?:занимающ(?:иеся|ихся)\s+|по\s+деятельности\s+)(?P<query>.+)", re.I)
 
@@ -192,6 +286,9 @@ def activity_arguments(message: str) -> dict:
 
 
 def direct_shortlist_arguments(message: str) -> Optional[dict]:
+    explicit = _explicit_filter_arguments(message)
+    if explicit is not None:
+        return explicit
     basic = _direct_basic_arguments(message)
     if basic is not None:
         return basic

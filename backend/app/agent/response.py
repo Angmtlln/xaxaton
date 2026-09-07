@@ -1,6 +1,7 @@
 """Backend hydration for Master-authored prose and verified UI artifacts."""
 from __future__ import annotations
 
+import re
 import time
 from typing import Dict, List, Optional
 
@@ -97,6 +98,7 @@ def tool_result_to_assistant(
     contextual: bool = False,
     grounding_status: str = "not_required",
     repair_attempts: int = 0,
+    fallback_request: Optional[str] = None,
 ) -> AssistantResponse:
     if result is not None and result.status == "error":
         message = result.error.user_safe_message if result.error else "Не удалось выполнить проверку."
@@ -126,7 +128,7 @@ def tool_result_to_assistant(
         if data is not None and result is not None
         else {item.id: item for item in map(Evidence.model_validate, context.get("evidence", []))}
     )
-    message = master_answer.message if master_answer is not None else _fallback_message(context)
+    message = master_answer.message if master_answer is not None else _fallback_message(context, fallback_request)
     artifact = master_answer.artifact if master_answer is not None else "none"
 
     blocks = []
@@ -197,7 +199,7 @@ def _result_data(result: ToolResult):
     return TargetedData.model_validate(result.data)
 
 
-def _fallback_message(context: dict) -> str:
+def _fallback_message(context: dict, request: Optional[str] = None) -> str:
     if context.get("domain") == "intro":
         return (
             "**Помогу разобраться в контрагенте:** проверить доступные сведения, "
@@ -208,7 +210,7 @@ def _fallback_message(context: dict) -> str:
     if context.get("domain") == "shortlist":
         return _shortlist_fallback(context)
     if context.get("domain") == "comparison":
-        return _comparison_fallback(context)
+        return _comparison_fallback(context, request)
     hard_stops = [
         signal for signal in context.get("policy_signals", [])
         if signal.get("kind") == "official_hard_stop"
@@ -446,18 +448,27 @@ def _shortlist_fallback(context: dict) -> str:
     )
 
 
-def _comparison_fallback(context: dict) -> str:
-    """Без аналитики Master называем только то, что посчитано кодом."""
+def _comparison_fallback(context: dict, request: Optional[str] = None) -> str:
+    """Без Master сохраняем проверенные различия и условия решения."""
+    companies = context.get("companies", [])
+
+    def metric(company, fragment):
+        return next((item for item in company.get("metrics", []) if fragment in item.get("id", "")), None)
+
+    def summary(company):
+        values = []
+        for fragment in (":fin.proceeds.", ":fin.profit.", ":fin.capitals.",
+                         ":court.defendant_count", ":court.defendant_amount"):
+            item = metric(company, fragment)
+            if item and item.get("display_value") is not None:
+                values.append("%s — **%s**" % (item["label"], item["display_value"]))
+        return "; ".join(values)
+
     flagged = [
         item.get("name") or item.get("inn") for item in context.get("companies", [])
         if any(signal.get("kind") == "official_hard_stop"
                for signal in item.get("policy_signals", []))
     ]
-    if flagged:
-        return (
-            "Аналитическое сравнение сейчас недоступно. Метка ограничения есть "
-            "у следующих компаний: %s. Проверьте его до сделки." % ", ".join(flagged)
-        )
     empty = [
         item.get("name") or item.get("inn") for item in context.get("companies", [])
         if (item.get("coverage") or {}).get("state") == "NO_DATA"
@@ -467,10 +478,28 @@ def _comparison_fallback(context: dict) -> str:
             "Аналитическое сравнение сейчас недоступно. По этим компаниям данных нет: %s. "
             "Отсутствие сведений не подтверждает отсутствие событий или риска." % ", ".join(empty)
         )
-    return (
-        "Аналитическое сравнение сейчас недоступно. Проверенные показатели компаний "
-        "собраны в таблице ниже."
-    )
+    rows = [
+        "- **%s:** %s." % (item.get("name") or item.get("inn"), summary(item))
+        for item in companies if summary(item)
+    ]
+    notes = []
+    if flagged:
+        notes.append(
+            "- **Ограничения:** у %s есть метка ограничения источника. Её причину и актуальность нужно проверить; сама метка не доказывает невозможность сотрудничества."
+            % ", ".join(flagged)
+        )
+    if request and re.search(r"поставщик", request, re.I):
+        deal = "без аванса" if re.search(r"без\s+аванса", request, re.I) else ""
+        notes.append(
+            "- **Условия выбора:** для поставщика %s финансовые показатели, судебная нагрузка и метки источника дают разные критерии. Проверьте способность исполнить именно ваш договор; эти агрегаты её не гарантируют."
+            % deal
+        )
+    if rows:
+        return (
+            "Смысловой ответ модели сейчас недоступен, поэтому ниже только проверенное сопоставление.\n\n"
+            + "\n".join(rows + notes)
+        )
+    return "Смысловой ответ модели сейчас недоступен. Проверенные показатели компаний собраны в таблице ниже."
 
 
 def _policy_block(data, evidence_by_id: Dict[str, Evidence]) -> Optional[FindingListBlock]:

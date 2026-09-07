@@ -34,6 +34,19 @@ def test_full_search_and_ranking_separate_filter_from_order():
     assert turn.arguments['ranking'] == [{'metric': 'profit', 'order': 'desc'}]
 
 
+@pytest.mark.parametrize('message, expected', [
+    ('Найди 5 компаний с самой большой выручкой', [{'metric': 'proceeds', 'order': 'desc'}]),
+    ('Выбери 3 компании: сначала прибыль по убыванию, затем число ИП по возрастанию',
+     [{'metric': 'profit', 'order': 'desc'}, {'metric': 'enforcement', 'order': 'asc'}]),
+    ('Найди 3 компании: сначала максимальная прибыль, при равенстве минимальное число ИП',
+     [{'metric': 'profit', 'order': 'desc'}, {'metric': 'enforcement', 'order': 'asc'}]),
+])
+def test_defense_ranking_phrases(message, expected):
+    turn = selection_turn(message, None, None)
+    assert turn.arguments is not None
+    assert turn.arguments['ranking'] == expected
+
+
 def test_direction_does_not_leak_to_next_metric():
     turn = selection_turn('Выбери 5 сначала по прибыли по возрастанию, затем по выручке', None, None)
     assert turn.arguments['ranking'] == [{'metric': 'profit', 'order': 'asc'}, {'metric': 'proceeds', 'order': 'desc'}]

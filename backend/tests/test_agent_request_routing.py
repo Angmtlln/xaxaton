@@ -2,7 +2,8 @@
 import pytest
 from langchain_core.messages import AIMessage
 
-from app.agent.runtime import inspect_comparison_request, inspect_request
+from app.agent.runtime import (inspect_comparison_request, inspect_request,
+                               is_direct_request, requested_tool)
 from test_agent_runtime import (_answer, _model, _runtime, _tool_call,
                                 _verified_context, FailingToolCallingModel)
 from test_agent_multiturn import targeted_result
@@ -36,6 +37,30 @@ def test_amounts_do_not_break_identified_checks_or_comparisons():
         "Сравни 6165169320 и 0278949271 для сделки на 10000000 рублей"
     ) == (None, ["6165169320", "0278949271"])
     assert inspect_request("Сумма 10000000 рублей, ИНН 123") == ("invalid_inn", None)
+
+
+@pytest.mark.parametrize("question", [
+    "Почему до регистрации у 1684017097 нулевая выручка?",
+    "Чем отличаются выручка и прибыль в данных 6165169320?",
+    "Объясни по 6165169320 факт, интерпретацию и гипотезу на примере роста выручки.",
+    "У 5029069967 есть подписанные госконтракты и лицензии: можно ли считать доказанными опыт и успешное исполнение?",
+])
+def test_explicit_single_domain_question_is_a_bounded_direct_read(question):
+    target = requested_tool(question)
+    assert target in {"get_financial_data", "get_legal_data"}
+    assert is_direct_request(question, target)
+
+
+def test_combined_licenses_and_procurements_use_profile_projection():
+    from app.agent.runtime import detail_arguments
+    question = "У 5029069967 есть подписанные госконтракты и лицензии?"
+    assert detail_arguments(question) == {"section": "profile"}
+
+
+def test_explicit_domain_negation_stays_with_semantic_router():
+    question = "Не нужно проверять финансы 6165169320, объясни термин"
+    assert requested_tool(question) == "get_financial_data"
+    assert not is_direct_request(question, "get_financial_data")
 
 
 @pytest.mark.asyncio
