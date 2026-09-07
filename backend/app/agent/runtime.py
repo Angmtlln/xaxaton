@@ -29,7 +29,7 @@ from .master_model import build_master_model
 from .shortlist import activity_arguments, direct_shortlist_arguments
 from .ranking import selection_turn
 from .models import CompanyRef, Evidence, GroundingVerification, MasterAnswer, is_valid_inn
-from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS, RANKING_SYNTHESIS_INSTRUCTIONS
+from .prompt import MASTER_SYSTEM_PROMPT, MASTER_PROMPT_VERSION, MASTER_SYNTHESIS_INSTRUCTIONS, INTRO_INSTRUCTIONS, RANKING_SYNTHESIS_INSTRUCTIONS, FOLLOW_UP_INSTRUCTIONS
 from .response import guard_response, runtime_timeout_response, tool_result_to_assistant
 from app.infrastructure.progress import emit_progress
 from .synthesis import (allowed_artifacts, normalized_tool_context,
@@ -953,7 +953,9 @@ def _model_policy(
                        "При явной просьбе обновить данные прочитай их повторно; это чтение снимка, "
                        "а не обновление сведений у первоисточника.\n"
                        if automatic and not answer_stage else "\n")
-                    + "Финальный ответ верни только JSON; Markdown разрешён внутри message."
+                    + FOLLOW_UP_INSTRUCTIONS
+                    + "\nФинальный ответ верни только JSON; Markdown разрешён внутри message. "
+                    + "Поле suggested_actions обязательно: верни [] при отказе от продолжения."
                 )
             )
         bounded = request.override(**overrides)
