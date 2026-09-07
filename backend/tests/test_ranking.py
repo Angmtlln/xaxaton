@@ -189,3 +189,36 @@ def test_pending_count_change_keeps_filters_and_order():
     assert confirmed.arguments['limit'] == 3
     assert confirmed.arguments['min_proceeds'] == 10000000
     assert len(confirmed.arguments['ranking']) == 2
+
+
+@pytest.mark.parametrize('separator', ['. ', '; ', ', ', '\n', ' и '])
+@pytest.mark.parametrize('count', [3, 5])
+def test_search_then_show_ranking_preserves_filters_and_count(separator, count):
+    turn = selection_turn(
+        f'Найди торговые компании с выручкой от 100 млн рублей{separator}Покажи {count} с наибольшей прибылью',
+        None, None,
+    )
+    assert turn.arguments is not None
+    assert turn.arguments['activity_query'] == 'торговлей'
+    assert turn.arguments['min_proceeds'] == 100_000_000
+    assert turn.arguments['limit'] == count
+    assert turn.arguments['ranking'] == [{'metric': 'profit', 'order': 'desc'}]
+
+
+def test_split_search_keeps_unknown_conditions_rejected():
+    turn = selection_turn(
+        'Найди торговые компании с выручкой от 100 млн рублей без долгов. Покажи 5 с наибольшей прибылью',
+        None, None,
+    )
+    assert turn.arguments is None and turn.clarification
+
+@pytest.mark.asyncio
+async def test_two_sentence_search_executes_ranking(found):
+    response = await _runtime(None).run(
+        'Найди торговые компании с выручкой от 100 млн рублей. Покажи 5 с наибольшей прибылью'
+    )
+    assert response.metadata.tool_calls == 1
+    assert found['min_proceeds'] == 100_000_000
+    assert found['limit'] == 5
+    assert found['ranking'] == [{'metric': 'profit', 'order': 'desc'}]
+    assert response.blocks[0].type == 'company_shortlist'

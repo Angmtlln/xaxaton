@@ -50,7 +50,7 @@ def selection_turn(message: str, shortlist: dict | None, pending: dict | None) -
         return None
 
     # Separate the filter command from the requested ordering before parsing metrics.
-    split = re.search(r"(?:,?\s+и\s+|,\s*)(?=(?:выбери|отбери|отсортируй)\b)", text, re.I)
+    split = re.search(r"(?:,?\s+и\s+|[.;,]\s*|\n+)(?=(?:выбери|отбери|отсортируй|покажи)\b)", text, re.I)
     filter_text, selection = (text[:split.start()], text[split.end():]) if split else ("", text)
     selection = re.sub(
         r"(?:,|\s+и)?\s*(?:затем\s+)?объясни\w*\s+(?:исключени\w*\s+пропуск\w*|порядок)\s*$",
