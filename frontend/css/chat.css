@@ -1341,3 +1341,7 @@ body.landing-mode .chat-nav {
 .company-option:hover, .company-option[aria-selected="true"], .company-option:focus-visible { background: #f3f4f6; outline: 2px solid #747b88; outline-offset: -2px; }
 .company-choice .company-option { border: 1px solid #ddd; border-radius: 10px; }
 .company-option:disabled { cursor: default; opacity: .55; }
+
+/* White backing preserves both original logo colors on the red landing. */
+.landing-mode .aleph-brand { padding: 8px 12px; border-radius: 12px; background: #fff; }
+.assistant-author .aleph-logo { width: 76px; height: auto; }

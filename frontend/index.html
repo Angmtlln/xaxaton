@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI-аналитик контрагентов — Альфа-Банк</title>
-<meta name="description" content="Проверка и сравнение контрагентов в диалоге с AI-аналитиком Альфа-Банка.">
+<title>ALEPH — анализ контрагентов</title>
+<meta name="description" content="Проверка и сравнение контрагентов в диалоге с ALEPH.">
 <link rel="stylesheet" href="/static/css/tokens.css">
 <link rel="stylesheet" href="/static/css/base.css">
 <link rel="stylesheet" href="/static/css/chat.css">
@@ -15,12 +15,8 @@
 <div class="chat-app">
   <header class="chat-topbar" aria-label="Шапка сервиса">
     <div class="chat-topbar-inner">
-      <a class="brand brand-dark" href="/" aria-label="Альфа-Банк — новый диалог">
-        <span class="brand-mark" aria-hidden="true">A</span>
-        <span>
-          <b>Альфа-Банк</b>
-          <small>AI-аналитик</small>
-        </span>
+      <a class="brand brand-dark aleph-brand" href="/" aria-label="ALEPH — новый диалог">
+        <img class="aleph-logo" src="/static/assets/aleph-logo.png" width="830" height="280" alt="ALEPH">
       </a>
       <div class="chat-topbar-actions">
         <button type="button" class="chat-nav-toggle" id="chat-nav-toggle"
@@ -54,10 +50,10 @@
       <button type="button" id="new-conversation">Новый диалог</button>
     </div>
     <section class="chat-intro" id="chat-intro" aria-labelledby="chat-title">
-      <span class="chat-kicker">AI-аналитик контрагентов</span>
+      <span class="chat-kicker">ALEPH · анализ контрагентов</span>
       <h1 id="chat-title">Узнайте, с кем<br>ведёте бизнес</h1>
       <p>
-        Расскажите, что хотите узнать. AI-аналитик проверит контрагента,
+        Расскажите, что хотите узнать. ALEPH проверит контрагента,
         объяснит данные и поможет разобраться в вашей сделке.
       </p>
       <div class="landing-composer-slot" id="landing-composer-slot"></div>
@@ -74,7 +70,7 @@
       </div>
     </section>
 
-    <section class="chat-thread" id="chat-thread" aria-label="Диалог с AI-аналитиком"
+    <section class="chat-thread" id="chat-thread" aria-label="Диалог с ALEPH"
              aria-live="polite" hidden></section>
   </main>
   <div class="landing-footer" aria-label="Принципы анализа">
@@ -82,7 +78,7 @@
   </div>
 
   <footer class="chat-composer-shell">
-    <form class="chat-composer" id="chat-form" aria-label="Сообщение AI-аналитику">
+    <form class="chat-composer" id="chat-form" aria-label="Сообщение ALEPH">
       <label class="sr-only" for="chat-input">Запрос о контрагенте</label>
       <div class="composer-control">
         <textarea id="chat-input" rows="1" autocomplete="off"

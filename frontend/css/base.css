@@ -112,3 +112,7 @@ select {
   color: #ffffff;
   background: #ef3124;
 }
+
+/* Original ALEPH artwork, shared by the chat and report headers. */
+.aleph-brand { flex: none; }
+.aleph-logo { display: block; width: 132px; height: auto; }

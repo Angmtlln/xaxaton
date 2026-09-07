@@ -541,9 +541,15 @@ export function buildAssistantMessage(payload, hooks = {}) {
   const avatar = element('div', 'assistant-avatar', 'A');
   avatar.setAttribute('aria-hidden', 'true');
   const body = element('div', 'assistant-content');
-  article.setAttribute('aria-label', 'AI-аналитик');
+  article.setAttribute('aria-label', 'ALEPH');
   const metadata = payload && payload.metadata ? payload.metadata : {};
-  const author = element('div', 'assistant-author', 'AI-аналитик');
+  const author = element('div', 'assistant-author');
+  const logo = element('img', 'aleph-logo');
+  logo.src = '/static/assets/aleph-logo.png';
+  logo.alt = 'ALEPH';
+  logo.width = 830;
+  logo.height = 280;
+  author.appendChild(logo);
   body.appendChild(author);
   const prefix = `${String(metadata.agent_run_id || Date.now()).replace(/[^a-zA-Z0-9_-]/g, '')}-${hooks.index || 0}`;
   const context = {
