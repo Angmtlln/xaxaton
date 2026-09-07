@@ -29,6 +29,15 @@ def test_bank_balanced_pinned_and_holdout_excluded_from_pilot():
     assert len({t['question'] for c in bank['cases'] if c['category']=='C' for t in c['turns']})==30
 
 
+def test_excluding_completed_pilot_leaves_exactly_remaining_bank():
+    bank=load()
+    pilot=select_cases(bank,SimpleNamespace(suite='pilot',case=None,exclude_case=None))
+    remaining=select_cases(bank,SimpleNamespace(suite='full',case=None,
+                                                 exclude_case=[c['id'] for c in pilot]))
+    assert len(remaining)==130
+    assert not {c['id'] for c in pilot}&{c['id'] for c in remaining}
+
+
 def test_two_targeted_tools_valid_full_plus_targeted_invalid():
     row=example(); spec={'outcome':'answer'}
     assert not any(c['status']=='FAIL' for c in grade(row,spec,{}))

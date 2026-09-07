@@ -125,6 +125,14 @@ def select_cases(bank,args):
         unknown=set(args.case)-{c['id'] for c in cases}
         if unknown: raise ValueError(f'Unknown cases in suite: {sorted(unknown)}')
         cases=[c for c in cases if c['id'] in args.case]
+    excluded=getattr(args,'exclude_case',None)
+    if excluded:
+        known={c['id'] for c in bank['cases']}
+        unknown=set(excluded)-known
+        if unknown: raise ValueError(f'Unknown excluded cases: {sorted(unknown)}')
+        cases=[c for c in cases if c['id'] not in excluded]
+    if not cases:
+        raise ValueError('Scenario selection is empty')
     return cases
 
 
@@ -188,7 +196,8 @@ async def execute(args,bank,cases,out,db,manifest):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--suite',choices=['pilot','full','development','holdout'],default='pilot')
-    p.add_argument('--case',action='append'); p.add_argument('--concurrency',type=int,choices=range(1,5),default=2)
+    p.add_argument('--case',action='append'); p.add_argument('--exclude-case',action='append')
+    p.add_argument('--concurrency',type=int,choices=range(1,5),default=2)
     p.add_argument('--repetitions',type=int,choices=range(1,4),default=1)
     p.add_argument('--web',choices=['disabled','live'],default='disabled')
     p.add_argument('--output',required=True); args=p.parse_args()
