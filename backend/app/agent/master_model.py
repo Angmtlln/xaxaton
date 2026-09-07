@@ -50,6 +50,9 @@ def build_master_model(settings: Settings) -> Optional[BaseChatModel]:
         provider["sort"] = settings.openrouter_provider_sort
     if settings.openrouter_preferred_max_latency is not None:
         provider["preferred_max_latency"] = settings.openrouter_preferred_max_latency
+    if settings.master_model.startswith("z-ai/glm-"):
+        # GLM must stay on Parasail, including routing, synthesis and repair.
+        provider.update(only=["parasail"], allow_fallbacks=False)
     if provider:
         extra_body["provider"] = provider
 

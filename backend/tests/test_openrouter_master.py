@@ -55,7 +55,8 @@ def test_openrouter_factory_uses_standard_openai_compatible_adapter_without_netw
     assert model.model_kwargs["parallel_tool_calls"] is False
     assert model.default_headers["HTTP-Referer"] == "https://example.test"
     assert model.default_headers["X-Title"] == "Counterparty Agent"
-    assert model.extra_body == {"reasoning": {"effort": "low"}, "provider": {"sort": "throughput"}}
+    assert model.extra_body == {"reasoning": {"effort": "low"}, "provider": {
+        "sort": "throughput", "only": ["parasail"], "allow_fallbacks": False}}
 
 
 def test_openrouter_key_is_required_and_mock_disables_master():
@@ -82,7 +83,26 @@ def test_reasoning_effort_can_be_disabled():
         _settings(openrouter_api_key="test-key", openrouter_reasoning_effort="")
     )
 
-    assert model.extra_body == {"provider": {"sort": "throughput"}}
+    assert model.extra_body == {"provider": {
+        "sort": "throughput", "only": ["parasail"], "allow_fallbacks": False}}
+
+
+@pytest.mark.parametrize("model_name", ["z-ai/glm-5.3-flash", "z-ai/glm-5.3-flash:nitro"])
+def test_glm_stays_on_parasail_without_sorting(model_name):
+    model = build_master_model(_settings(
+        openrouter_api_key="test-key", master_model=model_name,
+        openrouter_provider_sort=None, openrouter_preferred_max_latency=3,
+    ))
+    assert model.extra_body["provider"] == {
+        "only": ["parasail"], "allow_fallbacks": False, "preferred_max_latency": 3,
+    }
+
+
+def test_non_glm_master_keeps_automatic_provider_routing():
+    model = build_master_model(_settings(
+        openrouter_api_key="test-key", master_model="other/model",
+    ))
+    assert model.extra_body["provider"] == {"sort": "throughput"}
 
 
 def test_documented_master_environment_names(monkeypatch):

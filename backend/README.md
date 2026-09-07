@@ -110,6 +110,20 @@ Runtime принимает полную проверку и узкие фина�
 вызов Master; model routing добавляется только при необходимости.
 `ChatOpenAI` обращается к OpenRouter (`z-ai/glm-5.3-flash`,
 `OPENROUTER_PROVIDER_SORT=throughput`); модель фиксируется на conversation.
+Для семейства `z-ai/glm-*` адаптер закрепляет `provider.only=["parasail"]` и
+`allow_fallbacks=false`: routing, синтез ответа и debug verifier/repair идут
+только через Parasail. Сортировка действует внутри разрешённого провайдера.
+При его недоступности другой провайдер OpenRouter не подхватывает запрос;
+приложение использует существующий conservative fallback. Другие модели Master
+сохраняют прежнюю маршрутизацию. Правила API: [OpenRouter provider routing](https://openrouter.ai/docs/guides/routing/provider-selection).
+
+Четыре доменных блока используют отдельный `GroqClient`: при ошибке перебирают
+`GROQ_FALLBACK_MODELS` на Groq. Если цепочка не сработала, backend возвращает
+детерминированный результат с `degraded=true`, а полный проход — `PARTIAL`.
+GLM автоматически не заменяет блочные модели; она продолжает свою роль Master
+и может объяснять доступные проверенные данные. Это не четыре повторных анализа
+блоков через GLM. БД и схема API при закреплении провайдера не меняются.
+
 Verifier и repair **выключены по умолчанию**, в том числе для «Объясни проще».
 `AGENT_GROUNDING_DEBUG=true` включает прежний bounded механизм только для
 явного eval/debug. Нового LLM/regex-классификатора вместо него нет.
