@@ -113,7 +113,7 @@ def test_legacy_report_and_landing_routes_are_unchanged(api_client):
     report = api_client.get("/report?inn=6165169320")
 
     assert landing.status_code == 200
-    assert "AI-аналитик" in landing.text
+    assert "<title>ALEPH — анализ контрагентов</title>" in landing.text
     assert report.status_code == 200
     assert "Отчёт" in report.text
 
